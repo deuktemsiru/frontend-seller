@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+
+    <!-- Primary -->
+    <color name="primary">#FFFF5C2E</color>
+    <color name="primary_light">#FFFFEDE5</color>
+    <color name="primary_dark">#FF6B2B12</color>
+
+    <!-- Status -->
+    <color name="online">#FF00C853</color>
+    <color name="success">#FF2E7D32</color>
+    <color name="success_light">#FFE8F5E9</color>
+    <color name="danger">#FFFF3B30</color>
+    <color name="warning">#FFFF8800</color>
+
+    <!-- Surface -->
+    <color name="surface">#FFF4F5F7</color>
+    <color name="surface_alt">#FFF8F8F8</color>
+
+    <!-- Text -->
+    <color name="text">#FF1A1A1A</color>
+    <color name="text_sub">#FF666666</color>
+    <color name="text_muted">#FF999999</color>
+
+    <!-- Border -->
+    <color name="border">#FFE5E5E5</color>
+
+    <!-- Transparent -->
+    <color name="transparent">#00000000</color>
+</resources>
