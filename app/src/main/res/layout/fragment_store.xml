@@ -13,164 +13,375 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="20dp"
-        android:paddingEnd="20dp"
+        android:paddingEnd="16dp"
         android:paddingTop="16dp"
         android:paddingBottom="12dp"
         android:background="@color/white">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="가게 관리"
             android:textSize="18sp"
             android:textColor="@color/text"
             android:fontFamily="sans-serif-medium" />
 
+        <TextView
+            android:id="@+id/btnEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="편집"
+            android:textSize="14sp"
+            android:textColor="@color/primary_dark"
+            android:fontFamily="sans-serif-medium"
+            android:background="@drawable/bg_rounded_primary_light"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:paddingTop="7dp"
+            android:paddingBottom="7dp" />
+
     </LinearLayout>
 
-    <!-- Store Info Card -->
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:background="@color/white"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="16dp"
-        android:layout_marginTop="12dp">
-
-        <TextView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:gravity="center"
-            android:text="🏪"
-            android:textSize="28sp"
-            android:background="@drawable/bg_rounded_primary_light"
-            android:layout_marginEnd="14dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="베이크하우스 청담"
-                android:textSize="16sp"
-                android:textColor="@color/text"
-                android:fontFamily="sans-serif-medium" />
-
+            <!-- Store Info Card -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginTop="4dp">
+                android:background="@color/white"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp"
+                android:layout_marginTop="12dp">
+
+                <TextView
+                    android:id="@+id/tvStoreEmoji"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:gravity="center"
+                    android:text="🏪"
+                    android:textSize="28sp"
+                    android:background="@drawable/bg_rounded_primary_light"
+                    android:layout_marginEnd="14dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvStoreName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="가게명 로딩 중..."
+                        android:textSize="16sp"
+                        android:textColor="@color/text"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="4dp">
+
+                        <View
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:background="@drawable/bg_status_dot_online"
+                            android:layout_marginEnd="5dp" />
+
+                        <TextView
+                            android:id="@+id/tvCategoryStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="영업 중"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_sub" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_rounded_primary_light"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="★"
+                        android:textSize="11sp"
+                        android:textColor="@color/primary_dark" />
+
+                    <TextView
+                        android:id="@+id/tvRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0.0"
+                        android:textSize="12sp"
+                        android:textColor="@color/primary_dark"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginStart="2dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Form Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/white"
+                android:layout_marginTop="12dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="기본 정보"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_sub"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="12dp" />
+
+                <!-- Address Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="주소"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_sub" />
+
+                    <EditText
+                        android:id="@+id/etAddress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:textColor="@color/text"
+                        android:hint="가게 주소를 입력하세요"
+                        android:inputType="textPostalAddress"
+                        android:background="@null"
+                        android:enabled="false"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="2dp"
+                        android:maxLines="2" />
+
+                </LinearLayout>
 
                 <View
-                    android:layout_width="6dp"
-                    android:layout_height="6dp"
-                    android:background="@drawable/bg_status_dot_online"
-                    android:layout_marginEnd="5dp" />
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/border"
+                    android:layout_marginStart="20dp" />
+
+                <!-- Phone Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="전화번호"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_sub" />
+
+                    <EditText
+                        android:id="@+id/etPhone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:textColor="@color/text"
+                        android:hint="전화번호를 입력하세요"
+                        android:inputType="phone"
+                        android:background="@null"
+                        android:enabled="false"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="2dp" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/border"
+                    android:layout_marginStart="20dp" />
+
+                <!-- Closing Time Row -->
+                <LinearLayout
+                    android:id="@+id/containerClosingTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="16dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="마감 시간"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_sub" />
+
+                        <TextView
+                            android:id="@+id/tvClosingTime"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--:--"
+                            android:textSize="14sp"
+                            android:textColor="@color/text"
+                            android:layout_marginTop="6dp" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvClosingTimeArrow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="시간 선택  ▾"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_muted"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Save Button -->
+            <TextView
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="변경사항 저장"
+                android:textSize="15sp"
+                android:textColor="@color/white"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:background="@drawable/bg_button_primary"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp"
+                android:layout_margin="16dp"
+                android:visibility="gone" />
+
+            <!-- Menu Management -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/white"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp"
+                android:layout_marginTop="4dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="등록된 메뉴"
+                    android:textSize="14sp"
+                    android:textColor="@color/text"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout
+                    android:id="@+id/menuContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+            <!-- Coming Soon Banner -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/bg_insight_box"
+                android:padding="20dp"
+                android:layout_margin="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="영업 중  •  베이커리"
+                    android:text="🚀"
+                    android:textSize="28sp"
+                    android:gravity="center" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="더 많은 기능이 곧 추가돼요"
+                    android:textSize="14sp"
+                    android:textColor="@color/text"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="정산 내역, 직원 계정, 리뷰 관리 등\nv1.1에서 출시 예정입니다"
                     android:textSize="12sp"
-                    android:textColor="@color/text_sub" />
+                    android:textColor="@color/text_sub"
+                    android:gravity="center"
+                    android:layout_marginTop="6dp" />
 
             </LinearLayout>
 
         </LinearLayout>
 
-    </LinearLayout>
-
-    <!-- Menu Items -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/white"
-        android:layout_marginTop="12dp">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:gravity="center_vertical"
-            android:text="영업 시간 관리"
-            android:textSize="14sp"
-            android:textColor="@color/text"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp" />
-
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/border" android:layout_marginStart="20dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:gravity="center_vertical"
-            android:text="가게 정보 수정"
-            android:textSize="14sp"
-            android:textColor="@color/text"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp" />
-
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/border" android:layout_marginStart="20dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:gravity="center_vertical"
-            android:text="정규 메뉴 관리"
-            android:textSize="14sp"
-            android:textColor="@color/text"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp" />
-
-    </LinearLayout>
-
-    <!-- Coming Soon Banner -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:background="@drawable/bg_insight_box"
-        android:padding="20dp"
-        android:layout_margin="16dp"
-        android:layout_marginTop="16dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🚀"
-            android:textSize="32sp"
-            android:gravity="center" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="더 많은 기능이 곧 추가돼요"
-            android:textSize="15sp"
-            android:textColor="@color/text"
-            android:fontFamily="sans-serif-medium"
-            android:gravity="center"
-            android:layout_marginTop="8dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="정산 내역, 직원 계정, 손님 리뷰 관리 등\nv1.1에서 출시 예정입니다"
-            android:textSize="13sp"
-            android:textColor="@color/text_sub"
-            android:gravity="center"
-            android:layout_marginTop="6dp" />
-
-    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
 </LinearLayout>

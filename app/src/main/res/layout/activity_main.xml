@@ -16,6 +16,77 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <LinearLayout
+        android:id="@+id/login_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/surface"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="득템시루 판매자"
+            android:textColor="@color/text"
+            android:textSize="28sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="매장 계정으로 로그인해주세요"
+            android:textColor="@color/text_sub"
+            android:textSize="15sp" />
+
+        <EditText
+            android:id="@+id/et_login_email"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="28dp"
+            android:background="@drawable/bg_card_white"
+            android:hint="이메일"
+            android:inputType="textEmailAddress"
+            android:paddingHorizontal="16dp"
+            android:singleLine="true"
+            android:textColor="@color/text"
+            android:textColorHint="@color/text_muted"
+            android:textSize="15sp" />
+
+        <EditText
+            android:id="@+id/et_login_password"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_card_white"
+            android:hint="비밀번호"
+            android:inputType="textPassword"
+            android:paddingHorizontal="16dp"
+            android:singleLine="true"
+            android:textColor="@color/text"
+            android:textColorHint="@color/text_muted"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/btn_login"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_button_primary"
+            android:fontFamily="sans-serif-medium"
+            android:stateListAnimator="@null"
+            android:text="로그인하기"
+            android:textColor="@color/white"
+            android:textSize="15sp" />
+    </LinearLayout>
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_nav"
         android:layout_width="0dp"

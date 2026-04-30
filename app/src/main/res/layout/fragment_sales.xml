@@ -19,9 +19,8 @@
         android:background="@color/white">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="매출 분석"
             android:textSize="18sp"
             android:textColor="@color/text"
@@ -40,21 +39,22 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Period toggle -->
+            <!-- Period Toggle -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="14dp">
+                android:layout_marginBottom="10dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/btnPrev"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:gravity="center"
                     android:text="◀"
-                    android:textSize="14sp"
-                    android:textColor="@color/text_sub"
-                    android:paddingEnd="8dp" />
+                    android:textSize="13sp"
+                    android:textColor="@color/text_sub" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -99,24 +99,27 @@
                 </LinearLayout>
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/btnNext"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:gravity="center"
                     android:text="▶"
-                    android:textSize="14sp"
-                    android:textColor="@color/text_sub"
-                    android:paddingStart="8dp" />
+                    android:textSize="13sp"
+                    android:textColor="@color/text_sub" />
 
             </LinearLayout>
 
+            <!-- Period Label -->
             <TextView
+                android:id="@+id/tvPeriodRange"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="2026.04.21 – 04.27"
+                android:text=""
                 android:textSize="12sp"
                 android:textColor="@color/text_sub"
                 android:layout_marginBottom="14dp" />
 
-            <!-- Weekly Sales Card -->
+            <!-- Sales Card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -131,108 +134,41 @@
                     android:orientation="horizontal"
                     android:gravity="center_vertical">
 
-                    <LinearLayout
+                    <TextView
+                        android:id="@+id/tvSalesTitle"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="주간 매출"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_sub" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="847,200원"
-                            android:textSize="24sp"
-                            android:textColor="@color/text"
-                            android:fontFamily="sans-serif-medium"
-                            android:layout_marginTop="4dp" />
-
-                    </LinearLayout>
+                        android:text="주간 매출"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_sub" />
 
                     <TextView
+                        android:id="@+id/tvLoadingIndicator"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="↑ +18%"
-                        android:textSize="13sp"
-                        android:textColor="@color/success"
-                        android:fontFamily="sans-serif-medium"
-                        android:background="@drawable/bg_rounded_success_light"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="10dp"
-                        android:paddingTop="5dp"
-                        android:paddingBottom="5dp" />
+                        android:text="로딩 중..."
+                        android:textSize="12sp"
+                        android:textColor="@color/text_muted"
+                        android:visibility="gone" />
 
                 </LinearLayout>
 
-                <!-- Bar chart area -->
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/tvTotalSales"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="16dp">
+                    android:text="--"
+                    android:textSize="24sp"
+                    android:textColor="@color/text"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginTop="4dp" />
 
-                    <!-- Bars -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp"
-                        android:orientation="horizontal"
-                        android:gravity="bottom">
-
-                        <!-- Mon -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="bottom|center_horizontal">
-                            <View android:layout_width="20dp" android:layout_height="55dp" android:background="@color/primary_light" />
-                        </LinearLayout>
-                        <!-- Tue -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="bottom|center_horizontal">
-                            <View android:layout_width="20dp" android:layout_height="70dp" android:background="@color/primary_light" />
-                        </LinearLayout>
-                        <!-- Wed -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="bottom|center_horizontal">
-                            <View android:layout_width="20dp" android:layout_height="62dp" android:background="@color/primary_light" />
-                        </LinearLayout>
-                        <!-- Thu -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="bottom|center_horizontal">
-                            <View android:layout_width="20dp" android:layout_height="80dp" android:background="@color/primary_light" />
-                        </LinearLayout>
-                        <!-- Fri -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="bottom|center_horizontal">
-                            <View android:layout_width="20dp" android:layout_height="90dp" android:background="@color/primary_light" />
-                        </LinearLayout>
-                        <!-- Sat -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="bottom|center_horizontal">
-                            <View android:layout_width="20dp" android:layout_height="100dp" android:background="@color/primary_light" />
-                        </LinearLayout>
-                        <!-- Sun (today - Primary) -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="bottom|center_horizontal">
-                            <View android:layout_width="20dp" android:layout_height="42dp" android:background="@color/primary" />
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <!-- Day labels -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="6dp">
-
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="월" android:textSize="11sp" android:textColor="@color/text_muted" />
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="화" android:textSize="11sp" android:textColor="@color/text_muted" />
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="수" android:textSize="11sp" android:textColor="@color/text_muted" />
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="목" android:textSize="11sp" android:textColor="@color/text_muted" />
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="금" android:textSize="11sp" android:textColor="@color/text_muted" />
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="토" android:textSize="11sp" android:textColor="@color/text_muted" />
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="오늘" android:textSize="11sp" android:textColor="@color/primary" android:fontFamily="sans-serif-medium" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
+                <com.example.deuktemsiru_seller.ui.sales.BarChartView
+                    android:id="@+id/barChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="130dp"
+                    android:layout_marginTop="16dp" />
 
             </LinearLayout>
 
@@ -269,18 +205,20 @@
                         android:fontFamily="sans-serif-medium" />
 
                     <TextView
+                        android:id="@+id/tvWasteCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="절감 폐기 142개"
+                        android:text="절감 폐기 --개"
                         android:textSize="16sp"
                         android:textColor="@color/white"
                         android:fontFamily="sans-serif-medium"
                         android:layout_marginTop="4dp" />
 
                     <TextView
+                        android:id="@+id/tvCo2Amount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="탄소 28kg 절감"
+                        android:text="탄소 --kg 절감"
                         android:textSize="13sp"
                         android:textColor="#CCFFFFFF"
                         android:layout_marginTop="2dp" />
@@ -289,7 +227,7 @@
 
             </LinearLayout>
 
-            <!-- TOP 3 Menus -->
+            <!-- Top Menus Header -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -299,194 +237,13 @@
                 android:fontFamily="sans-serif-medium"
                 android:layout_marginBottom="10dp" />
 
-            <!-- Rank 1 -->
+            <!-- Top Menus Container (dynamic) -->
             <LinearLayout
+                android:id="@+id/containerTopMenus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/bg_card_white"
-                android:padding="14dp"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:gravity="center"
-                    android:text="1"
-                    android:textSize="13sp"
-                    android:textColor="@color/primary_dark"
-                    android:fontFamily="sans-serif-medium"
-                    android:background="@drawable/bg_rounded_primary_light" />
-
-                <TextView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:gravity="center"
-                    android:text="🥐"
-                    android:textSize="20sp"
-                    android:layout_marginStart="10dp" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="크루아상 모음 박스"
-                        android:textSize="14sp"
-                        android:textColor="@color/text"
-                        android:fontFamily="sans-serif-medium" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="45건 판매 · 265,500원"
-                        android:textSize="12sp"
-                        android:textColor="@color/text_sub"
-                        android:layout_marginTop="2dp" />
-
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="+34%"
-                    android:textSize="12sp"
-                    android:textColor="@color/success"
-                    android:fontFamily="sans-serif-medium" />
-
-            </LinearLayout>
-
-            <!-- Rank 2 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/bg_card_white"
-                android:padding="14dp"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:gravity="center"
-                    android:text="2"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_muted"
-                    android:fontFamily="sans-serif-medium"
-                    android:background="@drawable/bg_rounded_muted" />
-
-                <TextView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:gravity="center"
-                    android:text="🍞"
-                    android:textSize="20sp"
-                    android:layout_marginStart="10dp" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="식빵 두 덩이 세트"
-                        android:textSize="14sp"
-                        android:textColor="@color/text"
-                        android:fontFamily="sans-serif-medium" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="32건 판매 · 108,800원"
-                        android:textSize="12sp"
-                        android:textColor="@color/text_sub"
-                        android:layout_marginTop="2dp" />
-
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="-5%"
-                    android:textSize="12sp"
-                    android:textColor="@color/danger"
-                    android:fontFamily="sans-serif-medium" />
-
-            </LinearLayout>
-
-            <!-- Rank 3 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/bg_card_white"
-                android:padding="14dp"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:gravity="center"
-                    android:text="3"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_muted"
-                    android:fontFamily="sans-serif-medium"
-                    android:background="@drawable/bg_rounded_muted" />
-
-                <TextView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:gravity="center"
-                    android:text="🧁"
-                    android:textSize="20sp"
-                    android:layout_marginStart="10dp" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="컵케이크 3종 세트"
-                        android:textSize="14sp"
-                        android:textColor="@color/text"
-                        android:fontFamily="sans-serif-medium" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="28건 판매 · 201,600원"
-                        android:textSize="12sp"
-                        android:textColor="@color/text_sub"
-                        android:layout_marginTop="2dp" />
-
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="+12%"
-                    android:textSize="12sp"
-                    android:textColor="@color/success"
-                    android:fontFamily="sans-serif-medium" />
-
-            </LinearLayout>
+                android:orientation="vertical"
+                android:layout_marginBottom="12dp" />
 
             <!-- Insight Box -->
             <LinearLayout
@@ -499,9 +256,10 @@
                 android:layout_marginBottom="8dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/tvInsight"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="💡 금~토요일 매출이 높아요. 주말 전 단골 알림을 보내보세요!"
+                    android:text="💡 데이터를 불러오는 중이에요..."
                     android:textSize="13sp"
                     android:textColor="@color/primary_dark" />
 

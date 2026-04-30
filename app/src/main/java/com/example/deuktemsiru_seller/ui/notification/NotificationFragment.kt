@@ -6,11 +6,18 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.R
+import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.FragmentNotificationBinding
+import com.example.deuktemsiru_seller.network.NotificationApiResponse
+import com.example.deuktemsiru_seller.network.RetrofitClient
+import com.example.deuktemsiru_seller.network.SendNotificationRequest
+import kotlinx.coroutines.launch
 
 class NotificationFragment : Fragment() {
 
@@ -29,6 +36,11 @@ class NotificationFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val session = SessionManager(requireContext())
+        RetrofitClient.authToken = session.token
+        binding.tvPreviewStoreName.text = session.storeName.ifBlank { "내 가게" }
+        if (session.isLoggedIn()) loadHistory(session.sellerId)
+
         binding.etMessage.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 val count = s?.length ?: 0
@@ -40,16 +52,81 @@ class NotificationFragment : Fragment() {
         })
 
         binding.btnSend.setOnClickListener {
+            val message = binding.etMessage.text?.toString()?.trim() ?: ""
+            if (message.isEmpty()) {
+                Toast.makeText(requireContext(), "메시지를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (!session.isLoggedIn()) return@setOnClickListener
+
             AlertDialog.Builder(requireContext())
                 .setTitle("알림 발송 확인")
-                .setMessage("정말 38명에게 보내시겠어요?")
+                .setMessage("단골 고객들에게 알림을 보내시겠어요?")
                 .setPositiveButton("보내기") { _, _ ->
-                    Toast.makeText(requireContext(), "38명에게 발송 완료!", Toast.LENGTH_LONG).show()
+                    sendNotification(session.sellerId, message)
                 }
                 .setNegativeButton("취소", null)
                 .show()
         }
     }
+
+    private fun sendNotification(sellerId: Long, message: String) {
+        lifecycleScope.launch {
+            try {
+                val result = RetrofitClient.api.sendNotification(
+                    sellerId = sellerId,
+                    req = SendNotificationRequest(message),
+                )
+                Toast.makeText(
+                    requireContext(),
+                    "${result.recipientCount}명에게 발송 완료!",
+                    Toast.LENGTH_LONG
+                ).show()
+                binding.etMessage.text?.clear()
+                loadHistory(sellerId)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "알림 발송에 실패했어요.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun loadHistory(sellerId: Long) {
+        lifecycleScope.launch {
+            try {
+                renderHistory(RetrofitClient.api.getNotifications(sellerId))
+            } catch (e: Exception) {
+                renderHistory(emptyList())
+            }
+        }
+    }
+
+    private fun renderHistory(items: List<NotificationApiResponse>) {
+        binding.notificationHistoryContainer.removeAllViews()
+        if (items.isEmpty()) {
+            binding.notificationHistoryContainer.addView(historyText("아직 발송한 알림이 없어요"))
+            return
+        }
+
+        items.take(5).forEach { item ->
+            binding.notificationHistoryContainer.addView(
+                historyText("${item.message}\n${item.recipientCount}명 대상 · ${formatSentAt(item.sentAt)}")
+            )
+        }
+    }
+
+    private fun historyText(text: String): TextView =
+        TextView(requireContext()).apply {
+            this.text = text
+            textSize = 13f
+            setTextColor(requireContext().getColor(R.color.text_sub))
+            setPadding(0, 8.dp, 0, 8.dp)
+        }
+
+    private fun formatSentAt(value: String): String =
+        value.replace('T', ' ').take(16)
+
+    private val Int.dp: Int
+        get() = (this * resources.displayMetrics.density).toInt()
 
     override fun onDestroyView() {
         super.onDestroyView()
