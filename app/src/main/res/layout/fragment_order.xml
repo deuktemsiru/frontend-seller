@@ -58,7 +58,7 @@
             android:layout_height="44dp"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="신규 3"
+            android:text="@string/tab_new_order_default"
             android:textSize="13sp"
             android:textColor="@color/primary"
             android:fontFamily="sans-serif-medium" />
@@ -69,7 +69,7 @@
             android:layout_height="44dp"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="준비 중 2"
+            android:text="@string/tab_preparing_default"
             android:textSize="13sp"
             android:textColor="@color/text_muted" />
 
@@ -79,7 +79,7 @@
             android:layout_height="44dp"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="픽업 대기 1"
+            android:text="@string/tab_pickup_ready_default"
             android:textSize="13sp"
             android:textColor="@color/text_muted" />
 
@@ -89,7 +89,7 @@
             android:layout_height="44dp"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="완료 8"
+            android:text="@string/tab_completed_default"
             android:textSize="13sp"
             android:textColor="@color/text_muted" />
 

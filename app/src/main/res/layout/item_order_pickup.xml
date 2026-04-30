@@ -4,11 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/bg_card_primary_border"
+    android:background="@drawable/bg_card_white"
     android:padding="16dp"
     android:layout_marginBottom="10dp">
 
-    <!-- Top row: badge + order num + time -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,24 +17,25 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="신규 주문"
+            android:text="픽업 대기"
             android:textSize="11sp"
-            android:textColor="@color/white"
+            android:textColor="@color/warning"
             android:fontFamily="sans-serif-medium"
-            android:background="@drawable/bg_rounded_primary"
+            android:background="@drawable/bg_rounded_warning"
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
             android:paddingTop="3dp"
             android:paddingBottom="3dp" />
 
         <TextView
-            android:id="@+id/tv_order_time"
+            android:id="@+id/tv_pickup_code"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="방금 도착"
+            android:text=""
             android:textSize="12sp"
-            android:textColor="@color/primary"
+            android:textColor="@color/text_sub"
+            android:fontFamily="monospace"
             android:layout_marginStart="8dp" />
 
         <TextView
@@ -49,7 +49,6 @@
 
     </LinearLayout>
 
-    <!-- Pickup time -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -75,7 +74,6 @@
 
     </LinearLayout>
 
-    <!-- Menu item -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -105,42 +103,18 @@
 
     </LinearLayout>
 
-    <!-- Action buttons -->
-    <LinearLayout
+    <Button
+        android:id="@+id/btn_complete"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="12dp">
-
-        <Button
-            android:id="@+id/btn_reject"
-            android:layout_width="0dp"
-            android:layout_height="44dp"
-            android:layout_weight="1"
-            android:text="거절"
-            android:textSize="13sp"
-            android:textColor="@color/text_sub"
-            android:fontFamily="sans-serif-medium"
-            android:background="@drawable/bg_button_outline"
-            android:layout_marginEnd="8dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:stateListAnimator="@null" />
-
-        <Button
-            android:id="@+id/btn_accept"
-            android:layout_width="0dp"
-            android:layout_height="44dp"
-            android:layout_weight="2"
-            android:text="수락"
-            android:textSize="14sp"
-            android:textColor="@color/white"
-            android:fontFamily="sans-serif-medium"
-            android:background="@drawable/bg_button_primary"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:stateListAnimator="@null" />
-
-    </LinearLayout>
+        android:layout_height="40dp"
+        android:text="픽업 완료"
+        android:textSize="13sp"
+        android:textColor="@color/white"
+        android:fontFamily="sans-serif-medium"
+        android:background="@drawable/bg_button_dark"
+        android:layout_marginTop="12dp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:stateListAnimator="@null" />
 
 </LinearLayout>
