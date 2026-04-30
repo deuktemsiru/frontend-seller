@@ -54,18 +54,20 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/tv_store_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="베이크하우스 청담"
+                    android:text=""
                     android:textSize="18sp"
                     android:textColor="@color/text"
                     android:fontFamily="sans-serif-medium"
                     android:layout_marginTop="2dp" />
 
                 <TextView
+                    android:id="@+id/tv_closing_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="마감 4시간 남음"
+                    android:text=""
                     android:textSize="12sp"
                     android:textColor="@color/text_sub"
                     android:layout_marginTop="2dp" />
@@ -119,6 +121,7 @@
                 android:layout_marginTop="4dp">
 
                 <TextView
+                    android:id="@+id/tv_today_sales"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -171,6 +174,7 @@
                     android:gravity="center">
 
                     <TextView
+                        android:id="@+id/tv_today_orders"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="23건"
@@ -271,10 +275,11 @@
             android:focusable="true">
 
             <TextView
+                android:id="@+id/tv_new_order_alert"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="🛍️ 신규 픽업 주문 3건 도착!"
+                android:text="@string/new_order_alert_empty"
                 android:textSize="14sp"
                 android:textColor="@color/text"
                 android:fontFamily="sans-serif-medium" />
@@ -309,7 +314,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="진행 중인 마감 메뉴"
+                    android:text="@string/active_menus_title"
                     android:textSize="15sp"
                     android:textColor="@color/text"
                     android:fontFamily="sans-serif-medium" />
@@ -323,260 +328,11 @@
 
             </LinearLayout>
 
-            <!-- Menu Item 1 -->
             <LinearLayout
+                android:id="@+id/active_menu_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/bg_card_white"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp"
-                android:layout_marginBottom="8dp">
-
-                <!-- Thumbnail placeholder -->
-                <TextView
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:gravity="center"
-                    android:text="🥐"
-                    android:textSize="22sp"
-                    android:background="@drawable/bg_rounded_primary_light" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="10dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="크루아상 모음 박스"
-                        android:textSize="14sp"
-                        android:textColor="@color/text"
-                        android:fontFamily="sans-serif-medium" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginTop="4dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="잔여 3개"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_sub" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="  •  "
-                            android:textSize="12sp"
-                            android:textColor="@color/text_muted" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="5,900원"
-                            android:textSize="13sp"
-                            android:textColor="@color/primary"
-                            android:fontFamily="sans-serif-medium" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-                <!-- Time badge - Warning -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="30분 이내"
-                    android:textSize="11sp"
-                    android:textColor="#FF3B30"
-                    android:fontFamily="sans-serif-medium"
-                    android:background="@drawable/bg_rounded_danger"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp" />
-
-            </LinearLayout>
-
-            <!-- Menu Item 2 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/bg_card_white"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:gravity="center"
-                    android:text="🍞"
-                    android:textSize="22sp"
-                    android:background="@drawable/bg_rounded_primary_light" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="10dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="식빵 두 덩이 세트"
-                        android:textSize="14sp"
-                        android:textColor="@color/text"
-                        android:fontFamily="sans-serif-medium" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginTop="4dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="잔여 5개"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_sub" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="  •  "
-                            android:textSize="12sp"
-                            android:textColor="@color/text_muted" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="3,400원"
-                            android:textSize="13sp"
-                            android:textColor="@color/primary"
-                            android:fontFamily="sans-serif-medium" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-                <!-- Time badge - Warning -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="1시간 이내"
-                    android:textSize="11sp"
-                    android:textColor="@color/warning"
-                    android:fontFamily="sans-serif-medium"
-                    android:background="@drawable/bg_rounded_warning"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp" />
-
-            </LinearLayout>
-
-            <!-- Menu Item 3 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/bg_card_white"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp">
-
-                <TextView
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:gravity="center"
-                    android:text="🧁"
-                    android:textSize="22sp"
-                    android:background="@drawable/bg_rounded_primary_light" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="10dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="컵케이크 3종 세트"
-                        android:textSize="14sp"
-                        android:textColor="@color/text"
-                        android:fontFamily="sans-serif-medium" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginTop="4dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="잔여 7개"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_sub" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="  •  "
-                            android:textSize="12sp"
-                            android:textColor="@color/text_muted" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="7,200원"
-                            android:textSize="13sp"
-                            android:textColor="@color/primary"
-                            android:fontFamily="sans-serif-medium" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-                <!-- Time badge - Normal -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="여유"
-                    android:textSize="11sp"
-                    android:textColor="@color/text_muted"
-                    android:fontFamily="sans-serif-medium"
-                    android:background="@drawable/bg_rounded_muted"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp" />
-
-            </LinearLayout>
+                android:orientation="vertical" />
 
         </LinearLayout>
 

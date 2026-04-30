@@ -1,21 +1,29 @@
 package com.example.deuktemsiru_seller
 
 import android.os.Bundle
+import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityMainBinding
+import com.example.deuktemsiru_seller.network.LoginRequest
+import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.ui.home.HomeFragment
 import com.example.deuktemsiru_seller.ui.notification.NotificationFragment
 import com.example.deuktemsiru_seller.ui.order.OrderFragment
 import com.example.deuktemsiru_seller.ui.sales.SalesFragment
 import com.example.deuktemsiru_seller.ui.store.StoreFragment
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private var orderBadgeCount = 3
+    private lateinit var session: SessionManager
+    private var orderBadgeCount = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,19 +37,100 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        if (savedInstanceState == null) {
-            loadFragment(HomeFragment())
-        }
+        session = SessionManager(this)
+        RetrofitClient.authToken = session.token
 
         setupBottomNav()
-        updateOrderBadge()
+
+        if (!session.isLoggedIn()) {
+            showLogin()
+        } else {
+            showApp()
+            if (savedInstanceState == null) {
+                loadFragment(HomeFragment())
+            }
+            refreshOrderBadge()
+        }
+
+        binding.btnLogin.setOnClickListener {
+            login()
+        }
+    }
+
+    private fun login() {
+        val email = binding.etLoginEmail.text?.toString()?.trim().orEmpty()
+        val password = binding.etLoginPassword.text?.toString().orEmpty()
+        if (email.isBlank() || password.isBlank()) {
+            Toast.makeText(this, "이메일과 비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        binding.btnLogin.isEnabled = false
+        binding.btnLogin.text = "로그인 중..."
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitClient.api.login(LoginRequest(email, password))
+                if (response.role != "SELLER") {
+                    Toast.makeText(this@MainActivity, "판매자 계정으로 로그인해주세요.", Toast.LENGTH_SHORT).show()
+                    resetLoginButton()
+                    return@launch
+                }
+                session.sellerId = response.userId
+                session.storeName = response.nickname
+                session.token = response.token
+                RetrofitClient.authToken = response.token
+                runCatching {
+                    session.storeName = RetrofitClient.api.getMyStore(response.userId).name
+                }
+                showApp()
+                loadFragment(HomeFragment())
+                refreshOrderBadge()
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "로그인 실패: 입력값과 서버 상태를 확인해주세요.", Toast.LENGTH_LONG).show()
+                resetLoginButton()
+            }
+        }
+    }
+
+    private fun showLogin() {
+        binding.loginContainer.visibility = View.VISIBLE
+        binding.fragmentContainer.visibility = View.GONE
+        binding.bottomNav.visibility = View.GONE
+    }
+
+    private fun showApp() {
+        binding.loginContainer.visibility = View.GONE
+        binding.fragmentContainer.visibility = View.VISIBLE
+        binding.bottomNav.visibility = View.VISIBLE
+    }
+
+    private fun resetLoginButton() {
+        binding.btnLogin.isEnabled = true
+        binding.btnLogin.text = "로그인하기"
+    }
+
+    private fun refreshOrderBadge() {
+        if (!session.isLoggedIn()) return
+        lifecycleScope.launch {
+            try {
+                val orders = RetrofitClient.api.getOrders(session.sellerId)
+                orderBadgeCount = orders.count { it.status == "NEW" }
+                updateOrderBadge()
+            } catch (e: Exception) {
+                // 배지 업데이트 실패 시 무시
+            }
+        }
     }
 
     private fun setupBottomNav() {
         binding.bottomNav.setOnItemSelectedListener { item ->
             val fragment: Fragment = when (item.itemId) {
                 R.id.nav_home -> HomeFragment()
-                R.id.nav_order -> OrderFragment()
+                R.id.nav_order -> {
+                    orderBadgeCount = 0
+                    updateOrderBadge()
+                    OrderFragment()
+                }
                 R.id.nav_sales -> SalesFragment()
                 R.id.nav_notification -> NotificationFragment()
                 R.id.nav_store -> StoreFragment()

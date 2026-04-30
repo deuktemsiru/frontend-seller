@@ -113,26 +113,10 @@
         android:paddingBottom="12dp">
 
         <Button
-            android:id="@+id/btn_preview_action"
-            android:layout_width="0dp"
-            android:layout_height="52dp"
-            android:layout_weight="1"
-            android:text="미리보기"
-            android:textSize="14sp"
-            android:textColor="@color/text"
-            android:fontFamily="sans-serif-medium"
-            android:background="@drawable/bg_button_outline"
-            android:layout_marginEnd="10dp"
-            android:visibility="gone"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:stateListAnimator="@null" />
-
-        <Button
             android:id="@+id/btn_next"
             android:layout_width="0dp"
             android:layout_height="52dp"
-            android:layout_weight="2"
+            android:layout_weight="1"
             android:text="다음"
             android:textSize="15sp"
             android:textColor="@color/white"

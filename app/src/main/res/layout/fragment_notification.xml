@@ -276,9 +276,10 @@
                             android:fontFamily="sans-serif-medium" />
 
                         <TextView
+                            android:id="@+id/tv_preview_store_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="베이크하우스 청담"
+                            android:text=""
                             android:textSize="13sp"
                             android:textColor="@color/white"
                             android:fontFamily="sans-serif-medium"
@@ -366,6 +367,32 @@
                     android:text="💡 마감 30분 전 발송 시 응답률 2배! 지금이 적기예요."
                     android:textSize="13sp"
                     android:textColor="@color/primary_dark" />
+
+            </LinearLayout>
+
+            <!-- History -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card_white"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="발송 내역"
+                    android:textSize="14sp"
+                    android:textColor="@color/text"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginBottom="10dp" />
+
+                <LinearLayout
+                    android:id="@+id/notification_history_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
 
             </LinearLayout>
 

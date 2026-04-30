@@ -10,7 +10,7 @@
     <string name="tab_store">가게</string>
 
     <!-- Home -->
-    <string name="store_name">베이크하우스 청담</string>
+    <string name="store_name">내 가게</string>
     <string name="store_status_open">영업 중</string>
     <string name="store_closing_time">마감 4시간 남음</string>
     <string name="today_sales_label">오늘 매출</string>
@@ -19,9 +19,12 @@
     <string name="sold_count_label">판매</string>
     <string name="saved_waste_label">절약 폐기</string>
     <string name="new_regular_label">신규 단골</string>
-    <string name="new_order_alert">신규 픽업 주문 3건 도착!</string>
+    <string name="new_order_alert">신규 픽업 주문이 없어요</string>
+    <string name="new_order_alert_count">🛍️ 신규 픽업 주문 %d건 도착!</string>
+    <string name="new_order_alert_empty">신규 픽업 주문이 없어요</string>
     <string name="check_order">확인하기</string>
     <string name="active_menus_title">진행 중인 마감 메뉴</string>
+    <string name="remaining_items">잔여 %d개</string>
     <string name="btn_register_menu">마감 메뉴 등록</string>
     <string name="btn_send_notification">단골 알림 보내기</string>
     <string name="empty_orders">지금까지 모든 주문을 처리했어요</string>
@@ -31,9 +34,17 @@
     <string name="order_management">주문 관리</string>
     <string name="real_time_update">실시간 갱신</string>
     <string name="tab_new_order">신규</string>
+    <string name="tab_new_order_default">신규 0</string>
+    <string name="tab_new_order_count">신규 %d</string>
     <string name="tab_preparing">준비 중</string>
+    <string name="tab_preparing_default">준비 중 0</string>
+    <string name="tab_preparing_count">준비 중 %d</string>
     <string name="tab_pickup_ready">픽업 대기</string>
+    <string name="tab_pickup_ready_default">픽업 대기 0</string>
+    <string name="tab_pickup_ready_count">픽업 대기 %d</string>
     <string name="tab_completed">완료</string>
+    <string name="tab_completed_default">완료 0</string>
+    <string name="tab_completed_count">완료 %d</string>
     <string name="just_arrived">방금 도착</string>
     <string name="pickup_time_label">픽업 시간</string>
     <string name="btn_reject">거절</string>
