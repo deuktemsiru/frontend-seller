@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.R
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.FragmentOrderBinding
+import com.example.deuktemsiru_seller.databinding.ItemOrderCompletedBinding
 import com.example.deuktemsiru_seller.databinding.ItemOrderNewBinding
 import com.example.deuktemsiru_seller.databinding.ItemOrderPickupBinding
 import com.example.deuktemsiru_seller.databinding.ItemOrderPreparingBinding
@@ -209,8 +210,20 @@ class OrderFragment : Fragment() {
 
     private fun showCompletedOrders(orders: List<OrderApiResponse>) {
         binding.orderListContainer.removeAllViews()
-        val msg = if (orders.isEmpty()) "완료된 주문이 없어요" else "완료된 주문 ${orders.size}건"
-        binding.orderListContainer.addView(createEmptyView(msg))
+
+        if (orders.isEmpty()) {
+            binding.orderListContainer.addView(createEmptyView("완료된 주문이 없어요"))
+            return
+        }
+
+        orders.forEach { order ->
+            val itemBinding = ItemOrderCompletedBinding.inflate(layoutInflater, binding.orderListContainer, false)
+            itemBinding.tvOrderNumber.text = order.orderNumber
+            itemBinding.tvPickupTime.text = order.pickupTime
+            itemBinding.tvMenuSummary.text = formatMenuSummary(order)
+            itemBinding.tvTotalAmount.text = formatPrice(order.totalAmount)
+            binding.orderListContainer.addView(itemBinding.root)
+        }
     }
 
     private fun updateStatus(
