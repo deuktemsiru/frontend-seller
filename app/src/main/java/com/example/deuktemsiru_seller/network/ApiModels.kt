@@ -9,6 +9,55 @@ data class LoginResponse(
     val token: String,
 )
 
+data class RegisterRequest(
+    val email: String,
+    val password: String,
+    val storeName: String,
+    val businessNumber: String,
+)
+
+data class RegisterResponse(
+    val userId: Long,
+    val storeName: String,
+    val token: String,
+)
+
+data class BusinessVerifyResponse(
+    val verified: Boolean,
+    val businessName: String? = null,
+)
+
+data class NoticeApiResponse(
+    val id: Long,
+    val title: String,
+    val content: String,
+    val isImportant: Boolean,
+    val createdAt: String,
+)
+
+data class SaleItemApiResponse(
+    val id: Long,
+    val menuItemId: Long,
+    val name: String,
+    val emoji: String,
+    val originalPrice: Int,
+    val discountedPrice: Int,
+    val discountRate: Int,
+    val remainingItems: Int,
+    val totalItems: Int,
+    val status: String,
+    val pickupTimeSlot: String,
+)
+
+data class SaleItemRequest(
+    val menuItemId: Long,
+    val discountRate: Int,
+    val quantity: Int,
+    val pickupTimeSlot: String,
+)
+
+data class UpdateSaleStatusRequest(val status: String)
+
 data class MenuItemApiResponse(
     val id: Long,
     val name: String,
@@ -59,9 +108,11 @@ data class MenuItemRequest(
     val name: String,
     val emoji: String,
     val originalPrice: Int,
+    val costPrice: Int? = null,
     val discountRate: Int,
     val quantity: Int,
     val pickupTimeSlot: String,
+    val allergyInfo: String? = null,
 )
 
 data class MenuItemUpdateRequest(

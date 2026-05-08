@@ -105,4 +105,35 @@
     <!-- Store -->
     <string name="store_tab_title">가게 관리</string>
     <string name="store_coming_soon">v1.1에서 제공 예정</string>
+
+    <!-- Product/Inventory -->
+    <string name="tab_product">상품관리</string>
+    <string name="product_management_title">상품 관리</string>
+    <string name="btn_add_product">+ 새 상품 등록</string>
+    <string name="status_available">판매중</string>
+    <string name="status_sold_out">품절</string>
+    <string name="status_expired">종료</string>
+    <string name="empty_sale_items">오늘 등록된 상품이 없어요</string>
+    <string name="choose_menu_title">어떤 메뉴로 상품을 등록할까요?</string>
+    <string name="btn_new_menu">+ 새 메뉴 만들기</string>
+    <string name="sale_details_title">판매 조건 설정</string>
+    <string name="product_listing_title">상품 등록</string>
+
+    <!-- Register -->
+    <string name="register_title">판매자 회원가입</string>
+    <string name="btn_verify_business">사업자 인증</string>
+    <string name="business_verified">✓ 인증 완료</string>
+    <string name="btn_register_account">가입하기</string>
+    <string name="go_to_login">로그인하기</string>
+    <string name="go_to_register">회원가입</string>
+
+    <!-- Pickup Verify -->
+    <string name="pickup_verify_title">픽업 코드 확인</string>
+    <string name="btn_verify_code">확인</string>
+    <string name="btn_scan_qr">QR 스캔</string>
+
+    <!-- Menu registration extra fields -->
+    <string name="field_cost_price">원가 (선택)</string>
+    <string name="field_allergy_info">알레르기 정보 (선택)</string>
+    <string name="allergy_hint">예: 밀, 유제품, 달걀</string>
 </resources>

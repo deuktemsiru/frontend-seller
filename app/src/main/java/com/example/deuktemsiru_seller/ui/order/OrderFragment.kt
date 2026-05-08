@@ -54,6 +54,9 @@ class OrderFragment : Fragment() {
         RetrofitClient.authToken = session.token
         setupTabs()
         loadOrders()
+        binding.btnPickupVerify.setOnClickListener {
+            startActivity(android.content.Intent(requireContext(), PickupVerifyActivity::class.java))
+        }
     }
 
     private fun loadOrders(selectTabAfterLoad: Int = currentTab) {
@@ -276,6 +279,7 @@ class OrderFragment : Fragment() {
         if (error !is HttpException || error.code() !in listOf(401, 403)) return false
         session.clear()
         RetrofitClient.authToken = null
+        RetrofitClient.disableSampleMode()
         Toast.makeText(requireContext(), "다시 로그인해주세요.", Toast.LENGTH_SHORT).show()
         requireActivity().recreate()
         return true

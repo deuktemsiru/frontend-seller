@@ -9,6 +9,10 @@ object RetrofitClient {
     const val BASE_URL = "http://10.0.2.2:8080/"
     var authToken: String? = null
 
+    private var mockApi: MockApiService? = null
+
+    val api: ApiService get() = mockApi ?: realApi
+
     private val client: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -21,12 +25,20 @@ object RetrofitClient {
             .build()
     }
 
-    val api: ApiService by lazy {
+    private val realApi: ApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ApiService::class.java)
+    }
+
+    fun enableSampleMode(sellerId: Long) {
+        mockApi = MockApiService(sellerId)
+    }
+
+    fun disableSampleMode() {
+        mockApi = null
     }
 }
