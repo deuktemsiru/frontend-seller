@@ -19,6 +19,8 @@ import com.example.deuktemsiru_seller.databinding.ItemOrderPreparingBinding
 import com.example.deuktemsiru_seller.network.OrderApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.UpdateOrderStatusRequest
+import com.example.deuktemsiru_seller.util.LocalNotificationHelper
+import com.example.deuktemsiru_seller.ui.settings.NotificationSettingsActivity
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
@@ -57,6 +59,9 @@ class OrderFragment : Fragment() {
         loadOrders()
         binding.btnPickupVerify.setOnClickListener {
             startActivity(android.content.Intent(requireContext(), PickupVerifyActivity::class.java))
+        }
+        childFragmentManager.setFragmentResultListener("order_updated", viewLifecycleOwner) { _, bundle ->
+            loadOrders(selectTabAfterLoad = bundle.getInt("next_tab", currentTab))
         }
     }
 
@@ -129,10 +134,14 @@ class OrderFragment : Fragment() {
             itemBinding.tvMenuSummary.text = formatMenuSummary(order)
             itemBinding.tvTotalAmount.text = formatPrice(order.totalAmount)
 
+            itemBinding.root.setOnClickListener { showDetail(order) }
             itemBinding.btnAccept.setOnClickListener {
                 setButtonsEnabled(listOf(itemBinding.btnAccept, itemBinding.btnReject), false)
                 updateStatus(order.id, STATUS_PREPARING, onSuccess = { updatedOrder ->
                     replaceOrder(updatedOrder)
+                    if (NotificationSettingsActivity.isEnabled(requireContext(), "new_order")) {
+                        LocalNotificationHelper.show(requireContext(), "🛍️ 주문 수락됨", order.orderNumber)
+                    }
                     Toast.makeText(requireContext(), "${order.orderNumber} 수락 완료", Toast.LENGTH_SHORT).show()
                     loadOrders(selectTabAfterLoad = 1)
                 }, onFailure = {
@@ -168,10 +177,14 @@ class OrderFragment : Fragment() {
             itemBinding.tvPickupTime.text = order.pickupTime
             itemBinding.tvMenuSummary.text = formatMenuSummary(order)
             itemBinding.tvTotalAmount.text = formatPrice(order.totalAmount)
+            itemBinding.root.setOnClickListener { showDetail(order) }
             itemBinding.btnReady.setOnClickListener {
                 itemBinding.btnReady.isEnabled = false
                 updateStatus(order.id, STATUS_READY, onSuccess = { updatedOrder ->
                     replaceOrder(updatedOrder)
+                    if (NotificationSettingsActivity.isEnabled(requireContext(), "pickup_complete")) {
+                        LocalNotificationHelper.show(requireContext(), "✅ 픽업 준비 완료", order.orderNumber)
+                    }
                     Toast.makeText(requireContext(), "픽업 대기로 이동", Toast.LENGTH_SHORT).show()
                     loadOrders(selectTabAfterLoad = 2)
                 }, onFailure = {
@@ -197,10 +210,14 @@ class OrderFragment : Fragment() {
             itemBinding.tvPickupTime.text = order.pickupTime
             itemBinding.tvMenuSummary.text = formatMenuSummary(order)
             itemBinding.tvTotalAmount.text = formatPrice(order.totalAmount)
+            itemBinding.root.setOnClickListener { showDetail(order) }
             itemBinding.btnComplete.setOnClickListener {
                 itemBinding.btnComplete.isEnabled = false
                 updateStatus(order.id, STATUS_COMPLETED, onSuccess = { updatedOrder ->
                     replaceOrder(updatedOrder)
+                    if (NotificationSettingsActivity.isEnabled(requireContext(), "sale_complete")) {
+                        LocalNotificationHelper.show(requireContext(), "🎉 판매 완료", "+%,d원".format(order.totalAmount))
+                    }
                     Toast.makeText(requireContext(), "픽업 완료 처리", Toast.LENGTH_SHORT).show()
                     loadOrders(selectTabAfterLoad = 3)
                 }, onFailure = {
@@ -252,6 +269,10 @@ class OrderFragment : Fragment() {
                 loadOrders()
             }
         }
+    }
+
+    private fun showDetail(order: OrderApiResponse) {
+        OrderDetailBottomSheet.newInstance(order).show(childFragmentManager, "order_detail")
     }
 
     private fun replaceOrder(updatedOrder: OrderApiResponse) {
