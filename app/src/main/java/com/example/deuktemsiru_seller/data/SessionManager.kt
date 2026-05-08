@@ -17,6 +17,10 @@ class SessionManager(context: Context) {
         get() = prefs.getString("token", "") ?: ""
         set(value) { prefs.edit().putString("token", value).apply() }
 
+    var email: String
+        get() = prefs.getString("email", "") ?: ""
+        set(value) { prefs.edit().putString("email", value).apply() }
+
     var isSampleAccount: Boolean
         get() = prefs.getBoolean("isSampleAccount", false)
         set(value) { prefs.edit().putBoolean("isSampleAccount", value).apply() }

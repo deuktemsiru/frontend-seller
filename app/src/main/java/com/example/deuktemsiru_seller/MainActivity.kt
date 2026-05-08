@@ -19,9 +19,11 @@ import com.example.deuktemsiru_seller.ui.home.HomeFragment
 import com.example.deuktemsiru_seller.ui.notification.NotificationFragment
 import com.example.deuktemsiru_seller.ui.order.OrderFragment
 import com.example.deuktemsiru_seller.ui.order.PickupVerifyActivity
+import com.example.deuktemsiru_seller.ui.mypage.MyPageFragment
 import com.example.deuktemsiru_seller.ui.product.ProductFragment
 import com.example.deuktemsiru_seller.ui.sales.SalesFragment
 import com.example.deuktemsiru_seller.ui.store.StoreFragment
+import com.example.deuktemsiru_seller.util.LocalNotificationHelper
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -44,6 +46,7 @@ class MainActivity : AppCompatActivity() {
 
         session = SessionManager(this)
         RetrofitClient.authToken = session.token
+        LocalNotificationHelper.createChannel(this)
 
         if (session.isSampleAccount && session.isLoggedIn()) {
             RetrofitClient.enableSampleMode(session.sellerId)
@@ -83,6 +86,7 @@ class MainActivity : AppCompatActivity() {
             session.sellerId = sampleAccount.sellerId
             session.storeName = sampleAccount.storeName
             session.token = sampleAccount.token
+            session.email = email
             session.isSampleAccount = true
             RetrofitClient.enableSampleMode(sampleAccount.sellerId)
             showApp()
@@ -102,6 +106,7 @@ class MainActivity : AppCompatActivity() {
                 session.sellerId = response.userId
                 session.storeName = response.nickname
                 session.token = response.token
+                session.email = email
                 session.isSampleAccount = false
                 RetrofitClient.authToken = response.token
                 runCatching {
@@ -158,7 +163,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.nav_sales -> SalesFragment()
                 R.id.nav_product -> ProductFragment()
-                R.id.nav_store -> StoreFragment()
+                R.id.nav_my -> MyPageFragment()
                 else -> HomeFragment()
             }
             loadFragment(fragment)
@@ -194,5 +199,9 @@ class MainActivity : AppCompatActivity() {
 
     fun launchPickupVerify() {
         startActivity(Intent(this, PickupVerifyActivity::class.java))
+    }
+
+    fun navigateToStore() {
+        loadFragment(StoreFragment())
     }
 }
