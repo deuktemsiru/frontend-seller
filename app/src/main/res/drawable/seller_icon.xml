@@ -1,0 +1,67 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- 상점 차양 (Awning) - 곡선 형태 -->
+    <path
+        android:fillColor="#F15A4A"
+        android:pathData="M18,28 Q18,22 24,22 L96,22 Q102,22 102,28 L102,42 Q92,52 84,42 Q76,52 68,42 Q60,52 52,42 Q44,52 36,42 Q28,52 18,42 Z" />
+
+    <!-- 차양 흰색 줄무늬 1 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,24 L30,42 Q33,46 36,42 L36,24 Z" />
+
+    <!-- 차양 흰색 줄무늬 2 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M52,24 L52,42 Q56,48 60,42 L60,24 Z" />
+
+    <!-- 차양 흰색 줄무늬 3 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M76,24 L76,42 Q80,48 84,42 L84,24 Z" />
+
+    <!-- 상점 본체 (외곽선) -->
+    <path
+        android:fillColor="#F15A4A"
+        android:pathData="M22,46 L22,98 L98,98 L98,46 Q92,52 84,46 Q76,52 68,46 Q60,52 52,46 Q44,52 36,46 Q28,52 22,46 Z" />
+
+    <!-- 상점 안쪽 흰색 영역 (왼쪽) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,54 L62,54 L62,94 L28,94 Z" />
+
+    <!-- 막대 그래프 - 막대 1 (가장 짧음) -->
+    <path
+        android:fillColor="#F15A4A"
+        android:pathData="M34,82 L40,82 L40,90 L34,90 Z" />
+
+    <!-- 막대 그래프 - 막대 2 (중간) -->
+    <path
+        android:fillColor="#F15A4A"
+        android:pathData="M42,72 L48,72 L48,90 L42,90 Z" />
+
+    <!-- 막대 그래프 - 막대 3 (가장 김) -->
+    <path
+        android:fillColor="#F15A4A"
+        android:pathData="M50,62 L56,62 L56,90 L50,90 Z" />
+
+    <!-- 체크마크 원 배경 (흰색 원) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M80,74 m-12,0 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0" />
+
+    <!-- 체크마크 -->
+    <path
+        android:fillColor="#F15A4A"
+        android:pathData="M74,74 L78,78 L86,70 L88,72 L78,82 L72,76 Z" />
+
+    <!-- 바닥 받침대 -->
+    <path
+        android:fillColor="#F15A4A"
+        android:pathData="M16,98 L104,98 L104,104 L16,104 Z" />
+
+</vector>

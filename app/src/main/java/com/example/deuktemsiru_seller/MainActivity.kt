@@ -12,9 +12,14 @@ import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityMainBinding
 import com.example.deuktemsiru_seller.network.LoginRequest
 import com.example.deuktemsiru_seller.network.RetrofitClient
+import com.example.deuktemsiru_seller.network.SampleData
+import android.content.Intent
+import com.example.deuktemsiru_seller.ui.auth.RegisterActivity
 import com.example.deuktemsiru_seller.ui.home.HomeFragment
 import com.example.deuktemsiru_seller.ui.notification.NotificationFragment
 import com.example.deuktemsiru_seller.ui.order.OrderFragment
+import com.example.deuktemsiru_seller.ui.order.PickupVerifyActivity
+import com.example.deuktemsiru_seller.ui.product.ProductFragment
 import com.example.deuktemsiru_seller.ui.sales.SalesFragment
 import com.example.deuktemsiru_seller.ui.store.StoreFragment
 import kotlinx.coroutines.launch
@@ -40,6 +45,10 @@ class MainActivity : AppCompatActivity() {
         session = SessionManager(this)
         RetrofitClient.authToken = session.token
 
+        if (session.isSampleAccount && session.isLoggedIn()) {
+            RetrofitClient.enableSampleMode(session.sellerId)
+        }
+
         setupBottomNav()
 
         if (!session.isLoggedIn()) {
@@ -52,8 +61,9 @@ class MainActivity : AppCompatActivity() {
             refreshOrderBadge()
         }
 
-        binding.btnLogin.setOnClickListener {
-            login()
+        binding.btnLogin.setOnClickListener { login() }
+        binding.btnGoRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
         }
     }
 
@@ -67,6 +77,20 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnLogin.isEnabled = false
         binding.btnLogin.text = "로그인 중..."
+
+        val sampleAccount = SampleData.findByCredentials(email, password)
+        if (sampleAccount != null) {
+            session.sellerId = sampleAccount.sellerId
+            session.storeName = sampleAccount.storeName
+            session.token = sampleAccount.token
+            session.isSampleAccount = true
+            RetrofitClient.enableSampleMode(sampleAccount.sellerId)
+            showApp()
+            loadFragment(HomeFragment())
+            refreshOrderBadge()
+            return
+        }
+
         lifecycleScope.launch {
             try {
                 val response = RetrofitClient.api.login(LoginRequest(email, password))
@@ -78,6 +102,7 @@ class MainActivity : AppCompatActivity() {
                 session.sellerId = response.userId
                 session.storeName = response.nickname
                 session.token = response.token
+                session.isSampleAccount = false
                 RetrofitClient.authToken = response.token
                 runCatching {
                     session.storeName = RetrofitClient.api.getMyStore(response.userId).name
@@ -132,7 +157,7 @@ class MainActivity : AppCompatActivity() {
                     OrderFragment()
                 }
                 R.id.nav_sales -> SalesFragment()
-                R.id.nav_notification -> NotificationFragment()
+                R.id.nav_product -> ProductFragment()
                 R.id.nav_store -> StoreFragment()
                 else -> HomeFragment()
             }
@@ -164,6 +189,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun navigateToNotification() {
-        binding.bottomNav.selectedItemId = R.id.nav_notification
+        loadFragment(NotificationFragment())
+    }
+
+    fun launchPickupVerify() {
+        startActivity(Intent(this, PickupVerifyActivity::class.java))
     }
 }

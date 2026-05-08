@@ -40,6 +40,19 @@
             android:textSize="12sp"
             android:textColor="@color/online" />
 
+        <Button
+            android:id="@+id/btn_pickup_verify"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_button_outline"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:stateListAnimator="@null"
+            android:text="픽업 확인"
+            android:textColor="@color/text"
+            android:textSize="12sp" />
+
     </LinearLayout>
 
     <!-- Status Tabs -->
