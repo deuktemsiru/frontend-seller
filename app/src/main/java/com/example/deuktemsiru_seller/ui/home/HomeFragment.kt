@@ -15,7 +15,7 @@ import com.example.deuktemsiru_seller.databinding.FragmentHomeBinding
 import com.example.deuktemsiru_seller.databinding.ItemActiveMenuBinding
 import com.example.deuktemsiru_seller.network.MenuItemApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
-import com.example.deuktemsiru_seller.ui.registration.MenuRegistrationActivity
+import com.example.deuktemsiru_seller.ui.product.ProductListingActivity
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
@@ -43,13 +43,14 @@ class HomeFragment : Fragment() {
         binding.cardSales.setOnClickListener { (activity as? MainActivity)?.navigateToOrder() }
         binding.cardNewOrder.setOnClickListener { (activity as? MainActivity)?.navigateToOrder() }
         binding.btnRegisterMenu.setOnClickListener {
-            startActivity(Intent(requireContext(), MenuRegistrationActivity::class.java))
+            startActivity(Intent(requireContext(), ProductListingActivity::class.java))
         }
         binding.btnSendNotification.setOnClickListener {
             (activity as? MainActivity)?.navigateToNotification()
         }
 
         if (session.isLoggedIn()) {
+            loadNotice()
             loadStore(session)
             loadStats(session.sellerId)
         }
@@ -58,8 +59,27 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (::session.isInitialized && session.isLoggedIn()) {
+            loadNotice()
             loadStore(session)
             loadStats(session.sellerId)
+        }
+    }
+
+    private fun loadNotice() {
+        lifecycleScope.launch {
+            try {
+                val notices = RetrofitClient.api.getNotices()
+                val notice = notices.firstOrNull { it.isImportant } ?: notices.firstOrNull()
+                if (notice != null) {
+                    binding.tvNoticeTitle.text = notice.title
+                    binding.tvNoticeContent.text = notice.content
+                    binding.cardNotice.visibility = android.view.View.VISIBLE
+                } else {
+                    binding.cardNotice.visibility = android.view.View.GONE
+                }
+            } catch (e: Exception) {
+                binding.cardNotice.visibility = android.view.View.GONE
+            }
         }
     }
 
@@ -126,13 +146,18 @@ class HomeFragment : Fragment() {
         }
         lifecycleScope.launch {
             try {
-                val newOrderCount = RetrofitClient.api.getOrders(sellerId)
-                    .count { it.status.equals("NEW", ignoreCase = true) }
-                binding.tvNewOrderAlert.text = if (newOrderCount > 0) {
-                    getString(R.string.new_order_alert_count, newOrderCount)
+                val orders = RetrofitClient.api.getOrders(sellerId)
+                val newCount = orders.count { it.status.equals("NEW", ignoreCase = true) }
+                val preparingCount = orders.count { it.status.equals("PREPARING", ignoreCase = true) }
+                val pickupCount = orders.count { it.status.equals("READY", ignoreCase = true) }
+                binding.tvNewOrderAlert.text = if (newCount > 0) {
+                    getString(R.string.new_order_alert_count, newCount)
                 } else {
                     getString(R.string.new_order_alert_empty)
                 }
+                binding.tvReservationNew.text = newCount.toString()
+                binding.tvReservationPreparing.text = preparingCount.toString()
+                binding.tvReservationPickup.text = pickupCount.toString()
             } catch (e: Exception) {
                 binding.tvNewOrderAlert.text = getString(R.string.new_order_alert_empty)
             }

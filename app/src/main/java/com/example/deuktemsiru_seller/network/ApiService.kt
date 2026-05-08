@@ -9,6 +9,43 @@ interface ApiService {
     @POST("api/auth/login")
     suspend fun login(@Body req: LoginRequest): LoginResponse
 
+    @POST("api/auth/register")
+    suspend fun register(@Body req: RegisterRequest): RegisterResponse
+
+    @GET("api/auth/verify-business")
+    suspend fun verifyBusiness(@Query("number") number: String): BusinessVerifyResponse
+
+    @GET("api/notices")
+    suspend fun getNotices(): List<NoticeApiResponse>
+
+    @GET("api/seller/products")
+    suspend fun getSaleItems(@Query("sellerId") sellerId: Long): List<SaleItemApiResponse>
+
+    @POST("api/seller/products")
+    suspend fun createSaleItem(
+        @Query("sellerId") sellerId: Long,
+        @Body req: SaleItemRequest,
+    ): SaleItemApiResponse
+
+    @PATCH("api/seller/products/{id}")
+    suspend fun updateSaleStatus(
+        @Path("id") id: Long,
+        @Query("sellerId") sellerId: Long,
+        @Body req: UpdateSaleStatusRequest,
+    ): SaleItemApiResponse
+
+    @DELETE("api/seller/products/{id}")
+    suspend fun cancelSaleItem(
+        @Path("id") id: Long,
+        @Query("sellerId") sellerId: Long,
+    )
+
+    @GET("api/seller/pickup/verify")
+    suspend fun verifyPickupCode(
+        @Query("sellerId") sellerId: Long,
+        @Query("code") code: String,
+    ): OrderApiResponse
+
     @GET("api/seller/store")
     suspend fun getMyStore(@Query("sellerId") sellerId: Long): StoreApiResponse
 

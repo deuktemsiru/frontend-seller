@@ -109,6 +109,53 @@
                 android:singleLine="true"
                 android:textColor="@color/text"
                 android:textColorHint="@color/text_muted"
+                android:textSize="15sp"
+                android:layout_marginBottom="14dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="원가 (선택)"
+                android:textSize="13sp"
+                android:textColor="@color/text_sub"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_cost_price"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_rounded_muted"
+                android:hint="예: 8000"
+                android:inputType="number"
+                android:maxLength="8"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:singleLine="true"
+                android:textColor="@color/text"
+                android:textColorHint="@color/text_muted"
+                android:textSize="15sp"
+                android:layout_marginBottom="14dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="알레르기 정보 (선택)"
+                android:textSize="13sp"
+                android:textColor="@color/text_sub"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_allergy_info"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_rounded_muted"
+                android:hint="예: 밀, 유제품, 달걀"
+                android:inputType="text"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:singleLine="true"
+                android:textColor="@color/text"
+                android:textColorHint="@color/text_muted"
                 android:textSize="15sp" />
 
         </LinearLayout>
