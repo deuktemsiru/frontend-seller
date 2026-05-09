@@ -86,7 +86,6 @@ class MenuRegistrationActivity : AppCompatActivity() {
 
     private fun registerMenu() {
         val session = SessionManager(this)
-        RetrofitClient.authToken = session.token
         if (!session.isLoggedIn()) {
             Toast.makeText(this, "로그인이 필요해요.", Toast.LENGTH_SHORT).show()
             return
@@ -98,7 +97,6 @@ class MenuRegistrationActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 RetrofitClient.api.addMenuWithImage(
-                    sellerId = session.sellerId,
                     name = selectedMenuName.toTextPart(),
                     emoji = selectedEmoji.toTextPart(),
                     originalPrice = selectedOriginalPrice.toString().toTextPart(),
@@ -227,7 +225,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
     private fun setupStep4(view: View) {
         val session = SessionManager(this)
         view.findViewById<TextView>(R.id.tv_preview_store_name).text =
-            session.storeName.ifBlank { "내 가게" }
+            session.nickname.ifBlank { "내 가게" }
         val previewImage = view.findViewById<ImageView>(R.id.iv_preview_menu_image)
         selectedImageUri?.let { previewImage.setImageURI(it) }
         view.findViewById<TextView>(R.id.tv_preview_menu_name).text = selectedMenuName

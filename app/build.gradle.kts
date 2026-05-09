@@ -49,6 +49,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("androidx.fragment:fragment-ktx:1.8.8")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.0")
+    implementation("com.kakao.sdk:v2-user:2.21.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

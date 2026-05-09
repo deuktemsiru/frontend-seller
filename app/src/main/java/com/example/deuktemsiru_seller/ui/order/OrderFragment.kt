@@ -1,5 +1,6 @@
 package com.example.deuktemsiru_seller.ui.order
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -19,6 +20,7 @@ import com.example.deuktemsiru_seller.databinding.ItemOrderPreparingBinding
 import com.example.deuktemsiru_seller.network.OrderApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.UpdateOrderStatusRequest
+import com.example.deuktemsiru_seller.ui.auth.LoginActivity
 import com.example.deuktemsiru_seller.util.LocalNotificationHelper
 import com.example.deuktemsiru_seller.ui.settings.NotificationSettingsActivity
 import kotlinx.coroutines.launch
@@ -54,11 +56,10 @@ class OrderFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         session = SessionManager(requireContext())
-        RetrofitClient.authToken = session.token
         setupTabs()
         loadOrders()
         binding.btnPickupVerify.setOnClickListener {
-            startActivity(android.content.Intent(requireContext(), PickupVerifyActivity::class.java))
+            startActivity(Intent(requireContext(), PickupVerifyActivity::class.java))
         }
         childFragmentManager.setFragmentResultListener("order_updated", viewLifecycleOwner) { _, bundle ->
             loadOrders(selectTabAfterLoad = bundle.getInt("next_tab", currentTab))
@@ -69,7 +70,7 @@ class OrderFragment : Fragment() {
         if (!session.isLoggedIn()) return
         lifecycleScope.launch {
             try {
-                allOrders = RetrofitClient.api.getOrders(session.sellerId)
+                allOrders = RetrofitClient.api.getOrders().data ?: emptyList()
                 updateTabCounts()
                 selectTab(selectTabAfterLoad)
             } catch (e: Exception) {
@@ -120,12 +121,10 @@ class OrderFragment : Fragment() {
 
     private fun showNewOrders(orders: List<OrderApiResponse>) {
         binding.orderListContainer.removeAllViews()
-
         if (orders.isEmpty()) {
             binding.orderListContainer.addView(createEmptyView("새로운 주문이 없어요"))
             return
         }
-
         orders.forEach { order ->
             val itemBinding = ItemOrderNewBinding.inflate(layoutInflater, binding.orderListContainer, false)
             itemBinding.tvOrderNumber.text = order.orderNumber
@@ -133,7 +132,6 @@ class OrderFragment : Fragment() {
             itemBinding.tvPickupTime.text = order.pickupTime
             itemBinding.tvMenuSummary.text = formatMenuSummary(order)
             itemBinding.tvTotalAmount.text = formatPrice(order.totalAmount)
-
             itemBinding.root.setOnClickListener { showDetail(order) }
             itemBinding.btnAccept.setOnClickListener {
                 setButtonsEnabled(listOf(itemBinding.btnAccept, itemBinding.btnReject), false)
@@ -164,12 +162,10 @@ class OrderFragment : Fragment() {
 
     private fun showPreparingOrders(orders: List<OrderApiResponse>) {
         binding.orderListContainer.removeAllViews()
-
         if (orders.isEmpty()) {
             binding.orderListContainer.addView(createEmptyView("준비중인 주문이 없어요"))
             return
         }
-
         orders.forEach { order ->
             val itemBinding = ItemOrderPreparingBinding.inflate(layoutInflater, binding.orderListContainer, false)
             itemBinding.tvOrderNumber.text = order.orderNumber
@@ -197,12 +193,10 @@ class OrderFragment : Fragment() {
 
     private fun showPickupOrders(orders: List<OrderApiResponse>) {
         binding.orderListContainer.removeAllViews()
-
         if (orders.isEmpty()) {
             binding.orderListContainer.addView(createEmptyView("픽업 대기 중인 주문이 없어요"))
             return
         }
-
         orders.forEach { order ->
             val itemBinding = ItemOrderPickupBinding.inflate(layoutInflater, binding.orderListContainer, false)
             itemBinding.tvOrderNumber.text = order.orderNumber
@@ -230,12 +224,10 @@ class OrderFragment : Fragment() {
 
     private fun showCompletedOrders(orders: List<OrderApiResponse>) {
         binding.orderListContainer.removeAllViews()
-
         if (orders.isEmpty()) {
             binding.orderListContainer.addView(createEmptyView("완료된 주문이 없어요"))
             return
         }
-
         orders.forEach { order ->
             val itemBinding = ItemOrderCompletedBinding.inflate(layoutInflater, binding.orderListContainer, false)
             itemBinding.tvOrderNumber.text = order.orderNumber
@@ -255,17 +247,15 @@ class OrderFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val updatedOrder = RetrofitClient.api.updateOrderStatus(
-                    sellerId = session.sellerId,
                     orderId = orderId,
                     req = UpdateOrderStatusRequest(status),
-                )
+                ).data ?: return@launch
                 onSuccess(updatedOrder)
             } catch (e: Exception) {
                 if (handleAuthFailure(e)) return@launch
                 onFailure()
                 Log.e(TAG, "Failed to update order status. orderId=$orderId status=$status", e)
-                val message = statusUpdateErrorMessage(e)
-                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), statusUpdateErrorMessage(e), Toast.LENGTH_SHORT).show()
                 loadOrders()
             }
         }
@@ -292,30 +282,22 @@ class OrderFragment : Fragment() {
         code.ifBlank { "----" }.chunked(1).joinToString(" ")
 
     private fun statusUpdateErrorMessage(error: Exception): String {
-        if (error !is HttpException) {
-            val detail = error.localizedMessage?.takeIf { it.isNotBlank() }
-            return if (detail == null) {
-                "상태 업데이트에 실패했어요."
-            } else {
-                "상태 업데이트에 실패했어요. $detail"
-            }
-        }
+        if (error !is HttpException) return "상태 업데이트에 실패했어요."
         val detail = error.response()?.errorBody()?.string()
-            ?.let { Regex(""""error"\s*:\s*"([^"]+)"""").find(it)?.groupValues?.get(1) }
-        return if (detail.isNullOrBlank()) {
-            "상태 업데이트에 실패했어요. (${error.code()})"
-        } else {
-            "상태 업데이트에 실패했어요. $detail"
-        }
+            ?.let { Regex(""""message"\s*:\s*"([^"]+)"""").find(it)?.groupValues?.get(1) }
+        return if (detail.isNullOrBlank()) "상태 업데이트에 실패했어요. (${error.code()})"
+        else "상태 업데이트에 실패했어요. $detail"
     }
 
     private fun handleAuthFailure(error: Exception): Boolean {
         if (error !is HttpException || error.code() !in listOf(401, 403)) return false
         session.clear()
-        RetrofitClient.authToken = null
-        RetrofitClient.disableSampleMode()
         Toast.makeText(requireContext(), "다시 로그인해주세요.", Toast.LENGTH_SHORT).show()
-        requireActivity().recreate()
+        startActivity(
+            Intent(requireContext(), LoginActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+        )
         return true
     }
 
