@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">득템시루 사장님</string>
-    <!-- TODO: Kakao Developers 콘솔에서 발급받은 네이티브 앱 키로 교체 -->
-    <string name="kakao_app_key">KAKAO_NATIVE_APP_KEY</string>
 
     <!-- Bottom Nav -->
     <string name="tab_home">홈</string>
