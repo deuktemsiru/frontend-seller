@@ -45,6 +45,9 @@ interface ApiService {
         @Part("name") name: RequestBody,
         @Part("emoji") emoji: RequestBody,
         @Part("originalPrice") originalPrice: RequestBody,
+        @Part("discountRate") discountRate: RequestBody,
+        @Part("quantity") quantity: RequestBody,
+        @Part("pickupTimeSlot") pickupTimeSlot: RequestBody,
         @Part image: MultipartBody.Part?,
     ): ApiResponse<MenuItemApiResponse>
 

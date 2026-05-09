@@ -7,6 +7,6 @@ class DeuktemsiruSellerApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        KakaoSdk.init(this, getString(R.string.kakao_app_key))
+        KakaoSdk.init(this, BuildConfig.KAKAO_NATIVE_APP_KEY)
     }
 }
