@@ -1,7 +1,7 @@
 package com.example.deuktemsiru_seller
 
+import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -10,16 +10,13 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityMainBinding
-import com.example.deuktemsiru_seller.network.LoginRequest
 import com.example.deuktemsiru_seller.network.RetrofitClient
-import com.example.deuktemsiru_seller.network.SampleData
-import android.content.Intent
-import com.example.deuktemsiru_seller.ui.auth.RegisterActivity
+import com.example.deuktemsiru_seller.ui.auth.LoginActivity
 import com.example.deuktemsiru_seller.ui.home.HomeFragment
+import com.example.deuktemsiru_seller.ui.mypage.MyPageFragment
 import com.example.deuktemsiru_seller.ui.notification.NotificationFragment
 import com.example.deuktemsiru_seller.ui.order.OrderFragment
 import com.example.deuktemsiru_seller.ui.order.PickupVerifyActivity
-import com.example.deuktemsiru_seller.ui.mypage.MyPageFragment
 import com.example.deuktemsiru_seller.ui.product.ProductFragment
 import com.example.deuktemsiru_seller.ui.sales.SalesFragment
 import com.example.deuktemsiru_seller.ui.store.StoreFragment
@@ -45,109 +42,63 @@ class MainActivity : AppCompatActivity() {
         }
 
         session = SessionManager(this)
-        RetrofitClient.authToken = session.token
         LocalNotificationHelper.createChannel(this)
 
-        if (session.isSampleAccount && session.isLoggedIn()) {
-            RetrofitClient.enableSampleMode(session.sellerId)
+        // 로그인 상태 확인 — 미로그인 시 LoginActivity로 이동
+        if (!session.isLoggedIn()) {
+            navigateToLogin()
+            return
         }
+
+        // 저장된 토큰 복원
+        session.restoreToken()
 
         setupBottomNav()
 
-        if (!session.isLoggedIn()) {
-            showLogin()
-        } else {
-            showApp()
-            if (savedInstanceState == null) {
-                loadFragment(HomeFragment())
-            }
-            refreshOrderBadge()
-        }
-
-        binding.btnLogin.setOnClickListener { login() }
-        binding.btnGoRegister.setOnClickListener {
-            startActivity(Intent(this, RegisterActivity::class.java))
-        }
-    }
-
-    private fun login() {
-        val email = binding.etLoginEmail.text?.toString()?.trim().orEmpty()
-        val password = binding.etLoginPassword.text?.toString().orEmpty()
-        if (email.isBlank() || password.isBlank()) {
-            Toast.makeText(this, "이메일과 비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        binding.btnLogin.isEnabled = false
-        binding.btnLogin.text = "로그인 중..."
-
-        val sampleAccount = SampleData.findByCredentials(email, password)
-        if (sampleAccount != null) {
-            session.sellerId = sampleAccount.sellerId
-            session.storeName = sampleAccount.storeName
-            session.token = sampleAccount.token
-            session.email = email
-            session.isSampleAccount = true
-            RetrofitClient.enableSampleMode(sampleAccount.sellerId)
-            showApp()
+        if (savedInstanceState == null) {
             loadFragment(HomeFragment())
-            refreshOrderBadge()
-            return
         }
+        refreshOrderBadge()
+    }
 
+    // ── 로그아웃 (MyPageFragment에서 호출) ──────────────────────
+    fun logout() {
         lifecycleScope.launch {
-            try {
-                val response = RetrofitClient.api.login(LoginRequest(email, password))
-                if (response.role != "SELLER") {
-                    Toast.makeText(this@MainActivity, "판매자 계정으로 로그인해주세요.", Toast.LENGTH_SHORT).show()
-                    resetLoginButton()
-                    return@launch
-                }
-                session.sellerId = response.userId
-                session.storeName = response.nickname
-                session.token = response.token
-                session.email = email
-                session.isSampleAccount = false
-                RetrofitClient.authToken = response.token
-                runCatching {
-                    session.storeName = RetrofitClient.api.getMyStore(response.userId).name
-                }
-                showApp()
-                loadFragment(HomeFragment())
-                refreshOrderBadge()
-            } catch (e: Exception) {
-                Toast.makeText(this@MainActivity, "로그인 실패: 입력값과 서버 상태를 확인해주세요.", Toast.LENGTH_LONG).show()
-                resetLoginButton()
-            }
+            runCatching { RetrofitClient.api.logout() }
+            session.clear()
+            navigateToLogin()
         }
     }
 
-    private fun showLogin() {
-        binding.loginContainer.visibility = View.VISIBLE
-        binding.fragmentContainer.visibility = View.GONE
-        binding.bottomNav.visibility = View.GONE
+    // ── 화면 이동 ─────────────────────────────────────────────
+    fun navigateToOrder() {
+        binding.bottomNav.selectedItemId = R.id.nav_order
     }
 
-    private fun showApp() {
-        binding.loginContainer.visibility = View.GONE
-        binding.fragmentContainer.visibility = View.VISIBLE
-        binding.bottomNav.visibility = View.VISIBLE
+    fun navigateToNotification() {
+        loadFragment(NotificationFragment())
     }
 
-    private fun resetLoginButton() {
-        binding.btnLogin.isEnabled = true
-        binding.btnLogin.text = "로그인하기"
+    fun launchPickupVerify() {
+        startActivity(Intent(this, PickupVerifyActivity::class.java))
+    }
+
+    fun navigateToStore() {
+        loadFragment(StoreFragment())
+    }
+
+    // ── 내부 유틸 ─────────────────────────────────────────────
+    private fun navigateToLogin() {
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
     }
 
     private fun refreshOrderBadge() {
-        if (!session.isLoggedIn()) return
         lifecycleScope.launch {
-            try {
-                val orders = RetrofitClient.api.getOrders(session.sellerId)
-                orderBadgeCount = orders.count { it.status == "NEW" }
+            runCatching {
+                val response = RetrofitClient.api.getOrders()
+                orderBadgeCount = response.data?.count { it.status == "NEW" } ?: 0
                 updateOrderBadge()
-            } catch (e: Exception) {
-                // 배지 업데이트 실패 시 무시
             }
         }
     }
@@ -187,21 +138,5 @@ class MainActivity : AppCompatActivity() {
         } else {
             badge.isVisible = false
         }
-    }
-
-    fun navigateToOrder() {
-        binding.bottomNav.selectedItemId = R.id.nav_order
-    }
-
-    fun navigateToNotification() {
-        loadFragment(NotificationFragment())
-    }
-
-    fun launchPickupVerify() {
-        startActivity(Intent(this, PickupVerifyActivity::class.java))
-    }
-
-    fun navigateToStore() {
-        loadFragment(StoreFragment())
     }
 }

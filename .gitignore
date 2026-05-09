@@ -17,6 +17,9 @@ keystore.properties
 .idea/workspace.xml
 .idea/navEditor.xml
 .idea/assetWizardSettings.xml
+.idea/markdown.xml
+.idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
 *.iml
 *.ipr
 *.iws

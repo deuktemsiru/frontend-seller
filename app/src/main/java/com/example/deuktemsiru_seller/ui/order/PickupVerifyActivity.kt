@@ -80,7 +80,7 @@ class PickupVerifyActivity : AppCompatActivity() {
         binding.cardResult.visibility = View.GONE
         lifecycleScope.launch {
             try {
-                val order = RetrofitClient.api.verifyPickupCode(session.sellerId, code)
+                val order = RetrofitClient.api.verifyPickupCode(code).data ?: return@launch
                 currentOrderId = order.id
                 binding.tvResultTitle.text = "✓ 주문 확인됨"
                 binding.tvResultTitle.setTextColor(getColor(android.R.color.holo_green_dark))
@@ -99,7 +99,7 @@ class PickupVerifyActivity : AppCompatActivity() {
     private fun completePickup(orderId: Long) {
         lifecycleScope.launch {
             try {
-                RetrofitClient.api.updateOrderStatus(orderId, session.sellerId, UpdateOrderStatusRequest("COMPLETED"))
+                RetrofitClient.api.updateOrderStatus(orderId, UpdateOrderStatusRequest("COMPLETED"))
                 Toast.makeText(this@PickupVerifyActivity, "픽업 완료 처리됐어요!", Toast.LENGTH_SHORT).show()
                 binding.cardResult.visibility = View.GONE
                 binding.etPickupCode.setText("")

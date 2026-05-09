@@ -5,9 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -50,10 +47,10 @@ class ProductFragment : Fragment() {
     private fun loadSaleItems() {
         if (!session.isLoggedIn()) return
         lifecycleScope.launch {
-            try {
-                val items = RetrofitClient.api.getSaleItems(session.sellerId)
+            runCatching {
+                val items = RetrofitClient.api.getSaleItems().data ?: emptyList()
                 renderItems(items)
-            } catch (e: Exception) {
+            }.onFailure {
                 Toast.makeText(requireContext(), "상품 목록을 불러올 수 없어요", Toast.LENGTH_SHORT).show()
             }
         }
@@ -69,7 +66,8 @@ class ProductFragment : Fragment() {
             val itemBinding = ItemSaleItemBinding.inflate(layoutInflater, binding.saleItemsContainer, false)
             itemBinding.tvItemEmoji.text = item.emoji
             itemBinding.tvItemName.text = item.name
-            itemBinding.tvItemDetail.text = "${"%,d원".format(item.discountedPrice)} · 잔여 ${item.remainingItems}/${item.totalItems}개 · ${item.pickupTimeSlot}"
+            itemBinding.tvItemDetail.text =
+                "${"%,d원".format(item.discountedPrice)} · 잔여 ${item.remainingItems}/${item.totalItems}개 · ${item.pickupTimeSlot}"
 
             val (statusText, statusBg, statusColor) = when (item.status) {
                 "AVAILABLE" -> Triple("판매중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
@@ -90,10 +88,10 @@ class ProductFragment : Fragment() {
 
     private fun updateStatus(itemId: Long, status: String) {
         lifecycleScope.launch {
-            try {
-                RetrofitClient.api.updateSaleStatus(itemId, session.sellerId, UpdateSaleStatusRequest(status))
+            runCatching {
+                RetrofitClient.api.updateSaleStatus(itemId, UpdateSaleStatusRequest(status))
                 loadSaleItems()
-            } catch (e: Exception) {
+            }.onFailure {
                 Toast.makeText(requireContext(), "상태 변경에 실패했어요", Toast.LENGTH_SHORT).show()
             }
         }
@@ -105,11 +103,11 @@ class ProductFragment : Fragment() {
             .setMessage("${item.name} 상품 등록을 취소할까요?")
             .setPositiveButton("취소하기") { _, _ ->
                 lifecycleScope.launch {
-                    try {
-                        RetrofitClient.api.cancelSaleItem(item.id, session.sellerId)
+                    runCatching {
+                        RetrofitClient.api.cancelSaleItem(item.id)
                         Toast.makeText(requireContext(), "상품이 취소됐어요", Toast.LENGTH_SHORT).show()
                         loadSaleItems()
-                    } catch (e: Exception) {
+                    }.onFailure {
                         Toast.makeText(requireContext(), "취소에 실패했어요", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -118,7 +116,7 @@ class ProductFragment : Fragment() {
             .show()
     }
 
-    private fun emptyView(): View = TextView(requireContext()).apply {
+    private fun emptyView(): View = android.widget.TextView(requireContext()).apply {
         text = "오늘 등록된 상품이 없어요\n아래 '+ 상품 등록' 버튼을 눌러 등록해보세요"
         textSize = 13f
         setTextColor(ContextCompat.getColor(requireContext(), R.color.text_sub))
