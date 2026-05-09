@@ -20,6 +20,7 @@ keystore.properties
 .idea/markdown.xml
 .idea/deploymentTargetSelector.xml
 .idea/deviceManager.xml
+.idea/misc.xml
 *.iml
 *.ipr
 *.iws
