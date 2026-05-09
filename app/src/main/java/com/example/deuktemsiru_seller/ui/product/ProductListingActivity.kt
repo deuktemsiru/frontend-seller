@@ -55,7 +55,7 @@ class ProductListingActivity : AppCompatActivity() {
     private fun loadMenus() {
         lifecycleScope.launch {
             try {
-                menus = RetrofitClient.api.getMyStore(session.sellerId).menus
+                menus = RetrofitClient.api.getMenus().data ?: emptyList()
                 loadStep(1)
             } catch (e: Exception) {
                 Toast.makeText(this@ProductListingActivity, "메뉴를 불러올 수 없어요", Toast.LENGTH_SHORT).show()
@@ -228,8 +228,7 @@ class ProductListingActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 RetrofitClient.api.createSaleItem(
-                    sellerId = session.sellerId,
-                    req = SaleItemRequest(
+                    SaleItemRequest(
                         menuItemId = menu.id,
                         discountRate = selectedDiscountRate,
                         quantity = selectedQuantity,
