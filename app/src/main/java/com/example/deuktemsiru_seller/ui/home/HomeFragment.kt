@@ -130,7 +130,7 @@ class HomeFragment : Fragment() {
         lifecycleScope.launch {
             runCatching {
                 val orders = RetrofitClient.api.getOrders().data ?: emptyList()
-                val newCount = orders.count { it.status.equals("NEW", ignoreCase = true) }
+                val newCount = orders.count { it.status.equals("PENDING", ignoreCase = true) }
                 val preparingCount = orders.count { it.status.equals("PREPARING", ignoreCase = true) }
                 val pickupCount = orders.count { it.status.equals("READY", ignoreCase = true) }
                 binding.tvNewOrderAlert.text = if (newCount > 0) {

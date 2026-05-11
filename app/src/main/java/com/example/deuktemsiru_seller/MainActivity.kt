@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             runCatching {
                 val response = RetrofitClient.api.getOrders()
-                orderBadgeCount = response.data?.count { it.status == "NEW" } ?: 0
+                orderBadgeCount = response.data?.count { it.status == "PENDING" } ?: 0
                 updateOrderBadge()
             }
         }

@@ -37,11 +37,11 @@ class OrderFragment : Fragment() {
 
     private companion object {
         const val TAG = "OrderFragment"
-        const val STATUS_NEW = "NEW"
+        const val STATUS_NEW = "PENDING"
         const val STATUS_PREPARING = "PREPARING"
         const val STATUS_READY = "READY"
         const val STATUS_COMPLETED = "COMPLETED"
-        const val STATUS_REJECTED = "REJECTED"
+        const val STATUS_CANCELLED = "CANCELLED"
     }
 
     override fun onCreateView(
@@ -105,18 +105,21 @@ class OrderFragment : Fragment() {
             0 -> showNewOrders(ordersByStatus(STATUS_NEW))
             1 -> showPreparingOrders(ordersByStatus(STATUS_PREPARING))
             2 -> showPickupOrders(ordersByStatus(STATUS_READY))
-            3 -> showCompletedOrders(ordersByStatus(STATUS_COMPLETED))
+            3 -> showCompletedOrders(ordersByStatuses(STATUS_COMPLETED, STATUS_CANCELLED))
         }
     }
 
     private fun ordersByStatus(status: String): List<OrderApiResponse> =
         allOrders.filter { it.status.equals(status, ignoreCase = true) }
 
+    private fun ordersByStatuses(vararg statuses: String): List<OrderApiResponse> =
+        allOrders.filter { order -> statuses.any { order.status.equals(it, ignoreCase = true) } }
+
     private fun updateTabCounts() {
         binding.tabNew.text = getString(R.string.tab_new_order_count, ordersByStatus(STATUS_NEW).size)
         binding.tabPreparing.text = getString(R.string.tab_preparing_count, ordersByStatus(STATUS_PREPARING).size)
         binding.tabPickup.text = getString(R.string.tab_pickup_ready_count, ordersByStatus(STATUS_READY).size)
-        binding.tabDone.text = getString(R.string.tab_completed_count, ordersByStatus(STATUS_COMPLETED).size)
+        binding.tabDone.text = getString(R.string.tab_completed_count, ordersByStatuses(STATUS_COMPLETED, STATUS_CANCELLED).size)
     }
 
     private fun showNewOrders(orders: List<OrderApiResponse>) {
@@ -143,7 +146,7 @@ class OrderFragment : Fragment() {
             }
             itemBinding.btnReject.setOnClickListener {
                 setButtonsEnabled(listOf(itemBinding.btnAccept, itemBinding.btnReject), false)
-                updateStatus(order.id, STATUS_REJECTED, onSuccess = { updatedOrder ->
+                updateStatus(order.id, STATUS_CANCELLED, onSuccess = { updatedOrder ->
                     replaceOrder(updatedOrder)
                     Toast.makeText(requireContext(), "${order.orderNumber} 거절됨", Toast.LENGTH_SHORT).show()
                     loadOrders()
