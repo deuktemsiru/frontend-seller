@@ -29,7 +29,6 @@ class LoginActivity : AppCompatActivity() {
 
         session = SessionManager(this)
 
-        // 이미 로그인된 경우 메인으로 바로 이동
         if (session.isLoggedIn()) {
             session.restoreToken()
             navigateToMain()
@@ -39,9 +38,9 @@ class LoginActivity : AppCompatActivity() {
         binding.btnKakaoLogin.setOnClickListener { startKakaoLogin() }
     }
 
-    // ── Kakao 로그인 ──────────────────────────────────────────
-
     private fun startKakaoLogin() {
+        setLoading(true)
+
         val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
             when {
                 error != null -> handleKakaoError(error)
@@ -49,16 +48,11 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        // 카카오톡 설치 여부 확인 후 분기
         if (UserApiClient.instance.isKakaoTalkLoginAvailable(this)) {
             UserApiClient.instance.loginWithKakaoTalk(this) { token, error ->
                 if (error != null) {
-                    // 카카오톡 로그인 실패 시 카카오계정으로 재시도
-                    val isUserCancelled = error is ClientError &&
-                            error.reason == ClientErrorCause.Cancelled
-                    if (!isUserCancelled) {
-                        UserApiClient.instance.loginWithKakaoAccount(this, callback = callback)
-                    }
+                    if (error.isUserCancelled()) setLoading(false)
+                    else UserApiClient.instance.loginWithKakaoAccount(this, callback = callback)
                 } else if (token != null) {
                     loginToBackend(token.accessToken)
                 }
@@ -69,17 +63,13 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun handleKakaoError(error: Throwable) {
-        val isUserCancelled = error is ClientError &&
-                error.reason == ClientErrorCause.Cancelled
-        if (!isUserCancelled) {
+        if (!error.isUserCancelled()) {
             Toast.makeText(this, "카카오 로그인 실패: ${error.message}", Toast.LENGTH_SHORT).show()
         }
+        setLoading(false)
     }
 
-    // ── 백엔드 API 호출 ───────────────────────────────────────
-
     private fun loginToBackend(kakaoAccessToken: String) {
-        setLoading(true)
         lifecycleScope.launch {
             runCatching {
                 RetrofitClient.api.kakaoLogin(
@@ -103,12 +93,13 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    // ── 화면 제어 ─────────────────────────────────────────────
-
     private fun navigateToMain() {
         startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
+
+    private fun Throwable.isUserCancelled() =
+        this is ClientError && reason == ClientErrorCause.Cancelled
 
     private fun setLoading(loading: Boolean) {
         binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE

@@ -4,7 +4,7 @@ app/build/
 
 # Gradle
 .gradle/
-gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.jar
 
 # Android local config
 local.properties
@@ -29,10 +29,9 @@ keystore.properties
 .DS_Store
 Thumbs.db
 
-# Keystore — debug/local keystores는 커밋 제외, 릴리스 키스토어는 공유용으로 허용
+# Keystore
 *.jks
 *.keystore
-!release.keystore
 
 # 인증서 추출 임시 파일
 *.der
