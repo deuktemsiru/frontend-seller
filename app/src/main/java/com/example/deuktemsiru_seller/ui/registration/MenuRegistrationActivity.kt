@@ -22,9 +22,11 @@ import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityMenuRegistrationBinding
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import kotlinx.coroutines.launch
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class MenuRegistrationActivity : AppCompatActivity() {
 
@@ -86,7 +88,6 @@ class MenuRegistrationActivity : AppCompatActivity() {
 
     private fun registerMenu() {
         val session = SessionManager(this)
-        RetrofitClient.authToken = session.token
         if (!session.isLoggedIn()) {
             Toast.makeText(this, "로그인이 필요해요.", Toast.LENGTH_SHORT).show()
             return
@@ -98,7 +99,6 @@ class MenuRegistrationActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 RetrofitClient.api.addMenuWithImage(
-                    sellerId = session.sellerId,
                     name = selectedMenuName.toTextPart(),
                     emoji = selectedEmoji.toTextPart(),
                     originalPrice = selectedOriginalPrice.toString().toTextPart(),
@@ -227,7 +227,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
     private fun setupStep4(view: View) {
         val session = SessionManager(this)
         view.findViewById<TextView>(R.id.tv_preview_store_name).text =
-            session.storeName.ifBlank { "내 가게" }
+            session.nickname.ifBlank { "내 가게" }
         val previewImage = view.findViewById<ImageView>(R.id.iv_preview_menu_image)
         selectedImageUri?.let { previewImage.setImageURI(it) }
         view.findViewById<TextView>(R.id.tv_preview_menu_name).text = selectedMenuName
@@ -388,14 +388,14 @@ class MenuRegistrationActivity : AppCompatActivity() {
     private fun formatWon(price: Int): String = "%,d원".format(price)
 
     private fun String.toTextPart(): RequestBody =
-        RequestBody.create(MediaType.parse("text/plain"), this)
+        this.toRequestBody("text/plain".toMediaType())
 
     private fun createImagePart(): MultipartBody.Part? {
         val uri = selectedImageUri ?: return null
         val mimeType = contentResolver.getType(uri) ?: "image/*"
         val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
         val filename = getDisplayName(uri) ?: "menu-image"
-        val body = RequestBody.create(MediaType.parse(mimeType), bytes)
+        val body = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
         return MultipartBody.Part.createFormData("image", filename, body)
     }
 

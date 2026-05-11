@@ -17,6 +17,10 @@ keystore.properties
 .idea/workspace.xml
 .idea/navEditor.xml
 .idea/assetWizardSettings.xml
+.idea/markdown.xml
+.idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
+.idea/misc.xml
 *.iml
 *.ipr
 *.iws
@@ -25,9 +29,13 @@ keystore.properties
 .DS_Store
 Thumbs.db
 
-# Keystore / secrets
+# Keystore — debug/local keystores는 커밋 제외, 릴리스 키스토어는 공유용으로 허용
 *.jks
 *.keystore
+!release.keystore
+
+# 인증서 추출 임시 파일
+*.der
 
 # Captures / profiling
 /captures/

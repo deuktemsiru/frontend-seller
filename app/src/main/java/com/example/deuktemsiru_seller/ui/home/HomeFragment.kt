@@ -13,7 +13,7 @@ import com.example.deuktemsiru_seller.MainActivity
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.FragmentHomeBinding
 import com.example.deuktemsiru_seller.databinding.ItemActiveMenuBinding
-import com.example.deuktemsiru_seller.network.MenuItemApiResponse
+import com.example.deuktemsiru_seller.network.SaleItemApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.ui.product.ProductListingActivity
 import kotlinx.coroutines.launch
@@ -37,8 +37,7 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         session = SessionManager(requireContext())
-        RetrofitClient.authToken = session.token
-        binding.tvStoreName.text = session.storeName.ifBlank { "내 가게" }
+        binding.tvStoreName.text = session.nickname.ifBlank { "내 가게" }
 
         binding.cardSales.setOnClickListener { (activity as? MainActivity)?.navigateToOrder() }
         binding.cardNewOrder.setOnClickListener { (activity as? MainActivity)?.navigateToOrder() }
@@ -50,70 +49,54 @@ class HomeFragment : Fragment() {
         }
 
         if (session.isLoggedIn()) {
-            loadNotice()
-            loadStore(session)
-            loadStats(session.sellerId)
+            loadStore()
+            loadStats()
         }
     }
 
     override fun onResume() {
         super.onResume()
         if (::session.isInitialized && session.isLoggedIn()) {
-            loadNotice()
-            loadStore(session)
-            loadStats(session.sellerId)
+            loadStore()
+            loadStats()
         }
     }
 
-    private fun loadNotice() {
+    private fun loadStore() {
         lifecycleScope.launch {
-            try {
-                val notices = RetrofitClient.api.getNotices()
-                val notice = notices.firstOrNull { it.isImportant } ?: notices.firstOrNull()
-                if (notice != null) {
-                    binding.tvNoticeTitle.text = notice.title
-                    binding.tvNoticeContent.text = notice.content
-                    binding.cardNotice.visibility = android.view.View.VISIBLE
-                } else {
-                    binding.cardNotice.visibility = android.view.View.GONE
+            runCatching {
+                val store = RetrofitClient.api.getMyStore().data
+                if (store != null) {
+                    binding.tvStoreName.text = store.name
+                    binding.tvClosingTime.text = "마감 ${store.closingTime}"
                 }
-            } catch (e: Exception) {
-                binding.cardNotice.visibility = android.view.View.GONE
+            }
+            // 활성 판매 상품 목록 로드
+            runCatching {
+                val items = RetrofitClient.api.getSaleItems().data ?: emptyList()
+                renderActiveSaleItems(items)
+            }.onFailure {
+                renderActiveSaleItems(emptyList())
             }
         }
     }
 
-    private fun loadStore(session: SessionManager) {
-        lifecycleScope.launch {
-            try {
-                val store = RetrofitClient.api.getMyStore(session.sellerId)
-                session.storeName = store.name
-                binding.tvStoreName.text = store.name
-                binding.tvClosingTime.text = "마감 ${store.closingTime}"
-                renderActiveMenus(store.menus)
-            } catch (e: Exception) {
-                binding.tvClosingTime.text = ""
-                renderActiveMenus(emptyList())
-            }
-        }
-    }
-
-    private fun renderActiveMenus(menus: List<MenuItemApiResponse>) {
+    private fun renderActiveSaleItems(items: List<SaleItemApiResponse>) {
         binding.activeMenuContainer.removeAllViews()
-        val activeMenus = menus.filter { !it.isSoldOut && it.remainingItems > 0 }
+        val activeItems = items.filter { it.status == "AVAILABLE" && it.remainingItems > 0 }
 
-        if (activeMenus.isEmpty()) {
+        if (activeItems.isEmpty()) {
             binding.activeMenuContainer.addView(createEmptyMenuView())
             return
         }
 
-        activeMenus.forEach { menu ->
+        activeItems.forEach { item ->
             val itemBinding = ItemActiveMenuBinding.inflate(layoutInflater, binding.activeMenuContainer, false)
-            itemBinding.tvMenuEmoji.text = menu.emoji
-            itemBinding.tvMenuName.text = menu.name
-            itemBinding.tvRemaining.text = getString(R.string.remaining_items, menu.remainingItems)
-            itemBinding.tvPrice.text = "%,d원".format(menu.discountedPrice)
-            itemBinding.tvTimeBadge.text = menu.pickupTimeSlot
+            itemBinding.tvMenuEmoji.text = item.emoji
+            itemBinding.tvMenuName.text = item.name
+            itemBinding.tvRemaining.text = getString(R.string.remaining_items, item.remainingItems)
+            itemBinding.tvPrice.text = "%,d원".format(item.discountedPrice)
+            itemBinding.tvTimeBadge.text = item.pickupTimeSlot
             itemBinding.tvTimeBadge.setTextColor(requireContext().getColor(R.color.warning))
             itemBinding.tvTimeBadge.setBackgroundResource(R.drawable.bg_rounded_warning)
             binding.activeMenuContainer.addView(itemBinding.root)
@@ -134,19 +117,19 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun loadStats(sellerId: Long) {
+    private fun loadStats() {
         lifecycleScope.launch {
-            try {
-                val sales = RetrofitClient.api.getSales(sellerId)
-                binding.tvTodaySales.text = "%,d원".format(sales.todaySales)
-                binding.tvTodayOrders.text = "${sales.todayOrderCount}건"
-            } catch (e: Exception) {
-                // 통계 로드 실패 시 기본값 유지
+            runCatching {
+                val sales = RetrofitClient.api.getSales().data
+                if (sales != null) {
+                    binding.tvTodaySales.text = "%,d원".format(sales.todaySales)
+                    binding.tvTodayOrders.text = "${sales.todayOrderCount}건"
+                }
             }
         }
         lifecycleScope.launch {
-            try {
-                val orders = RetrofitClient.api.getOrders(sellerId)
+            runCatching {
+                val orders = RetrofitClient.api.getOrders().data ?: emptyList()
                 val newCount = orders.count { it.status.equals("NEW", ignoreCase = true) }
                 val preparingCount = orders.count { it.status.equals("PREPARING", ignoreCase = true) }
                 val pickupCount = orders.count { it.status.equals("READY", ignoreCase = true) }
@@ -158,7 +141,7 @@ class HomeFragment : Fragment() {
                 binding.tvReservationNew.text = newCount.toString()
                 binding.tvReservationPreparing.text = preparingCount.toString()
                 binding.tvReservationPickup.text = pickupCount.toString()
-            } catch (e: Exception) {
+            }.onFailure {
                 binding.tvNewOrderAlert.text = getString(R.string.new_order_alert_empty)
             }
         }
