@@ -27,7 +27,6 @@ class SessionManager(context: Context) {
 
     fun isLoggedIn() = memberId > 0L && accessToken.isNotBlank()
 
-    /** 앱 시작 시 저장된 토큰을 RetrofitClient에 복원합니다. */
     fun restoreToken() {
         RetrofitClient.accessToken = accessToken.takeIf { it.isNotBlank() }
     }

@@ -120,12 +120,7 @@ class OrderFragment : Fragment() {
     }
 
     private fun showNewOrders(orders: List<OrderApiResponse>) {
-        binding.orderListContainer.removeAllViews()
-        if (orders.isEmpty()) {
-            binding.orderListContainer.addView(createEmptyView("새로운 주문이 없어요"))
-            return
-        }
-        orders.forEach { order ->
+        renderOrders(orders, "새로운 주문이 없어요") { order ->
             val itemBinding = ItemOrderNewBinding.inflate(layoutInflater, binding.orderListContainer, false)
             itemBinding.tvOrderNumber.text = order.orderNumber
             itemBinding.tvOrderTime.text = getString(R.string.just_arrived)
@@ -156,17 +151,12 @@ class OrderFragment : Fragment() {
                     setButtonsEnabled(listOf(itemBinding.btnAccept, itemBinding.btnReject), true)
                 })
             }
-            binding.orderListContainer.addView(itemBinding.root)
+            itemBinding.root
         }
     }
 
     private fun showPreparingOrders(orders: List<OrderApiResponse>) {
-        binding.orderListContainer.removeAllViews()
-        if (orders.isEmpty()) {
-            binding.orderListContainer.addView(createEmptyView("준비중인 주문이 없어요"))
-            return
-        }
-        orders.forEach { order ->
+        renderOrders(orders, "준비중인 주문이 없어요") { order ->
             val itemBinding = ItemOrderPreparingBinding.inflate(layoutInflater, binding.orderListContainer, false)
             itemBinding.tvOrderNumber.text = order.orderNumber
             itemBinding.tvElapsedTime.text = ""
@@ -187,17 +177,12 @@ class OrderFragment : Fragment() {
                     itemBinding.btnReady.isEnabled = true
                 })
             }
-            binding.orderListContainer.addView(itemBinding.root)
+            itemBinding.root
         }
     }
 
     private fun showPickupOrders(orders: List<OrderApiResponse>) {
-        binding.orderListContainer.removeAllViews()
-        if (orders.isEmpty()) {
-            binding.orderListContainer.addView(createEmptyView("픽업 대기 중인 주문이 없어요"))
-            return
-        }
-        orders.forEach { order ->
+        renderOrders(orders, "픽업 대기 중인 주문이 없어요") { order ->
             val itemBinding = ItemOrderPickupBinding.inflate(layoutInflater, binding.orderListContainer, false)
             itemBinding.tvOrderNumber.text = order.orderNumber
             itemBinding.tvPickupCode.text = "코드 ${formatPickupCode(order.pickupCode)}"
@@ -218,24 +203,32 @@ class OrderFragment : Fragment() {
                     itemBinding.btnComplete.isEnabled = true
                 })
             }
-            binding.orderListContainer.addView(itemBinding.root)
+            itemBinding.root
         }
     }
 
     private fun showCompletedOrders(orders: List<OrderApiResponse>) {
-        binding.orderListContainer.removeAllViews()
-        if (orders.isEmpty()) {
-            binding.orderListContainer.addView(createEmptyView("완료된 주문이 없어요"))
-            return
-        }
-        orders.forEach { order ->
+        renderOrders(orders, "완료된 주문이 없어요") { order ->
             val itemBinding = ItemOrderCompletedBinding.inflate(layoutInflater, binding.orderListContainer, false)
             itemBinding.tvOrderNumber.text = order.orderNumber
             itemBinding.tvPickupTime.text = order.pickupTime
             itemBinding.tvMenuSummary.text = formatMenuSummary(order)
             itemBinding.tvTotalAmount.text = formatPrice(order.totalAmount)
-            binding.orderListContainer.addView(itemBinding.root)
+            itemBinding.root
         }
+    }
+
+    private fun renderOrders(
+        orders: List<OrderApiResponse>,
+        emptyMessage: String,
+        createItemView: (OrderApiResponse) -> View,
+    ) {
+        binding.orderListContainer.removeAllViews()
+        if (orders.isEmpty()) {
+            binding.orderListContainer.addView(createEmptyView(emptyMessage))
+            return
+        }
+        orders.map(createItemView).forEach { binding.orderListContainer.addView(it) }
     }
 
     private fun updateStatus(
