@@ -26,10 +26,11 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
     private lateinit var session: SessionManager
 
     companion object {
-        private const val STATUS_NEW = "NEW"
+        private const val STATUS_NEW = "PENDING"
         private const val STATUS_PREPARING = "PREPARING"
         private const val STATUS_READY = "READY"
         private const val STATUS_COMPLETED = "COMPLETED"
+        private const val STATUS_CANCELLED = "CANCELLED"
 
         fun newInstance(order: OrderApiResponse) = OrderDetailBottomSheet().apply {
             arguments = Bundle().apply { putString("order", Gson().toJson(order)) }
@@ -65,6 +66,7 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
             STATUS_PREPARING -> Triple("준비 중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
             STATUS_READY -> Triple("픽업 대기", R.drawable.bg_rounded_primary, 0xFFFFFFFF.toInt())
             STATUS_COMPLETED -> Triple("완료", R.drawable.bg_status_expired, 0xFF757575.toInt())
+            STATUS_CANCELLED -> Triple("취소됨", R.drawable.bg_status_expired, 0xFF757575.toInt())
             else -> Triple(order.status, R.drawable.bg_status_expired, 0xFF757575.toInt())
         }
         binding.tvStatusBadge.text = statusText
