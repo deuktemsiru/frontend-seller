@@ -10,8 +10,6 @@ import androidx.fragment.app.Fragment
 import com.example.deuktemsiru_seller.MainActivity
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.FragmentMyPageBinding
-import com.example.deuktemsiru_seller.network.RetrofitClient
-import com.example.deuktemsiru_seller.network.SampleData
 import com.example.deuktemsiru_seller.ui.settings.NotificationSettingsActivity
 import com.example.deuktemsiru_seller.ui.store.StoreFragment
 
@@ -27,11 +25,11 @@ class MyPageFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val session = SessionManager(requireContext())
-        binding.tvStoreName.text = session.storeName.ifBlank { "내 가게" }
 
-        val emoji = SampleData.findById(session.sellerId)?.store?.emoji ?: "🏪"
-        binding.tvStoreEmoji.text = emoji
+        val session = SessionManager(requireContext())
+
+        binding.tvStoreName.text = session.nickname.ifBlank { "내 가게" }
+        binding.tvStoreEmoji.text = "🏪"
 
         binding.itemStoreInfo.setOnClickListener {
             parentFragmentManager.beginTransaction()
@@ -69,16 +67,13 @@ class MyPageFragment : Fragment() {
                 .setTitle("로그아웃")
                 .setMessage("로그아웃 하시겠어요?")
                 .setPositiveButton("로그아웃") { _, _ ->
-                    session.clear()
-                    RetrofitClient.disableSampleMode()
-                    RetrofitClient.authToken = null
-                    requireActivity().recreate()
+                    (activity as? MainActivity)?.logout()
                 }
                 .setNegativeButton("취소", null)
                 .show()
         }
 
-        binding.tvVersion.text = "득템시루 판매자 v1.0  |  Seller ID #${session.sellerId}"
+        binding.tvVersion.text = "득템시루 판매자 v1.0  |  Member #${session.memberId}"
     }
 
     override fun onDestroyView() {

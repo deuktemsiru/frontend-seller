@@ -8,6 +8,7 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
+        android:name=".DeuktemsiruSellerApp"
         android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -18,8 +19,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Deuktemsiru_seller">
 
+        <!-- 로그인 화면 (런처) -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.auth.LoginActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -28,13 +30,28 @@
             </intent-filter>
         </activity>
 
+        <!-- 메인 화면 (로그인 성공 후 이동) -->
         <activity
-            android:name=".ui.registration.MenuRegistrationActivity"
+            android:name=".MainActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- Kakao 로그인 리디렉션 처리 -->
         <activity
-            android:name=".ui.auth.RegisterActivity"
+            android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="oauth"
+                    android:scheme="kakao${kakao_app_key}" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.registration.MenuRegistrationActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 

@@ -37,9 +37,9 @@ class NotificationFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val session = SessionManager(requireContext())
-        RetrofitClient.authToken = session.token
-        binding.tvPreviewStoreName.text = session.storeName.ifBlank { "내 가게" }
-        if (session.isLoggedIn()) loadHistory(session.sellerId)
+        binding.tvPreviewStoreName.text = session.nickname.ifBlank { "내 가게" }
+
+        if (session.isLoggedIn()) loadHistory()
 
         binding.etMessage.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -62,39 +62,34 @@ class NotificationFragment : Fragment() {
             AlertDialog.Builder(requireContext())
                 .setTitle("알림 발송 확인")
                 .setMessage("단골 고객들에게 알림을 보내시겠어요?")
-                .setPositiveButton("보내기") { _, _ ->
-                    sendNotification(session.sellerId, message)
-                }
+                .setPositiveButton("보내기") { _, _ -> sendNotification(message) }
                 .setNegativeButton("취소", null)
                 .show()
         }
     }
 
-    private fun sendNotification(sellerId: Long, message: String) {
+    private fun sendNotification(message: String) {
         lifecycleScope.launch {
-            try {
-                val result = RetrofitClient.api.sendNotification(
-                    sellerId = sellerId,
-                    req = SendNotificationRequest(message),
-                )
+            runCatching {
+                val result = RetrofitClient.api.sendNotification(SendNotificationRequest(message)).data
                 Toast.makeText(
                     requireContext(),
-                    "${result.recipientCount}명에게 발송 완료!",
+                    "${result?.recipientCount ?: 0}명에게 발송 완료!",
                     Toast.LENGTH_LONG
                 ).show()
                 binding.etMessage.text?.clear()
-                loadHistory(sellerId)
-            } catch (e: Exception) {
+                loadHistory()
+            }.onFailure {
                 Toast.makeText(requireContext(), "알림 발송에 실패했어요.", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun loadHistory(sellerId: Long) {
+    private fun loadHistory() {
         lifecycleScope.launch {
-            try {
-                renderHistory(RetrofitClient.api.getNotifications(sellerId))
-            } catch (e: Exception) {
+            runCatching {
+                renderHistory(RetrofitClient.api.getNotifications().data ?: emptyList())
+            }.onFailure {
                 renderHistory(emptyList())
             }
         }
@@ -106,7 +101,6 @@ class NotificationFragment : Fragment() {
             binding.notificationHistoryContainer.addView(historyText("아직 발송한 알림이 없어요"))
             return
         }
-
         items.take(5).forEach { item ->
             binding.notificationHistoryContainer.addView(
                 historyText("${item.message}\n${item.recipientCount}명 대상 · ${formatSentAt(item.sentAt)}")
@@ -122,8 +116,7 @@ class NotificationFragment : Fragment() {
             setPadding(0, 8.dp, 0, 8.dp)
         }
 
-    private fun formatSentAt(value: String): String =
-        value.replace('T', ' ').take(16)
+    private fun formatSentAt(value: String): String = value.replace('T', ' ').take(16)
 
     private val Int.dp: Int
         get() = (this * resources.displayMetrics.density).toInt()

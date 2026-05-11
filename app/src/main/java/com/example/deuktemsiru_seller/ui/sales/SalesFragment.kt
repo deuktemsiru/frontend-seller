@@ -45,20 +45,16 @@ class SalesFragment : Fragment() {
 
         binding.btnPrev.setOnClickListener {
             currentOffset++
-            loadSalesIfLoggedIn(session)
+            if (session.isLoggedIn()) loadSales()
         }
         binding.btnNext.setOnClickListener {
             if (currentOffset > 0) {
                 currentOffset--
-                loadSalesIfLoggedIn(session)
+                if (session.isLoggedIn()) loadSales()
             }
         }
 
-        loadSalesIfLoggedIn(session)
-    }
-
-    private fun loadSalesIfLoggedIn(session: SessionManager) {
-        if (session.isLoggedIn()) loadSales(session.sellerId)
+        if (session.isLoggedIn()) loadSales()
     }
 
     private fun switchPeriod(period: String) {
@@ -66,7 +62,7 @@ class SalesFragment : Fragment() {
         currentOffset = 0
         updateTabs()
         val session = SessionManager(requireContext())
-        if (session.isLoggedIn()) loadSales(session.sellerId)
+        if (session.isLoggedIn()) loadSales()
     }
 
     private fun updateTabs() {
@@ -91,17 +87,16 @@ class SalesFragment : Fragment() {
         }
     }
 
-    private fun loadSales(sellerId: Long) {
+    private fun loadSales() {
         binding.tvLoadingIndicator.visibility = View.VISIBLE
         updatePeriodLabel()
 
         lifecycleScope.launch {
-            try {
+            runCatching {
                 val sales = RetrofitClient.api.getSales(
-                    sellerId = sellerId,
                     period = currentPeriod,
                     offset = currentOffset,
-                )
+                ).data ?: return@runCatching
 
                 val total = sales.salesData.sumOf { it.amount }
                 binding.tvTotalSales.text = "%,d원".format(total)
@@ -121,11 +116,10 @@ class SalesFragment : Fragment() {
 
                 renderTopMenus(sales.topMenus)
                 updateInsight(sales.salesData.map { it.amount }, sales.topMenus)
-            } catch (e: Exception) {
+            }.onFailure {
                 Toast.makeText(requireContext(), "데이터를 불러올 수 없어요.", Toast.LENGTH_SHORT).show()
-            } finally {
-                binding.tvLoadingIndicator.visibility = View.GONE
             }
+            binding.tvLoadingIndicator.visibility = View.GONE
         }
     }
 
@@ -171,7 +165,6 @@ class SalesFragment : Fragment() {
         menus.forEachIndexed { i, menu ->
             val itemView = LayoutInflater.from(requireContext())
                 .inflate(R.layout.item_top_menu, binding.containerTopMenus, false)
-
             itemView.findViewById<TextView>(R.id.tvRank).apply {
                 text = "${i + 1}"
                 setBackgroundResource(rankBgDrawables[i])
@@ -180,11 +173,9 @@ class SalesFragment : Fragment() {
             itemView.findViewById<TextView>(R.id.tvMenuEmoji).text = menu.emoji
             itemView.findViewById<TextView>(R.id.tvMenuName).text = menu.name
             itemView.findViewById<TextView>(R.id.tvMenuCount).text = "${menu.count}건 판매"
-
             if (i < menus.lastIndex) {
                 itemView.findViewById<View>(R.id.dividerMenu).visibility = View.VISIBLE
             }
-
             binding.containerTopMenus.addView(itemView)
         }
     }
