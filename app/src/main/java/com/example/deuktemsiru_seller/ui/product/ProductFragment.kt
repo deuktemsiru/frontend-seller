@@ -72,6 +72,7 @@ class ProductFragment : Fragment() {
             val (statusText, statusBg, statusColor) = when (item.status) {
                 "AVAILABLE" -> Triple("판매중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
                 "SOLD_OUT" -> Triple("품절", R.drawable.bg_status_soldout, 0xFFE65100.toInt())
+                "CANCELLED" -> Triple("취소됨", R.drawable.bg_status_expired, 0xFF757575.toInt())
                 else -> Triple("종료", R.drawable.bg_status_expired, 0xFF9E9E9E.toInt())
             }
             itemBinding.tvItemStatus.text = statusText
@@ -81,6 +82,13 @@ class ProductFragment : Fragment() {
             itemBinding.btnStatusAvailable.setOnClickListener { updateStatus(item.id, "AVAILABLE") }
             itemBinding.btnStatusSoldout.setOnClickListener { updateStatus(item.id, "SOLD_OUT") }
             itemBinding.btnCancel.setOnClickListener { confirmCancel(item) }
+            val isFinal = item.status == "CANCELLED" || item.status == "EXPIRED"
+            itemBinding.btnStatusAvailable.isEnabled = !isFinal
+            itemBinding.btnStatusSoldout.isEnabled = !isFinal
+            itemBinding.btnCancel.isEnabled = !isFinal
+            itemBinding.btnStatusAvailable.alpha = if (isFinal) 0.35f else 1f
+            itemBinding.btnStatusSoldout.alpha = if (isFinal) 0.35f else 1f
+            itemBinding.btnCancel.alpha = if (isFinal) 0.35f else 1f
 
             binding.saleItemsContainer.addView(itemBinding.root)
         }

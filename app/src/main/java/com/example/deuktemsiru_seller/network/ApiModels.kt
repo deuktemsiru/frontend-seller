@@ -77,6 +77,7 @@ data class MenuItemUpdateRequest(
 
 // ── 주문 ──────────────────────────────────────────────────────
 data class OrderItemApiResponse(
+    val productId: Long,
     val menuItemId: Long,
     val name: String,
     val emoji: String,
