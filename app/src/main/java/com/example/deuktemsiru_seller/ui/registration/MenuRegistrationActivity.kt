@@ -105,6 +105,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
                     discountRate = selectedDiscountRate.toString().toTextPart(),
                     quantity = selectedQuantity.toString().toTextPart(),
                     pickupTimeSlot = selectedPickupTimeSlot.toTextPart(),
+                    allergyInfo = selectedAllergyInfo?.toTextPart(),
                     image = createImagePart(),
                 )
                 Toast.makeText(

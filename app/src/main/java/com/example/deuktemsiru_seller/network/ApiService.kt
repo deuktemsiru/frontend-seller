@@ -48,6 +48,7 @@ interface ApiService {
         @Part("discountRate") discountRate: RequestBody,
         @Part("quantity") quantity: RequestBody,
         @Part("pickupTimeSlot") pickupTimeSlot: RequestBody,
+        @Part("allergyInfo") allergyInfo: RequestBody?,
         @Part image: MultipartBody.Part?,
     ): ApiResponse<MenuItemApiResponse>
 

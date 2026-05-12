@@ -264,8 +264,7 @@ class StoreFragment : Fragment() {
 
     private fun categoryLabel(category: String) = when (category.uppercase()) {
         "BAKERY" -> "베이커리"
-        "LUNCHBOX" -> "도시락"
-        "SALAD" -> "샐러드"
+        "RESTAURANT" -> "음식점"
         "CAFE" -> "카페"
         else -> category
     }
