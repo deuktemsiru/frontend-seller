@@ -13,6 +13,8 @@ import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityPickupVerifyBinding
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.UpdateOrderStatusRequest
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
 
 class PickupVerifyActivity : AppCompatActivity() {
@@ -27,10 +29,8 @@ class PickupVerifyActivity : AppCompatActivity() {
         if (granted) launchQrScan() else Toast.makeText(this, "카메라 권한이 필요해요", Toast.LENGTH_SHORT).show()
     }
 
-    private val qrLauncher = registerForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val code = result.data?.getStringExtra("SCAN_RESULT")
+    private val qrLauncher = registerForActivityResult(ScanContract()) { result ->
+        val code = result.contents
         if (!code.isNullOrBlank()) {
             binding.etPickupCode.setText(code)
             verifyCode(code)
@@ -66,13 +66,12 @@ class PickupVerifyActivity : AppCompatActivity() {
     }
 
     private fun launchQrScan() {
-        try {
-            val intent = android.content.Intent("com.google.zxing.client.android.SCAN")
-            intent.putExtra("SCAN_MODE", "QR_CODE_MODE")
-            qrLauncher.launch(intent)
-        } catch (e: Exception) {
-            Toast.makeText(this, "QR 스캔 앱이 없어요. 코드를 직접 입력해주세요.", Toast.LENGTH_LONG).show()
-        }
+        val options = ScanOptions()
+            .setDesiredBarcodeFormats("QR_CODE")
+            .setPrompt("픽업 QR 코드를 화면 안에 맞춰주세요")
+            .setBeepEnabled(false)
+            .setOrientationLocked(false)
+        qrLauncher.launch(options)
     }
 
     private fun verifyCode(code: String) {

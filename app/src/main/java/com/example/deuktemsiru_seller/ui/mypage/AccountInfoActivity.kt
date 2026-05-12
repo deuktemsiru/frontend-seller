@@ -1,7 +1,7 @@
 package com.example.deuktemsiru_seller.ui.mypage
 
 import android.os.Bundle
-import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -33,7 +33,11 @@ class AccountInfoActivity : AppCompatActivity() {
         binding.tvBusinessNumber.text = "***-**-*****"
 
         binding.btnInstagram.setOnClickListener {
-            Toast.makeText(this, "SNS 연동은 준비 중이에요", Toast.LENGTH_SHORT).show()
+            AlertDialog.Builder(this)
+                .setTitle("SNS 연동")
+                .setMessage("인스타그램 계정은 현재 매장 홍보 채널로 수동 관리됩니다.\n\n프로필 또는 게시물 링크를 고객 알림 문구에 포함하면 구매자에게 바로 노출할 수 있어요. 정식 OAuth 연동은 운영 서버 도입 후 연결하는 흐름으로 분리해두는 것이 안전합니다.")
+                .setPositiveButton("확인", null)
+                .show()
         }
     }
 }
