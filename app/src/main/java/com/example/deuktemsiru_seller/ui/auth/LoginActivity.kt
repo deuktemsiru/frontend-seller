@@ -6,9 +6,11 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.deuktemsiru_seller.BuildConfig
 import com.example.deuktemsiru_seller.MainActivity
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityLoginBinding
+import com.example.deuktemsiru_seller.network.DebugLoginRequest
 import com.example.deuktemsiru_seller.network.KakaoLoginRequest
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.kakao.sdk.auth.model.OAuthToken
@@ -35,7 +37,36 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
-        binding.btnKakaoLogin.setOnClickListener { startKakaoLogin() }
+        if (BuildConfig.DEBUG) {
+            binding.btnKakaoLogin.text = "디버그 로그인으로 시작하기"
+        }
+
+        binding.btnKakaoLogin.setOnClickListener {
+            if (BuildConfig.DEBUG) debugLogin() else startKakaoLogin()
+        }
+    }
+
+    private fun debugLogin() {
+        setLoading(true)
+        lifecycleScope.launch {
+            runCatching {
+                RetrofitClient.api.debugLogin(DebugLoginRequest())
+            }.onSuccess { response ->
+                val loginData = response.data
+                if (loginData != null) {
+                    session.memberId = loginData.member.memberId
+                    session.nickname = loginData.member.nickname
+                    session.accessToken = loginData.accessToken
+                    session.refreshToken = loginData.refreshToken
+                    navigateToMain()
+                } else {
+                    showError("디버그 로그인 응답이 올바르지 않습니다.")
+                }
+            }.onFailure {
+                showError("디버그 로그인 서버 연결에 실패했습니다.")
+            }
+            setLoading(false)
+        }
     }
 
     private fun startKakaoLogin() {
