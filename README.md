@@ -42,7 +42,7 @@
 | 비동기 | Kotlin Coroutines Android 1.8.1 |
 | 소셜 로그인 | Kakao SDK User 2.21.0 |
 | 기타 | Custom `BarChartView`, 로컬 알림 채널 |
-| 빌드 | Gradle Kotlin DSL, Android Gradle Plugin 9.1.1 |
+| 빌드 | Gradle Kotlin DSL, Android Gradle Plugin 9.0.0 |
 
 ## 실행 방법
 
