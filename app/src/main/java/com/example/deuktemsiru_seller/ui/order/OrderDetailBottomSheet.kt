@@ -57,6 +57,14 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
     private fun renderOrder() {
         binding.tvOrderNumber.text = order.orderNumber
         binding.tvCreatedAt.text = order.createdAt.take(16).replace("T", " ")
+
+        val name = order.customerName
+        if (name.isNullOrBlank()) {
+            binding.rowCustomerName.visibility = android.view.View.GONE
+        } else {
+            binding.tvCustomerName.text = name
+        }
+
         binding.tvPickupTime.text = order.pickupTime
         binding.tvPickupCode.text = order.pickupCode.chunked(2).joinToString("-")
         binding.tvTotalAmount.text = "%,d원".format(order.totalAmount)
