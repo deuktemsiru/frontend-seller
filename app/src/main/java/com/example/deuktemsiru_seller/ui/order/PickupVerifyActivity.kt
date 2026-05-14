@@ -83,6 +83,7 @@ class PickupVerifyActivity : AppCompatActivity() {
                 currentOrderId = order.id
                 binding.tvResultTitle.text = "✓ 주문 확인됨"
                 binding.tvResultTitle.setTextColor(getColor(android.R.color.holo_green_dark))
+                binding.tvResultCustomerName.text = order.customerName?.let { "고객: $it" } ?: ""
                 binding.tvResultOrderNumber.text = "주문번호: ${order.orderNumber}"
                 binding.tvResultItems.text = "상품: ${order.items.joinToString(", ") { "${it.emoji} ${it.name} ${it.quantity}개" }}"
                 binding.tvResultAmount.text = "결제금액: %,d원".format(order.totalAmount)

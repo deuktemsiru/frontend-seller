@@ -94,6 +94,7 @@ data class OrderApiResponse(
     val orderNumber: String,
     val storeId: Long,
     val storeName: String,
+    val customerName: String? = null,
     val status: String,
     val pickupCode: String,
     val pickupTime: String,

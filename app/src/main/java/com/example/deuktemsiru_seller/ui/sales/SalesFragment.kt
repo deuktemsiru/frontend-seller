@@ -22,7 +22,7 @@ class SalesFragment : Fragment() {
     private var _binding: FragmentSalesBinding? = null
     private val binding get() = _binding!!
 
-    private var currentPeriod = "weekly"
+    private var currentPeriod = "daily"
     private var currentOffset = 0
 
     override fun onCreateView(
@@ -39,9 +39,9 @@ class SalesFragment : Fragment() {
 
         val session = SessionManager(requireContext())
 
+        binding.tabDaily.setOnClickListener { switchPeriod("daily") }
         binding.tabWeekly.setOnClickListener { switchPeriod("weekly") }
         binding.tabMonthly.setOnClickListener { switchPeriod("monthly") }
-        binding.tabYearly.setOnClickListener { switchPeriod("yearly") }
 
         binding.btnPrev.setOnClickListener {
             currentOffset++
@@ -67,9 +67,9 @@ class SalesFragment : Fragment() {
 
     private fun updateTabs() {
         val tabs = listOf(
+            binding.tabDaily to "daily",
             binding.tabWeekly to "weekly",
             binding.tabMonthly to "monthly",
-            binding.tabYearly to "yearly",
         )
         tabs.forEach { (tab, period) ->
             if (period == currentPeriod) {
@@ -81,8 +81,8 @@ class SalesFragment : Fragment() {
             }
         }
         binding.tvSalesTitle.text = when (currentPeriod) {
+            "daily" -> "일간 매출"
             "monthly" -> "월간 매출"
-            "yearly" -> "연간 매출"
             else -> "주간 매출"
         }
     }
@@ -126,11 +126,14 @@ class SalesFragment : Fragment() {
     private fun updatePeriodLabel() {
         val today = LocalDate.now()
         binding.tvPeriodRange.text = when (currentPeriod) {
+            "daily" -> {
+                val day = today.minusDays(currentOffset.toLong())
+                day.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+            }
             "monthly" -> {
                 val month = today.minusMonths(currentOffset.toLong())
                 "${month.year}년 ${month.monthValue}월"
             }
-            "yearly" -> "${today.year - currentOffset}년"
             else -> {
                 val endDay = today.minusDays((currentOffset * 7).toLong())
                 val startDay = endDay.minusDays(6)
