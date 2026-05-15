@@ -70,12 +70,9 @@ interface ApiService {
     @POST("api/v1/sellers/menu-items")
     suspend fun addMenuWithImage(
         @Part("name") name: RequestBody,
-        @Part("emoji") emoji: RequestBody,
         @Part("originalPrice") originalPrice: RequestBody,
-        @Part("discountRate") discountRate: RequestBody,
-        @Part("quantity") quantity: RequestBody,
-        @Part("pickupTimeSlot") pickupTimeSlot: RequestBody,
-        @Part("allergyInfo") allergyInfo: RequestBody?,
+        @Part("description") description: RequestBody?,
+        @Part("allergenInfo") allergenInfo: RequestBody?,
         @Part image: MultipartBody.Part?,
     ): ApiResponse<MenuItemApiResponse>
 

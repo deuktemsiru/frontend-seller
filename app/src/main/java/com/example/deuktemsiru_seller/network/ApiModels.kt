@@ -124,10 +124,10 @@ data class OrderApiResponse(
     val storeName: String? = null,
     val customerName: String? = null,
     val status: String,
-    val pickupCode: String,
+    val pickupCode: String? = null,
     val pickupTime: String? = null,
     @SerializedName("totalPrice") val totalAmount: Int,
-    val createdAt: String,
+    val createdAt: String = "",
     val items: List<OrderItemApiResponse>,
 ) : Serializable
 

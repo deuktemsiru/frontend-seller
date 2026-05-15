@@ -102,7 +102,7 @@ class SalesFragment : Fragment() {
         binding.tvLoadingIndicator.visibility = View.VISIBLE
         updatePeriodLabel()
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 val sales = RetrofitClient.api.getSales(
                     period = currentPeriod,
@@ -130,7 +130,9 @@ class SalesFragment : Fragment() {
                 binding.pieChart.setSlices(sales.topMenus.map { PieChartView.Slice(it.name, it.count) })
                 updateInsight(sales.salesData.map { it.amount }, sales.topMenus)
             }.onFailure {
-                Toast.makeText(requireContext(), "데이터를 불러올 수 없어요.", Toast.LENGTH_SHORT).show()
+                if (isAdded && context != null) {
+                    Toast.makeText(requireContext(), "데이터를 불러올 수 없어요.", Toast.LENGTH_SHORT).show()
+                }
             }
             binding.tvLoadingIndicator.visibility = View.GONE
         }

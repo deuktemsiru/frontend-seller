@@ -175,9 +175,11 @@ object MockApiService : ApiService {
     }
 
     override suspend fun addMenuWithImage(
-        name: RequestBody, emoji: RequestBody, originalPrice: RequestBody,
-        discountRate: RequestBody, quantity: RequestBody, pickupTimeSlot: RequestBody,
-        allergyInfo: RequestBody?, image: MultipartBody.Part?,
+        name: RequestBody,
+        originalPrice: RequestBody,
+        description: RequestBody?,
+        allergenInfo: RequestBody?,
+        image: MultipartBody.Part?,
     ): ApiResponse<MenuItemApiResponse> = ApiResponse(400, "not supported in mock", null)
 
     override suspend fun updateMenu(menuItemId: Long, req: MenuItemUpdateRequest): ApiResponse<MenuItemApiResponse> {

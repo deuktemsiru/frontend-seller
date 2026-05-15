@@ -32,6 +32,7 @@ Thumbs.db
 # Keystore
 *.jks
 *.keystore
+*.pem
 
 # 인증서 추출 임시 파일
 *.der

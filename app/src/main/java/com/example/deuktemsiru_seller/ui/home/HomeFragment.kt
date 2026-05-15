@@ -82,7 +82,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun loadStore() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 val store = RetrofitClient.api.getMyStore().data
                 if (store != null) {
@@ -145,7 +145,7 @@ class HomeFragment : Fragment() {
         binding.tvTodayOrders.setOnClickListener {
             (activity as? MainActivity)?.navigateToOrderCompleted()
         }
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 val sales = RetrofitClient.api.getSales().data
                 if (sales != null) {
@@ -154,7 +154,7 @@ class HomeFragment : Fragment() {
                 }
             }
         }
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 val orders = RetrofitClient.api.getOrders().data ?: emptyList()
                 val newCount = orders.count { it.status.equals("PENDING", ignoreCase = true) }

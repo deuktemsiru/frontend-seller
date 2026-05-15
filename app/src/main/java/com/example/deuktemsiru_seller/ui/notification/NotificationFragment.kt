@@ -188,7 +188,7 @@ class NotificationFragment : Fragment() {
     }
 
     private fun sendNotification(message: String) {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 val result = RetrofitClient.api.sendNotification(
                     SendNotificationRequest(
@@ -207,7 +207,7 @@ class NotificationFragment : Fragment() {
     }
 
     private fun loadHistory() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 renderHistory(RetrofitClient.api.getNotifications().data ?: emptyList())
             }.onFailure {

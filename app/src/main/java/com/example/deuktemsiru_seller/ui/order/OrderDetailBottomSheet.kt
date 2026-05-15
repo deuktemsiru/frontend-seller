@@ -70,7 +70,7 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
         }
 
         binding.tvPickupTime.text = order.pickupTime ?: ""
-        binding.tvPickupCode.text = order.pickupCode.chunked(2).joinToString("-")
+        binding.tvPickupCode.text = order.pickupCode?.chunked(2)?.joinToString("-") ?: "-"
         binding.tvTotalAmount.text = "%,d원".format(order.totalAmount)
 
         val (statusText, statusBg, statusColor) = when (order.status.uppercase()) {
@@ -113,7 +113,7 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
 
     private fun performAction(nextStatus: String) {
         binding.btnAction.isEnabled = false
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 RetrofitClient.api.updateOrderStatus(
                     order.id, UpdateOrderStatusRequest(nextStatus)

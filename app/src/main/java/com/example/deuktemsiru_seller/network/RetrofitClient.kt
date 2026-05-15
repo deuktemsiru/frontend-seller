@@ -1,5 +1,6 @@
 package com.example.deuktemsiru_seller.network
 
+import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -14,8 +15,8 @@ import java.net.URL
 
 object RetrofitClient {
 
-    private const val DEFAULT_BASE_URL = "http://10.0.2.2:8080/"
-    val BASE_URL: String = BuildConfig.BASE_URL.ifBlank { DEFAULT_BASE_URL }
+    private const val EMULATOR_BASE_URL = "http://10.0.2.2:8080/"
+    val BASE_URL: String = BuildConfig.BASE_URL.ifBlank { EMULATOR_BASE_URL }
 
     /** SessionManager에서 accessToken을 설정하면 모든 요청에 자동으로 첨부됩니다. */
     var accessToken: String? = null
@@ -24,6 +25,12 @@ object RetrofitClient {
 
     /** 목 로그인 세션 여부 — true이면 토큰 갱신 시도를 건너뜁니다. */
     var isMockSession: Boolean = false
+
+    init {
+        if (!BuildConfig.DEBUG && BASE_URL.contains("10.0.2.2")) {
+            error("릴리스 빌드에서 에뮬레이터 URL을 사용할 수 없습니다. local.properties에 BACKEND_BASE_URL을 설정하세요.")
+        }
+    }
 
     private val client: OkHttpClient by lazy {
         OkHttpClient.Builder()
@@ -55,7 +62,10 @@ object RetrofitClient {
             if (response.request.header("Authorization").isNullOrBlank()) return null
             if (responseCount(response) >= 2) return null
 
-            if (isMockSession) return null
+            if (isMockSession) {
+                Log.w("RetrofitClient", "Skipping token refresh for mock session")
+                return null
+            }
             val savedRefreshToken = refreshToken?.takeIf { it.isNotBlank() } ?: return null
             val newAccessToken = synchronized(this) {
                 val currentRequestToken = response.request.header("Authorization")?.removePrefix("Bearer ")

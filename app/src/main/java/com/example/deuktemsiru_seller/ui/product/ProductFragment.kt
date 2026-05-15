@@ -48,7 +48,7 @@ class ProductFragment : Fragment() {
 
     private fun loadSaleItems() {
         if (!session.isLoggedIn()) return
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 val items = RetrofitClient.api.getSaleItems().data ?: emptyList()
                 renderItems(items)
@@ -132,7 +132,7 @@ class ProductFragment : Fragment() {
     }
 
     private fun updateStatus(itemId: Long, status: String) {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 RetrofitClient.api.updateSaleStatus(itemId, UpdateSaleStatusRequest(status))
                 loadSaleItems()
@@ -181,7 +181,7 @@ class ProductFragment : Fragment() {
                     Toast.makeText(requireContext(), "올바른 수량을 입력해주세요", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
-                lifecycleScope.launch {
+                viewLifecycleOwner.lifecycleScope.launch {
                     runCatching {
                         RetrofitClient.api.updateSaleItem(item.id, UpdateSaleItemRequest(newPrice, newQty))
                         Toast.makeText(requireContext(), "수정됐어요", Toast.LENGTH_SHORT).show()
@@ -200,7 +200,7 @@ class ProductFragment : Fragment() {
             .setTitle("상품 취소")
             .setMessage("${item.name} 상품 등록을 취소할까요?")
             .setPositiveButton("취소하기") { _, _ ->
-                lifecycleScope.launch {
+                viewLifecycleOwner.lifecycleScope.launch {
                     runCatching {
                         RetrofitClient.api.cancelSaleItem(item.id)
                         Toast.makeText(requireContext(), "상품이 취소됐어요", Toast.LENGTH_SHORT).show()

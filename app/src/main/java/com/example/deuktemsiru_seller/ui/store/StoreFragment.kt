@@ -56,7 +56,7 @@ class StoreFragment : Fragment() {
     // ── 가게 정보 ─────────────────────────────────────────────
 
     private fun loadStore() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 val store = RetrofitClient.api.getMyStore().data ?: return@runCatching
                 binding.tvStoreEmoji.text = "🏪"
@@ -82,7 +82,7 @@ class StoreFragment : Fragment() {
             return
         }
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 binding.btnSave.isEnabled = false
                 val store = RetrofitClient.api.updateStore(
@@ -104,7 +104,7 @@ class StoreFragment : Fragment() {
     // ── 메뉴 목록 ─────────────────────────────────────────────
 
     private fun loadMenus() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 val menus = RetrofitClient.api.getMenus().data ?: emptyList()
                 renderMenus(menus)
@@ -194,7 +194,7 @@ class StoreFragment : Fragment() {
         }
 
     private fun updateMenu(menuId: Long, req: MenuItemUpdateRequest) {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 RetrofitClient.api.updateMenu(menuId, req)
                 Toast.makeText(requireContext(), "메뉴가 수정됐어요.", Toast.LENGTH_SHORT).show()
@@ -210,7 +210,7 @@ class StoreFragment : Fragment() {
             .setTitle("메뉴 삭제")
             .setMessage("${menu.name}을(를) 삭제할까요?")
             .setPositiveButton("삭제") { _, _ ->
-                lifecycleScope.launch {
+                viewLifecycleOwner.lifecycleScope.launch {
                     runCatching {
                         RetrofitClient.api.deleteMenu(menu.id)
                         Toast.makeText(requireContext(), "메뉴가 삭제됐어요.", Toast.LENGTH_SHORT).show()

@@ -97,15 +97,16 @@ class MenuRegistrationActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                RetrofitClient.api.addMenuWithImage(
+                RetrofitClient.api.createSaleItemWithImage(
                     name = selectedMenuName.toTextPart(),
-                    emoji = selectedEmoji.toTextPart(),
+                    discountPrice = discountedPrice().toString().toTextPart(),
                     originalPrice = selectedOriginalPrice.toString().toTextPart(),
-                    discountRate = selectedDiscountRate.toString().toTextPart(),
-                    quantity = selectedQuantity.toString().toTextPart(),
-                    pickupTimeSlot = "${formatTime(pickupStartMinutes)}-${formatTime(pickupEndMinutes)}".toTextPart(),
-                    allergyInfo = selectedAllergyInfo?.toTextPart(),
-                    image = createImagePart(),
+                    quantityTotal = selectedQuantity.toString().toTextPart(),
+                    pickupStart = formatTime(pickupStartMinutes).toTextPart(),
+                    pickupEnd = formatTime(pickupEndMinutes).toTextPart(),
+                    availableDate = java.time.LocalDate.now().toString().toTextPart(),
+                    allergenInfo = selectedAllergyInfo?.toTextPart(),
+                    images = createImagePart("images")?.let(::listOf),
                 )
                 Toast.makeText(
                     this@MenuRegistrationActivity,
@@ -393,13 +394,13 @@ class MenuRegistrationActivity : AppCompatActivity() {
     private fun String.toTextPart(): RequestBody =
         this.toRequestBody("text/plain".toMediaType())
 
-    private fun createImagePart(): MultipartBody.Part? {
+    private fun createImagePart(partName: String = "image"): MultipartBody.Part? {
         val uri = selectedImageUri ?: return null
         val mimeType = contentResolver.getType(uri) ?: "image/*"
         val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
         val filename = getDisplayName(uri) ?: "menu-image"
         val body = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
-        return MultipartBody.Part.createFormData("image", filename, body)
+        return MultipartBody.Part.createFormData(partName, filename, body)
     }
 
     private fun getDisplayName(uri: Uri): String? {
