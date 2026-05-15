@@ -80,38 +80,38 @@
         <Button
             android:id="@+id/btn_status_available"
             android:layout_width="0dp"
-            android:layout_height="36dp"
+            android:layout_height="34dp"
             android:layout_weight="1"
             android:layout_marginEnd="4dp"
-            android:background="@drawable/bg_status_available"
+            android:background="@drawable/bg_rounded_muted"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:stateListAnimator="@null"
             android:text="판매중"
             android:textSize="12sp"
-            android:textColor="#2E7D32" />
+            android:textColor="@color/text_sub" />
 
         <Button
             android:id="@+id/btn_status_soldout"
             android:layout_width="0dp"
-            android:layout_height="36dp"
+            android:layout_height="34dp"
             android:layout_weight="1"
             android:layout_marginHorizontal="4dp"
-            android:background="@drawable/bg_status_soldout"
+            android:background="@drawable/bg_rounded_muted"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:stateListAnimator="@null"
             android:text="품절"
             android:textSize="12sp"
-            android:textColor="#E65100" />
+            android:textColor="@color/text_sub" />
 
         <Button
             android:id="@+id/btn_cancel"
             android:layout_width="0dp"
-            android:layout_height="36dp"
+            android:layout_height="34dp"
             android:layout_weight="1"
             android:layout_marginStart="4dp"
-            android:background="@drawable/bg_status_expired"
+            android:background="@drawable/bg_rounded_muted"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:stateListAnimator="@null"

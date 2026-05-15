@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.R
@@ -17,6 +16,7 @@ import com.example.deuktemsiru_seller.databinding.ItemActiveMenuBinding
 import com.example.deuktemsiru_seller.network.SaleItemApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.ui.product.ProductListingActivity
+import com.example.deuktemsiru_seller.ui.product.SaleItemDetailBottomSheet
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
@@ -109,22 +109,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun showSaleItemDetail(item: SaleItemApiResponse) {
-        val message = buildString {
-            append("${item.emoji ?: ""} ${item.name}\n\n")
-            append("정상가: %,d원\n".format(item.originalPrice))
-            append("할인가: %,d원\n".format(item.discountedPrice))
-            append("픽업시간: ${item.displayPickupTime}\n")
-            append("잔여: ${item.remainingItems}/${item.totalItems}개\n")
-            append("상태: ${if (item.status == "AVAILABLE") "판매중" else "품절"}")
-        }
-        AlertDialog.Builder(requireContext())
-            .setTitle("상품 상세")
-            .setMessage(message)
-            .setPositiveButton("닫기", null)
-            .setNeutralButton("상품 관리로") { _, _ ->
-                (activity as? MainActivity)?.navigateToProduct()
-            }
-            .show()
+        SaleItemDetailBottomSheet.newInstance(item).show(parentFragmentManager, "sale_item_detail")
     }
 
     private fun createEmptyMenuView(): View {

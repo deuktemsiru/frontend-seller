@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -WindowStyle Hidden -c \"(New-Object Media.SoundPlayer 'C:\\Windows\\Media\\notify.wav').PlaySync()\""
+            "command": "powershell.exe -WindowStyle Hidden -c \"(New-Object Media.SoundPlayer 'C:\\Windows\\Media\\tada.wav').PlaySync()\""
           }
         ]
       }

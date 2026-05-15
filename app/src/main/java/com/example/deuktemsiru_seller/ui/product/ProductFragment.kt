@@ -69,21 +69,49 @@ class ProductFragment : Fragment() {
             itemBinding.tvItemDetail.text =
                 "${"%,d원".format(item.discountedPrice)} · 잔여 ${item.remainingItems}/${item.totalItems}개 · ${item.displayPickupTime}"
 
-            val (statusText, statusBg, statusColor) = when (item.status) {
-                "AVAILABLE" -> Triple("판매중", R.drawable.bg_rounded_success_light, 0xFFFFFFFF.toInt())
-                "SOLD_OUT" -> Triple("품절", R.drawable.bg_rounded_danger, 0xFFFFFFFF.toInt())
-                "CANCELLED" -> Triple("취소됨", R.drawable.bg_rounded_muted, 0xFFFFFFFF.toInt())
-                else -> Triple("종료", R.drawable.bg_rounded_muted, 0xFFFFFFFF.toInt())
+            val (statusText, badgeBgColor, badgeTextColor) = when (item.status) {
+                "AVAILABLE" -> Triple("● 판매중", 0xFF2E7D32.toInt(), 0xFFFFFFFF.toInt())
+                "SOLD_OUT"  -> Triple("● 품절",   0xFFE65100.toInt(), 0xFFFFFFFF.toInt())
+                "CANCELLED" -> Triple("취소됨",   0xFF9E9E9E.toInt(), 0xFFFFFFFF.toInt())
+                else        -> Triple("종료",     0xFF9E9E9E.toInt(), 0xFFFFFFFF.toInt())
             }
             itemBinding.tvItemStatus.text = statusText
-            itemBinding.tvItemStatus.setBackgroundResource(statusBg)
-            itemBinding.tvItemStatus.setTextColor(statusColor)
+            itemBinding.tvItemStatus.setTextColor(badgeTextColor)
+            val badgeBg = android.graphics.drawable.GradientDrawable().apply {
+                setColor(badgeBgColor)
+                cornerRadius = 20f * resources.displayMetrics.density
+            }
+            itemBinding.tvItemStatus.background = badgeBg
+            itemBinding.tvItemStatus.setPadding(
+                (8 * resources.displayMetrics.density).toInt(),
+                (4 * resources.displayMetrics.density).toInt(),
+                (8 * resources.displayMetrics.density).toInt(),
+                (4 * resources.displayMetrics.density).toInt()
+            )
+
+            fun styleButton(btn: android.widget.Button, isActive: Boolean, activeColor: Int) {
+                if (isActive) {
+                    val bg = android.graphics.drawable.GradientDrawable().apply {
+                        setColor(activeColor)
+                        cornerRadius = 8f * resources.displayMetrics.density
+                    }
+                    btn.background = bg
+                    btn.setTextColor(0xFFFFFFFF.toInt())
+                } else {
+                    btn.setBackgroundResource(R.drawable.bg_rounded_muted)
+                    btn.setTextColor(requireContext().getColor(R.color.text_sub))
+                }
+            }
 
             itemBinding.btnEdit.setOnClickListener { showEditDialog(item) }
             itemBinding.btnStatusAvailable.setOnClickListener { updateStatus(item.id, "AVAILABLE") }
             itemBinding.btnStatusSoldout.setOnClickListener { updateStatus(item.id, "SOLD_OUT") }
             itemBinding.btnCancel.setOnClickListener { confirmCancel(item) }
             val isFinal = item.status == "CANCELLED" || item.status == "EXPIRED"
+            styleButton(itemBinding.btnStatusAvailable, item.status == "AVAILABLE", 0xFF2E7D32.toInt())
+            styleButton(itemBinding.btnStatusSoldout, item.status == "SOLD_OUT", 0xFFE65100.toInt())
+            itemBinding.btnCancel.setBackgroundResource(R.drawable.bg_rounded_muted)
+            itemBinding.btnCancel.setTextColor(requireContext().getColor(R.color.text_sub))
             itemBinding.btnStatusAvailable.isEnabled = !isFinal
             itemBinding.btnStatusSoldout.isEnabled = !isFinal
             itemBinding.btnCancel.isEnabled = !isFinal
