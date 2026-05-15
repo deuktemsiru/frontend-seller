@@ -15,7 +15,9 @@ import com.example.deuktemsiru_seller.databinding.FragmentHomeBinding
 import com.example.deuktemsiru_seller.databinding.ItemActiveMenuBinding
 import com.example.deuktemsiru_seller.network.SaleItemApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
+import com.example.deuktemsiru_seller.ui.order.PickupVerifyActivity
 import com.example.deuktemsiru_seller.ui.product.ProductListingActivity
+import com.example.deuktemsiru_seller.ui.product.SaleItemDetailBottomSheet
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
@@ -40,12 +42,29 @@ class HomeFragment : Fragment() {
         binding.tvStoreName.text = session.nickname.ifBlank { "내 가게" }
 
         binding.cardSales.setOnClickListener { (activity as? MainActivity)?.navigateToOrder() }
-        binding.cardNewOrder.setOnClickListener { (activity as? MainActivity)?.navigateToOrder() }
+        binding.sectionSalesCount.setOnClickListener { (activity as? MainActivity)?.navigateToOrderCompleted() }
+        binding.sectionWaste.setOnClickListener { (activity as? MainActivity)?.navigateToSales() }
+        binding.sectionLoyal.setOnClickListener { (activity as? MainActivity)?.navigateToNotification() }
         binding.btnRegisterMenu.setOnClickListener {
             startActivity(Intent(requireContext(), ProductListingActivity::class.java))
         }
         binding.btnSendNotification.setOnClickListener {
             (activity as? MainActivity)?.navigateToNotification()
+        }
+        binding.btnBell.setOnClickListener {
+            (activity as? MainActivity)?.navigateToNotification()
+        }
+        binding.sectionOrderNew.setOnClickListener {
+            (activity as? MainActivity)?.navigateToOrderTab(0)
+        }
+        binding.sectionOrderPreparing.setOnClickListener {
+            (activity as? MainActivity)?.navigateToOrderTab(1)
+        }
+        binding.sectionOrderPickup.setOnClickListener {
+            (activity as? MainActivity)?.navigateToOrderTab(3)
+        }
+        binding.btnPickupVerifyHome.setOnClickListener {
+            startActivity(Intent(requireContext(), PickupVerifyActivity::class.java))
         }
 
         if (session.isLoggedIn()) {
@@ -73,7 +92,7 @@ class HomeFragment : Fragment() {
             }
             // 활성 판매 상품 목록 로드
             runCatching {
-                val items = RetrofitClient.api.getSaleItems().data ?: emptyList()
+                val items = RetrofitClient.api.getSaleItems().data?.products ?: emptyList()
                 renderActiveSaleItems(items)
             }.onFailure {
                 renderActiveSaleItems(emptyList())
@@ -96,11 +115,16 @@ class HomeFragment : Fragment() {
             itemBinding.tvMenuName.text = item.name
             itemBinding.tvRemaining.text = getString(R.string.remaining_items, item.remainingItems)
             itemBinding.tvPrice.text = "%,d원".format(item.discountedPrice)
-            itemBinding.tvTimeBadge.text = item.pickupTimeSlot
+            itemBinding.tvTimeBadge.text = item.displayPickupTime
             itemBinding.tvTimeBadge.setTextColor(requireContext().getColor(R.color.warning))
             itemBinding.tvTimeBadge.setBackgroundResource(R.drawable.bg_rounded_warning)
+            itemBinding.root.setOnClickListener { showSaleItemDetail(item) }
             binding.activeMenuContainer.addView(itemBinding.root)
         }
+    }
+
+    private fun showSaleItemDetail(item: SaleItemApiResponse) {
+        SaleItemDetailBottomSheet.newInstance(item).show(parentFragmentManager, "sale_item_detail")
     }
 
     private fun createEmptyMenuView(): View {
@@ -118,6 +142,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun loadStats() {
+        binding.tvTodayOrders.setOnClickListener {
+            (activity as? MainActivity)?.navigateToOrderCompleted()
+        }
         lifecycleScope.launch {
             runCatching {
                 val sales = RetrofitClient.api.getSales().data
@@ -129,21 +156,14 @@ class HomeFragment : Fragment() {
         }
         lifecycleScope.launch {
             runCatching {
-                val orders = RetrofitClient.api.getOrders().data ?: emptyList()
+                val orders = RetrofitClient.api.getOrders().data?.orders ?: emptyList()
                 val newCount = orders.count { it.status.equals("PENDING", ignoreCase = true) }
-                val preparingCount = orders.count { it.status.equals("PREPARING", ignoreCase = true) }
-                val pickupCount = orders.count { it.status.equals("READY", ignoreCase = true) }
-                binding.tvNewOrderAlert.text = if (newCount > 0) {
-                    getString(R.string.new_order_alert_count, newCount)
-                } else {
-                    getString(R.string.new_order_alert_empty)
-                }
+                val preparingCount = orders.count { it.status.equals("CONFIRMED", ignoreCase = true) }
+                val pickupCount = orders.count { it.status.equals("PICKED_UP", ignoreCase = true) }
                 binding.tvReservationNew.text = newCount.toString()
                 binding.tvReservationPreparing.text = preparingCount.toString()
                 binding.tvReservationPickup.text = pickupCount.toString()
-            }.onFailure {
-                binding.tvNewOrderAlert.text = getString(R.string.new_order_alert_empty)
-            }
+            }.onFailure { }
         }
     }
 

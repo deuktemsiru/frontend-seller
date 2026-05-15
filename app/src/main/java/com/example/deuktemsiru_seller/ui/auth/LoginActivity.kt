@@ -11,7 +11,6 @@ import com.example.deuktemsiru_seller.MainActivity
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityLoginBinding
 import com.example.deuktemsiru_seller.network.DebugLoginRequest
-import com.example.deuktemsiru_seller.network.KakaoLoginRequest
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
@@ -38,12 +37,35 @@ class LoginActivity : AppCompatActivity() {
         }
 
         if (BuildConfig.DEBUG) {
-            binding.btnKakaoLogin.text = "디버그 로그인으로 시작하기"
+            binding.layoutDebugForm.visibility = View.VISIBLE
+        }
+
+        binding.btnLogin.setOnClickListener {
+            val id = binding.etLoginId.text?.toString()?.trim() ?: ""
+            val pw = binding.etLoginPassword.text?.toString()?.trim() ?: ""
+            if (id.isBlank() || pw.isBlank()) {
+                Toast.makeText(this, "아이디와 패스워드를 입력해주세요", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (id == "bakery" && pw == "bakery") {
+                mockLogin()
+            } else {
+                debugLogin()
+            }
         }
 
         binding.btnKakaoLogin.setOnClickListener {
-            if (BuildConfig.DEBUG) debugLogin() else startKakaoLogin()
+            startKakaoLogin()
         }
+    }
+
+    private fun mockLogin() {
+        session.isMockSession = true
+        session.memberId = 1L
+        session.nickname = "남산 베이커리"
+        session.accessToken = "mock-access-token"
+        session.refreshToken = "mock-refresh-token"
+        navigateToMain()
     }
 
     private fun debugLogin() {
@@ -104,7 +126,10 @@ class LoginActivity : AppCompatActivity() {
         lifecycleScope.launch {
             runCatching {
                 RetrofitClient.api.kakaoLogin(
-                    KakaoLoginRequest(kakaoAccessToken = kakaoAccessToken, role = "SELLER")
+                    com.example.deuktemsiru_seller.network.KakaoLoginRequest(
+                        kakaoAccessToken = kakaoAccessToken,
+                        role = "SELLER",
+                    )
                 )
             }.onSuccess { response ->
                 val loginData = response.data
@@ -135,6 +160,7 @@ class LoginActivity : AppCompatActivity() {
     private fun setLoading(loading: Boolean) {
         binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
         binding.btnKakaoLogin.isEnabled = !loading
+        binding.btnLogin.isEnabled = !loading
     }
 
     private fun showError(message: String) {

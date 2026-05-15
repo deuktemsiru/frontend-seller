@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@color/surface"
+    android:background="@android:color/transparent"
     android:paddingBottom="32dp">
 
     <!-- Handle -->
@@ -105,6 +105,30 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="20dp">
+
+        <LinearLayout
+            android:id="@+id/row_customer_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:text="고객명"
+                android:textSize="13sp"
+                android:textColor="@color/text_sub" />
+
+            <TextView
+                android:id="@+id/tv_customer_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:textColor="@color/text"
+                android:fontFamily="sans-serif-medium" />
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

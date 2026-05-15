@@ -60,11 +60,11 @@ class StoreFragment : Fragment() {
                 val store = RetrofitClient.api.getMyStore().data ?: return@runCatching
                 binding.tvStoreEmoji.text = "🏪"
                 binding.tvStoreName.text = store.name
-                binding.tvCategoryStatus.text = "영업 중  •  ${categoryLabel(store.category)}"
+                binding.tvCategoryStatus.text = "영업 중  •  ${categoryLabel(store.category ?: "")}"
                 binding.tvRating.text = "—"
-                binding.etAddress.setText(store.address)
-                binding.etPhone.setText(store.phone)
-                binding.tvClosingTime.text = store.closingTime
+                binding.etAddress.setText(store.address ?: "")
+                binding.etPhone.setText(store.phone ?: "")
+                binding.tvClosingTime.text = store.closingTime ?: ""
             }.onFailure {
                 Toast.makeText(requireContext(), "가게 정보를 불러올 수 없어요.", Toast.LENGTH_SHORT).show()
             }

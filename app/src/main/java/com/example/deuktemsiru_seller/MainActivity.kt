@@ -28,6 +28,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var session: SessionManager
     private var orderBadgeCount = 0
+    var orderCompletedRequested = false
+    var pendingOrderTab: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,9 +58,20 @@ class MainActivity : AppCompatActivity() {
         setupBottomNav()
 
         if (savedInstanceState == null) {
-            loadFragment(HomeFragment())
+            if (intent.getBooleanExtra("navigate_to_product", false)) {
+                binding.bottomNav.selectedItemId = R.id.nav_product
+            } else {
+                loadFragment(HomeFragment())
+            }
         }
         refreshOrderBadge()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra("navigate_to_product", false)) {
+            binding.bottomNav.selectedItemId = R.id.nav_product
+        }
     }
 
     // ── 로그아웃 (MyPageFragment에서 호출) ──────────────────────
@@ -73,6 +86,24 @@ class MainActivity : AppCompatActivity() {
     // ── 화면 이동 ─────────────────────────────────────────────
     fun navigateToOrder() {
         binding.bottomNav.selectedItemId = R.id.nav_order
+    }
+
+    fun navigateToOrderTab(tabIndex: Int) {
+        pendingOrderTab = tabIndex
+        binding.bottomNav.selectedItemId = R.id.nav_order
+    }
+
+    fun navigateToOrderCompleted() {
+        orderCompletedRequested = true
+        binding.bottomNav.selectedItemId = R.id.nav_order
+    }
+
+    fun navigateToSales() {
+        binding.bottomNav.selectedItemId = R.id.nav_sales
+    }
+
+    fun navigateToProduct() {
+        binding.bottomNav.selectedItemId = R.id.nav_product
     }
 
     fun navigateToNotification() {
@@ -97,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             runCatching {
                 val response = RetrofitClient.api.getOrders()
-                orderBadgeCount = response.data?.count { it.status == "PENDING" } ?: 0
+                orderBadgeCount = response.data?.orders?.count { it.status == "PENDING" } ?: 0
                 updateOrderBadge()
             }
         }
