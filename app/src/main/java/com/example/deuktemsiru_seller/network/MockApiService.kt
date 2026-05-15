@@ -144,6 +144,16 @@ object MockApiService : ApiService {
         return ApiResponse(200, "ok", saleItems[idx])
     }
 
+    override suspend fun updateSaleItem(id: Long, req: UpdateSaleItemRequest): ApiResponse<SaleItemApiResponse> {
+        val idx = saleItems.indexOfFirst { it.id == id }
+        if (idx < 0) return ApiResponse(404, "not found", null)
+        saleItems[idx] = saleItems[idx].copy(
+            discountedPrice = req.discountPrice,
+            remainingItems = req.quantityRemaining,
+        )
+        return ApiResponse(200, "ok", saleItems[idx])
+    }
+
     override suspend fun cancelSaleItem(id: Long): ApiResponse<Unit> {
         val idx = saleItems.indexOfFirst { it.id == id }
         if (idx >= 0) saleItems[idx] = saleItems[idx].copy(status = "CANCELLED")
@@ -226,7 +236,7 @@ object MockApiService : ApiService {
             storeId = 1L,
             storeName = "남산 베이커리",
             message = req.message,
-            sentAt = "2024-05-15T21:00:00",
+            sentAt = java.time.LocalDateTime.now().toString().substring(0, 19),
             recipientCount = 35,
         )
         notifications.add(0, notif)
@@ -246,7 +256,7 @@ object MockApiService : ApiService {
                     SettlementItem(
                         settlementId = 0,
                         periodStart = "%04d-%02d-01".format(year, month),
-                        periodEnd = "%04d-%02d-28".format(year, month),
+                        periodEnd = "%04d-%02d-%02d".format(year, month, java.time.YearMonth.of(year, month).lengthOfMonth()),
                         totalSales = total,
                         platformFee = fee,
                         settlementAmount = total - fee,
@@ -260,7 +270,7 @@ object MockApiService : ApiService {
 
     override suspend fun requestWithdrawal(req: SettlementWithdrawRequest): ApiResponse<SettlementItem> {
         val item = getSettlements(req.year, req.month).data?.settlements?.firstOrNull()
-            ?: SettlementItem(0, "${req.year}-${req.month}-01", "${req.year}-${req.month}-28", 0, 0, 0, "PENDING", null)
+            ?: SettlementItem(0, "${req.year}-${req.month}-01", "${req.year}-${req.month}-${java.time.YearMonth.of(req.year, req.month).lengthOfMonth()}", 0, 0, 0, "PENDING", null)
         return ApiResponse(200, "ok", item)
     }
 

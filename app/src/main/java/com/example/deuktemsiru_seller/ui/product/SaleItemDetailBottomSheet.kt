@@ -9,7 +9,6 @@ import com.example.deuktemsiru_seller.R
 import com.example.deuktemsiru_seller.databinding.BottomSheetSaleItemDetailBinding
 import com.example.deuktemsiru_seller.network.SaleItemApiResponse
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.gson.Gson
 
 class SaleItemDetailBottomSheet : BottomSheetDialogFragment() {
 
@@ -18,7 +17,7 @@ class SaleItemDetailBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
         fun newInstance(item: SaleItemApiResponse) = SaleItemDetailBottomSheet().apply {
-            arguments = Bundle().apply { putString("item", Gson().toJson(item)) }
+            arguments = Bundle().apply { putSerializable("item", item) }
         }
     }
 
@@ -35,7 +34,8 @@ class SaleItemDetailBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val item = Gson().fromJson(arguments?.getString("item"), SaleItemApiResponse::class.java) ?: return
+        @Suppress("DEPRECATION")
+        val item = arguments?.getSerializable("item") as? SaleItemApiResponse ?: return
 
         binding.tvDetailEmoji.text = item.emoji ?: "🛍️"
         binding.tvDetailName.text = item.name

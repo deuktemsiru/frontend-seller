@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import com.example.deuktemsiru_seller.data.SessionManager
 import kotlin.math.min
 
 class RadiusMapView @JvmOverloads constructor(
@@ -80,7 +81,7 @@ class RadiusMapView @JvmOverloads constructor(
         canvas.drawCircle(cx, cy, pinR * 0.4f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; style = Paint.Style.FILL })
 
         // location label
-        val labelText = "한국공학대학교"
+        val labelText = SessionManager(context).nickname.ifBlank { "내 가게" }
         locationLabelPaint.textSize = 10f * resources.displayMetrics.density
         val textW = locationLabelPaint.measureText(labelText)
         val labelTop = cy - pinR * 2.5f - locationLabelPaint.textSize

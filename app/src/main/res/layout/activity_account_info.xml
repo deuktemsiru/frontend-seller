@@ -273,6 +273,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="34dp"
                 android:background="@drawable/bg_button_outline"
+                android:backgroundTint="@null"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:stateListAnimator="@null"

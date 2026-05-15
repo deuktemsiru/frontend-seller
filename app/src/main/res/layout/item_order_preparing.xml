@@ -116,6 +116,7 @@
         android:textColor="@color/white"
         android:fontFamily="sans-serif-medium"
         android:background="@drawable/bg_button_dark"
+        android:backgroundTint="@null"
         android:layout_marginTop="12dp"
         android:insetTop="0dp"
         android:insetBottom="0dp"

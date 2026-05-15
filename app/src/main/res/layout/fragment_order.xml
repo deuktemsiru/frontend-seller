@@ -40,15 +40,18 @@
             android:textSize="12sp"
             android:textColor="@color/online" />
 
-        <Button
+        <TextView
             android:id="@+id/btn_pickup_verify"
             android:layout_width="wrap_content"
             android:layout_height="36dp"
             android:layout_marginStart="12dp"
             android:background="@drawable/bg_button_primary"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:stateListAnimator="@null"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:minWidth="80dp"
+            android:paddingHorizontal="14dp"
             android:text="픽업 확인"
             android:textColor="@color/white"
             android:textSize="13sp"

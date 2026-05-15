@@ -77,44 +77,47 @@
         android:orientation="horizontal"
         android:layout_marginTop="10dp">
 
-        <Button
+        <TextView
             android:id="@+id/btn_status_available"
             android:layout_width="0dp"
             android:layout_height="34dp"
             android:layout_weight="1"
             android:layout_marginEnd="4dp"
             android:background="@drawable/bg_rounded_muted"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:stateListAnimator="@null"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center"
             android:text="판매중"
             android:textSize="12sp"
             android:textColor="@color/text_sub" />
 
-        <Button
+        <TextView
             android:id="@+id/btn_status_soldout"
             android:layout_width="0dp"
             android:layout_height="34dp"
             android:layout_weight="1"
             android:layout_marginHorizontal="4dp"
             android:background="@drawable/bg_rounded_muted"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:stateListAnimator="@null"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center"
             android:text="품절"
             android:textSize="12sp"
             android:textColor="@color/text_sub" />
 
-        <Button
+        <TextView
             android:id="@+id/btn_cancel"
             android:layout_width="0dp"
             android:layout_height="34dp"
             android:layout_weight="1"
             android:layout_marginStart="4dp"
             android:background="@drawable/bg_rounded_muted"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:stateListAnimator="@null"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center"
             android:text="취소"
             android:textSize="12sp"
             android:textColor="@color/text_sub" />

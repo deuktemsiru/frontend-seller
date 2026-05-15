@@ -63,6 +63,7 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:background="@drawable/bg_button_outline"
+            android:backgroundTint="@null"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:stateListAnimator="@null"

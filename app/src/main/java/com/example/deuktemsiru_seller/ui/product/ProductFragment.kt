@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -16,6 +17,7 @@ import com.example.deuktemsiru_seller.databinding.FragmentProductBinding
 import com.example.deuktemsiru_seller.databinding.ItemSaleItemBinding
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.SaleItemApiResponse
+import com.example.deuktemsiru_seller.network.UpdateSaleItemRequest
 import com.example.deuktemsiru_seller.network.UpdateSaleStatusRequest
 import kotlinx.coroutines.launch
 
@@ -89,11 +91,12 @@ class ProductFragment : Fragment() {
                 (4 * resources.displayMetrics.density).toInt()
             )
 
-            fun styleButton(btn: android.widget.Button, isActive: Boolean) {
+            fun styleButton(btn: TextView, isActive: Boolean) {
                 val density = resources.displayMetrics.density
+                val primaryColor = ContextCompat.getColor(requireContext(), R.color.primary)
                 if (isActive) {
                     val bg = android.graphics.drawable.GradientDrawable().apply {
-                        setColor(0xFFFF5C2E.toInt())
+                        setColor(primaryColor)
                         cornerRadius = 8f * density
                     }
                     btn.background = bg
@@ -101,11 +104,11 @@ class ProductFragment : Fragment() {
                 } else {
                     val bg = android.graphics.drawable.GradientDrawable().apply {
                         setColor(0xFFFFFFFF.toInt())
-                        setStroke((1.5f * density).toInt(), 0xFFFF5C2E.toInt())
+                        setStroke((1.5f * density).toInt(), primaryColor)
                         cornerRadius = 8f * density
                     }
                     btn.background = bg
-                    btn.setTextColor(0xFFFF5C2E.toInt())
+                    btn.setTextColor(primaryColor)
                 }
             }
 
@@ -168,9 +171,19 @@ class ProductFragment : Fragment() {
             .setTitle("상품 수정")
             .setView(dialogView)
             .setPositiveButton("저장") { _, _ ->
+                val newPrice = etPrice.text?.toString()?.toIntOrNull()
+                val newQty = etQty.text?.toString()?.toIntOrNull()
+                if (newPrice == null || newPrice <= 0) {
+                    Toast.makeText(requireContext(), "올바른 가격을 입력해주세요", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                if (newQty == null || newQty < 0) {
+                    Toast.makeText(requireContext(), "올바른 수량을 입력해주세요", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
                 lifecycleScope.launch {
                     runCatching {
-                        RetrofitClient.api.updateSaleStatus(item.id, UpdateSaleStatusRequest(item.status))
+                        RetrofitClient.api.updateSaleItem(item.id, UpdateSaleItemRequest(newPrice, newQty))
                         Toast.makeText(requireContext(), "수정됐어요", Toast.LENGTH_SHORT).show()
                         loadSaleItems()
                     }.onFailure {

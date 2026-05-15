@@ -18,6 +18,7 @@ import com.example.deuktemsiru_seller.R
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.FragmentStoreBinding
 import com.example.deuktemsiru_seller.network.MenuItemApiResponse
+import com.example.deuktemsiru_seller.util.dp
 import com.example.deuktemsiru_seller.network.MenuItemUpdateRequest
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.UpdateStoreRequest
@@ -268,9 +269,6 @@ class StoreFragment : Fragment() {
         "CAFE" -> "카페"
         else -> category
     }
-
-    private val Int.dp: Int
-        get() = (this * resources.displayMetrics.density).toInt()
 
     override fun onDestroyView() {
         super.onDestroyView()

@@ -1,12 +1,16 @@
 package com.example.deuktemsiru_seller.ui.mypage
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityAccountInfoBinding
+import com.example.deuktemsiru_seller.network.RetrofitClient
+import kotlinx.coroutines.launch
 
 class AccountInfoActivity : AppCompatActivity() {
 
@@ -27,10 +31,21 @@ class AccountInfoActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
 
-        binding.tvEmail.text = "카카오 소셜 계정"
+        binding.tvEmail.text = "불러오는 중…"
         binding.tvSellerId.text = "#${session.memberId}"
         binding.tvStoreName.text = session.nickname.ifBlank { "—" }
-        binding.tvBusinessNumber.text = "***-**-*****"
+        binding.tvBusinessNumber.text = "정보 없음"
+
+        lifecycleScope.launch {
+            runCatching {
+                val me = RetrofitClient.api.getMyInfo().data
+                binding.tvEmail.text = me?.email?.takeIf { it.isNotBlank() } ?: "카카오 소셜 계정"
+                binding.tvStoreName.text = (me?.nickname ?: session.nickname).ifBlank { "—" }
+            }.onFailure {
+                binding.tvEmail.text = "카카오 소셜 계정"
+                Toast.makeText(this@AccountInfoActivity, "계정 정보를 불러올 수 없어요.", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         binding.btnInstagram.setOnClickListener {
             AlertDialog.Builder(this)

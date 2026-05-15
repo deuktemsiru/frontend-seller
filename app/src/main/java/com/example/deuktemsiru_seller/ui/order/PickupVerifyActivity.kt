@@ -20,6 +20,7 @@ import com.example.deuktemsiru_seller.network.UpdateOrderStatusRequest
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class PickupVerifyActivity : AppCompatActivity() {
 
@@ -36,8 +37,9 @@ class PickupVerifyActivity : AppCompatActivity() {
     private val qrLauncher = registerForActivityResult(ScanContract()) { result ->
         val code = result.contents
         if (!code.isNullOrBlank()) {
-            binding.etPickupCode.setText(code)
-            verifyCode(code)
+            val normalizedCode = code.toPickupCode()
+            binding.etPickupCode.setText(normalizedCode)
+            verifyCode(normalizedCode)
         }
     }
 
@@ -53,11 +55,12 @@ class PickupVerifyActivity : AppCompatActivity() {
         session = SessionManager(this)
         binding.btnBack.setOnClickListener { finish() }
         binding.btnVerify.setOnClickListener {
-            val code = binding.etPickupCode.text?.toString()?.trim().orEmpty()
+            val code = binding.etPickupCode.text?.toString().orEmpty().toPickupCode()
             if (code.isBlank()) {
                 showStatus("픽업 코드를 입력해주세요", success = false)
                 return@setOnClickListener
             }
+            binding.etPickupCode.setText(code)
             verifyCode(code)
         }
         binding.btnScanQr.setOnClickListener {
@@ -106,6 +109,9 @@ class PickupVerifyActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun String.toPickupCode(): String =
+        trim().uppercase(Locale.ROOT)
 
     private fun populateResultCard(order: OrderApiResponse) {
         binding.tvResultTitle.text = "주문 확인됨"

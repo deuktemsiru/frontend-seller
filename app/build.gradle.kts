@@ -8,6 +8,10 @@ val localProperties = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
 }
 
+val hasReleaseSigning = listOf("KEYSTORE_PASSWORD", "KEY_ALIAS", "KEY_PASSWORD")
+    .all { !localProperties.getProperty(it).isNullOrBlank() } &&
+    rootProject.file("release.keystore").exists()
+
 android {
     namespace = "com.example.deuktemsiru_seller"
     compileSdk {
@@ -30,18 +34,22 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            storeFile = rootProject.file("release.keystore")
-            storePassword = localProperties.getProperty("KEYSTORE_PASSWORD", "")
-            keyAlias = localProperties.getProperty("KEY_ALIAS", "")
-            keyPassword = localProperties.getProperty("KEY_PASSWORD", "")
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = rootProject.file("release.keystore")
+                storePassword = localProperties.getProperty("KEYSTORE_PASSWORD")
+                keyAlias = localProperties.getProperty("KEY_ALIAS")
+                keyPassword = localProperties.getProperty("KEY_PASSWORD")
+            }
         }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

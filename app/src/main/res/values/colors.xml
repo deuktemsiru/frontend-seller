@@ -4,16 +4,16 @@
     <color name="black">#FF000000</color>
 
     <!-- Primary -->
-    <color name="primary">#FFFF5C2E</color>
-    <color name="primary_light">#FFFFEDE5</color>
-    <color name="primary_dark">#FF6B2B12</color>
+    <color name="primary">#FFC94B28</color>
+    <color name="primary_light">#FFFFE7DE</color>
+    <color name="primary_dark">#FF8A2F19</color>
 
     <!-- Status -->
     <color name="online">#FF00C853</color>
     <color name="success">#FF2E7D32</color>
     <color name="success_light">#FFE8F5E9</color>
     <color name="danger">#FFFF3B30</color>
-    <color name="warning">#FFFF8800</color>
+    <color name="warning">#FFD97706</color>
 
     <!-- Surface -->
     <color name="surface">#FFF4F5F7</color>

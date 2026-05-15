@@ -80,6 +80,15 @@ class SettlementActivity : AppCompatActivity() {
 
     private fun showWithdrawDialog() {
         val amount = binding.tvSettlementAmount.text.toString()
+        if (amount == "—") {
+            Toast.makeText(this, "정산 데이터를 불러오는 중이에요.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val numericAmount = amount.replace(",", "").replace("원", "").toIntOrNull() ?: 0
+        if (numericAmount <= 0) {
+            Toast.makeText(this, "출금 가능한 금액이 없어요.", Toast.LENGTH_SHORT).show()
+            return
+        }
         AlertDialog.Builder(this)
             .setTitle("출금 신청")
             .setMessage("정산 예정금액 ${amount}을 출금 신청하시겠어요?\n\n영업일 기준 3–5일 이내 등록된 계좌로 입금됩니다.")

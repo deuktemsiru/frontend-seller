@@ -1,6 +1,7 @@
 package com.example.deuktemsiru_seller.network
 
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
 // ── 공통 응답 래퍼 ────────────────────────────────────────────
 data class ApiResponse<T>(
@@ -60,7 +61,7 @@ data class SaleItemApiResponse(
     val pickupStart: String? = null,
     val pickupEnd: String? = null,
     val pickupTimeSlot: String? = null,
-) {
+) : Serializable {
     val displayPickupTime: String
         get() = pickupTimeSlot
             ?: if (pickupStart != null && pickupEnd != null) "$pickupStart~$pickupEnd"
@@ -82,6 +83,7 @@ data class SaleItemCreateRequest(
 )
 
 data class UpdateSaleStatusRequest(val status: String)
+data class UpdateSaleItemRequest(val discountPrice: Int, val quantityRemaining: Int)
 
 // ── 메뉴 ──────────────────────────────────────────────────────
 data class MenuItemApiResponse(
@@ -113,7 +115,7 @@ data class OrderItemApiResponse(
     val emoji: String? = null,
     val quantity: Int,
     @SerializedName("unitPrice") val price: Int,
-)
+) : Serializable
 
 data class OrderApiResponse(
     @SerializedName("orderId") val id: Long,
@@ -127,7 +129,7 @@ data class OrderApiResponse(
     @SerializedName("totalPrice") val totalAmount: Int,
     val createdAt: String,
     val items: List<OrderItemApiResponse>,
-)
+) : Serializable
 
 // 주문 목록 래퍼 (GET /sellers/orders → data.orders)
 data class UpdateOrderStatusRequest(val status: String)

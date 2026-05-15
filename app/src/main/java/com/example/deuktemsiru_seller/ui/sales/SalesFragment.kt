@@ -63,8 +63,7 @@ class SalesFragment : Fragment() {
         currentPeriod = period
         currentOffset = 0
         updateTabs()
-        val session = SessionManager(requireContext())
-        if (session.isLoggedIn()) loadSales()
+        loadSales()
     }
 
     private fun updateTabs() {
@@ -122,7 +121,7 @@ class SalesFragment : Fragment() {
                 }
                 binding.barChart.setEntries(entries)
 
-                val totalOrders = sales.salesData.sumOf { it.amount } / 6000
+                val totalOrders = sales.todayOrderCount
                 binding.tvWasteCount.text = "절감 폐기 ${totalOrders}개"
                 val carbonSaved = sales.carbonSavedKg ?: (totalOrders * 0.2f).toInt().toFloat()
                 binding.tvCo2Amount.text = "탄소 ${carbonSaved.toInt()}kg 절감"

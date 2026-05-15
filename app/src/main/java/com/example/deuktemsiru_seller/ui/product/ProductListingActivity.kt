@@ -35,7 +35,6 @@ class ProductListingActivity : AppCompatActivity() {
     private var selectedQuantity = 5
     private var pickupStartMinutes = 16 * 60 + 30
     private var pickupEndMinutes = 18 * 60
-    private var selectedPickupTimeSlot = "16:30-18:00"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -228,7 +227,6 @@ class ProductListingActivity : AppCompatActivity() {
         fun syncPickupFromPickers() {
             pickupStartMinutes = pickerStartHour.value * 60 + pickerStartMin.value * 5
             pickupEndMinutes = pickerEndHour.value * 60 + pickerEndMin.value * 5
-            selectedPickupTimeSlot = "${formatTime(pickupStartMinutes)}-${formatTime(pickupEndMinutes)}"
         }
 
         fun highlightContainer(active: android.widget.LinearLayout, inactive: android.widget.LinearLayout) {
@@ -250,6 +248,7 @@ class ProductListingActivity : AppCompatActivity() {
             loadStep(2)
         } else {
             if (selectedPriceMode == "rate" && selectedDiscountRate !in 1..99) { Toast.makeText(this, "1~99 사이의 할인율을 입력해주세요", Toast.LENGTH_SHORT).show(); return }
+            if (pickupEndMinutes <= pickupStartMinutes) { Toast.makeText(this, "픽업 종료 시간이 시작 시간보다 늦어야 해요.", Toast.LENGTH_SHORT).show(); return }
             registerProduct()
         }
     }

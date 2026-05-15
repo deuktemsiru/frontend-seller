@@ -116,6 +116,7 @@
                 android:textColor="@color/white"
                 android:fontFamily="sans-serif-medium"
                 android:background="@drawable/bg_button_dark"
+                android:backgroundTint="@null"
                 android:layout_marginEnd="6dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -131,6 +132,7 @@
                 android:textColor="@color/white"
                 android:fontFamily="sans-serif-medium"
                 android:background="@drawable/bg_button_primary"
+                android:backgroundTint="@null"
                 android:layout_marginStart="6dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -476,7 +478,7 @@
         </LinearLayout>
 
         <!-- Pickup Verify Button -->
-        <Button
+        <TextView
             android:id="@+id/btn_pickup_verify_home"
             android:layout_width="match_parent"
             android:layout_height="52dp"
@@ -484,11 +486,12 @@
             android:layout_marginEnd="16dp"
             android:layout_marginTop="12dp"
             android:background="@drawable/bg_button_outline_orange"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:stateListAnimator="@null"
-            android:text="📷  픽업 코드 확인"
-            android:textColor="@color/primary"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:text="픽업 코드 확인"
+            android:textColor="@color/primary_dark"
             android:textSize="15sp"
             android:fontFamily="sans-serif-medium" />
 

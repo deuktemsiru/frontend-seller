@@ -15,7 +15,6 @@ import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.UpdateOrderStatusRequest
 import com.example.deuktemsiru_seller.util.LocalNotificationHelper
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 class OrderDetailBottomSheet : BottomSheetDialogFragment() {
@@ -32,14 +31,14 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
         private const val STATUS_CANCELLED = "CANCELLED"
 
         fun newInstance(order: OrderApiResponse) = OrderDetailBottomSheet().apply {
-            arguments = Bundle().apply { putString("order", Gson().toJson(order)) }
+            arguments = Bundle().apply { putSerializable("order", order) }
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val json = arguments?.getString("order") ?: run { dismiss(); return }
-        order = Gson().fromJson(json, OrderApiResponse::class.java)
+        @Suppress("DEPRECATION")
+        order = arguments?.getSerializable("order") as? OrderApiResponse ?: run { dismiss(); return }
     }
 
     override fun onStart() {

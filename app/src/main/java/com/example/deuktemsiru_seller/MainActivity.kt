@@ -67,6 +67,11 @@ class MainActivity : AppCompatActivity() {
         refreshOrderBadge()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (session.isLoggedIn()) refreshOrderBadge()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.getBooleanExtra("navigate_to_product", false)) {

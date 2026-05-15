@@ -54,6 +54,30 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="메뉴 이모지 (선택)"
+                android:textSize="13sp"
+                android:textColor="@color/text_sub"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_emoji"
+                android:layout_width="72dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_rounded_muted"
+                android:hint="🍽️"
+                android:inputType="text"
+                android:maxLength="2"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:singleLine="true"
+                android:textColor="@color/text"
+                android:textColorHint="@color/text_muted"
+                android:textSize="24sp"
+                android:layout_marginBottom="14dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="메뉴 이미지"
                 android:textSize="13sp"
                 android:textColor="@color/text_sub"

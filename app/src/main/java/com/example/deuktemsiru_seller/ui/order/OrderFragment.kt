@@ -176,7 +176,7 @@ class OrderFragment : Fragment() {
         renderOrders(orders, "준비중인 주문이 없어요") { order ->
             val itemBinding = ItemOrderPreparingBinding.inflate(layoutInflater, binding.orderListContainer, false)
             itemBinding.tvOrderNumber.text = order.orderNumber ?: "#${order.id}"
-            itemBinding.tvElapsedTime.text = ""
+            itemBinding.tvElapsedTime.text = elapsedLabel(order.createdAt)
             itemBinding.tvPickupTime.text = order.pickupTime ?: ""
             itemBinding.tvMenuSummary.text = formatMenuSummary(order)
             itemBinding.tvTotalAmount.text = formatPrice(order.totalAmount)
@@ -252,6 +252,18 @@ class OrderFragment : Fragment() {
             val emojiPart = item.emoji?.let { "$it " } ?: ""
             "$emojiPart${item.name} × ${item.quantity}"
         }
+
+    private fun elapsedLabel(createdAt: String): String {
+        return try {
+            val created = java.time.OffsetDateTime.parse(createdAt)
+            val minutes = java.time.Duration.between(created, java.time.OffsetDateTime.now()).toMinutes()
+            when {
+                minutes < 1 -> "방금 전"
+                minutes < 60 -> "${minutes}분 경과"
+                else -> "${minutes / 60}시간 ${minutes % 60}분 경과"
+            }
+        } catch (_: Exception) { "" }
+    }
 
     private fun formatPrice(amount: Int): String = "%,d원".format(amount)
 

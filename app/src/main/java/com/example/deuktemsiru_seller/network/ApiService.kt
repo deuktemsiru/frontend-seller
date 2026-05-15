@@ -50,6 +50,12 @@ interface ApiService {
         @Body req: UpdateSaleStatusRequest,
     ): ApiResponse<SaleItemApiResponse>
 
+    @PATCH("api/v1/sellers/products/{productId}")
+    suspend fun updateSaleItem(
+        @Path("productId") id: Long,
+        @Body req: UpdateSaleItemRequest,
+    ): ApiResponse<SaleItemApiResponse>
+
     @DELETE("api/v1/sellers/products/{productId}")
     suspend fun cancelSaleItem(@Path("productId") id: Long): ApiResponse<Unit>
 

@@ -16,6 +16,7 @@ import com.example.deuktemsiru_seller.R
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.FragmentNotificationBinding
 import com.example.deuktemsiru_seller.network.NotificationApiResponse
+import com.example.deuktemsiru_seller.util.dp
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.SendNotificationRequest
 import kotlinx.coroutines.launch
@@ -28,7 +29,7 @@ class NotificationFragment : Fragment() {
     private var selectedTarget = "regular" // "regular" or "nearby"
     private var selectedRadiusKm = 3
 
-    private val defaultPhrases = mutableListOf("마감 특가!", "오늘만 할인", "선착순!")
+    private val defaultPhrases: MutableList<String> get() = loadPhrases()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentNotificationBinding.inflate(inflater, container, false)
@@ -96,10 +97,10 @@ class NotificationFragment : Fragment() {
         val inactiveColor = requireContext().getColor(R.color.text_sub)
 
         listOf(
-            Triple(binding.btnRadius3, 3, "btn_radius_3"),
-            Triple(binding.btnRadius5, 5, "btn_radius_5"),
-            Triple(binding.btnRadius10, 10, "btn_radius_10"),
-        ).forEach { (btn, km, _) ->
+            Pair(binding.btnRadius3, 3),
+            Pair(binding.btnRadius5, 5),
+            Pair(binding.btnRadius10, 10),
+        ).forEach { (btn, km) ->
             btn.setBackgroundResource(if (km == selectedRadiusKm) activeRes else inactiveRes)
             btn.setTextColor(if (km == selectedRadiusKm) activeColor else inactiveColor)
         }
@@ -134,13 +135,26 @@ class NotificationFragment : Fragment() {
                 .setPositiveButton("추가") { _, _ ->
                     val phrase = et.text?.toString()?.trim() ?: ""
                     if (phrase.isNotBlank() && phrase.length <= 15) {
-                        defaultPhrases.add(phrase)
+                        val updated = loadPhrases().also { it.add(phrase) }
+                        savePhrases(updated)
                         renderPhraseChips()
                     }
                 }
                 .setNegativeButton("취소", null)
                 .show()
         }
+    }
+
+    private fun loadPhrases(): MutableList<String> {
+        val prefs = requireContext().getSharedPreferences("notification_phrases", android.content.Context.MODE_PRIVATE)
+        val saved = prefs.getStringSet("phrases", null)
+        return if (saved.isNullOrEmpty()) mutableListOf("마감 특가!", "오늘만 할인", "선착순!")
+        else saved.toMutableList()
+    }
+
+    private fun savePhrases(phrases: List<String>) {
+        requireContext().getSharedPreferences("notification_phrases", android.content.Context.MODE_PRIVATE)
+            .edit().putStringSet("phrases", phrases.toSet()).apply()
     }
 
     private fun renderPhraseChips() {
@@ -222,8 +236,6 @@ class NotificationFragment : Fragment() {
     }
 
     private fun formatSentAt(value: String): String = value.replace('T', ' ').take(16)
-
-    private val Int.dp: Int get() = (this * resources.displayMetrics.density).toInt()
 
     override fun onDestroyView() {
         super.onDestroyView()

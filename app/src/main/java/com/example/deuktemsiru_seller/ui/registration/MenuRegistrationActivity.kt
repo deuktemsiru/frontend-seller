@@ -36,7 +36,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
 
     private var selectedMenuName = ""
     private var selectedImageUri: Uri? = null
-    private val selectedEmoji = "🍽️"
+    private var selectedEmoji = "🍽️"
     private var selectedOriginalPrice = 0
     private var selectedCostPrice: Int? = null
     private var selectedAllergyInfo: String? = null
@@ -44,7 +44,6 @@ class MenuRegistrationActivity : AppCompatActivity() {
     private var selectedQuantity = 5
     private var pickupStartMinutes = 16 * 60 + 30
     private var pickupEndMinutes = 18 * 60
-    private var selectedPickupTimeSlot = "16:30-18:00"
     private var currentStepView: View? = null
 
     private val imagePicker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -104,7 +103,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
                     originalPrice = selectedOriginalPrice.toString().toTextPart(),
                     discountRate = selectedDiscountRate.toString().toTextPart(),
                     quantity = selectedQuantity.toString().toTextPart(),
-                    pickupTimeSlot = selectedPickupTimeSlot.toTextPart(),
+                    pickupTimeSlot = "${formatTime(pickupStartMinutes)}-${formatTime(pickupEndMinutes)}".toTextPart(),
                     allergyInfo = selectedAllergyInfo?.toTextPart(),
                     image = createImagePart(),
                 )
@@ -149,6 +148,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
 
     private fun setupStep1(view: View) {
         val etName = view.findViewById<EditText>(R.id.et_menu_name)
+        val etEmoji = view.findViewById<EditText?>(R.id.et_emoji)
         val etPrice = view.findViewById<EditText>(R.id.et_original_price)
         val etCostPrice = view.findViewById<EditText?>(R.id.et_cost_price)
         val etAllergyInfo = view.findViewById<EditText?>(R.id.et_allergy_info)
@@ -156,6 +156,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
         val imageUpload = view.findViewById<View>(R.id.container_image_upload)
 
         etName.setText(selectedMenuName)
+        etEmoji?.setText(if (selectedEmoji == "🍽️") "" else selectedEmoji)
         if (selectedOriginalPrice > 0) etPrice.setText(selectedOriginalPrice.toString())
         selectedCostPrice?.let { etCostPrice?.setText(it.toString()) }
         selectedAllergyInfo?.let { etAllergyInfo?.setText(it) }
@@ -220,6 +221,8 @@ class MenuRegistrationActivity : AppCompatActivity() {
 
         selectedMenuName = name
         selectedOriginalPrice = price
+        val emojiInput = view.findViewById<EditText?>(R.id.et_emoji)?.text?.toString()?.trim()
+        if (!emojiInput.isNullOrBlank()) selectedEmoji = emojiInput
         selectedCostPrice = view.findViewById<EditText?>(R.id.et_cost_price)?.text?.toString()?.toIntOrNull()
         selectedAllergyInfo = view.findViewById<EditText?>(R.id.et_allergy_info)?.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
         return true
@@ -376,7 +379,6 @@ class MenuRegistrationActivity : AppCompatActivity() {
     private fun refreshPickupViews(tvStart: TextView, tvEnd: TextView) {
         tvStart.text = formatTime(pickupStartMinutes)
         tvEnd.text = formatTime(pickupEndMinutes)
-        selectedPickupTimeSlot = "${formatTime(pickupStartMinutes)}-${formatTime(pickupEndMinutes)}"
     }
 
     private fun discountedPrice(): Int = selectedOriginalPrice * (100 - selectedDiscountRate) / 100

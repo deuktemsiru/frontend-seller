@@ -42,7 +42,7 @@
                 android:layout_height="wrap_content"
                 android:text="오늘 발송 횟수"
                 android:textSize="10sp"
-                android:textColor="#FFFFFF" />
+                android:textColor="@color/warning" />
 
             <TextView
                 android:id="@+id/tv_send_count"
@@ -50,7 +50,7 @@
                 android:layout_height="wrap_content"
                 android:text="1 / 3"
                 android:textSize="14sp"
-                android:textColor="@color/white"
+                android:textColor="@color/warning"
                 android:fontFamily="sans-serif-medium" />
 
         </LinearLayout>
@@ -304,7 +304,7 @@
                         android:paddingHorizontal="10dp"
                         android:text="+ 추가"
                         android:textSize="11sp"
-                        android:textColor="#FFB74D"
+                        android:textColor="@color/primary"
                         android:background="@drawable/bg_chip_orange"
                         android:clickable="true"
                         android:focusable="true" />
@@ -496,6 +496,7 @@
             android:textColor="@color/white"
             android:fontFamily="sans-serif-medium"
             android:background="@drawable/bg_button_primary"
+            android:backgroundTint="@null"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:stateListAnimator="@null" />

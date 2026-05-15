@@ -122,6 +122,7 @@
             android:textColor="@color/white"
             android:fontFamily="sans-serif-medium"
             android:background="@drawable/bg_button_primary"
+            android:backgroundTint="@null"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:stateListAnimator="@null" />
