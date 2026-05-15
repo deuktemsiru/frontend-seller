@@ -146,10 +146,6 @@ class PickupVerifyActivity : AppCompatActivity() {
         binding.tvCompletedAmount.text = "%,d원".format(order.totalAmount)
         binding.cardCompleted.visibility = View.VISIBLE
         showStatus("픽업 완료 처리됐어요!", success = true)
-
-        binding.cardCompleted.setOnClickListener {
-            showOrderDetailDialog(order)
-        }
     }
 
     private fun showOrderDetailDialog(order: OrderApiResponse) {

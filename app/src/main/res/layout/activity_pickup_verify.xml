@@ -20,18 +20,16 @@
             android:paddingHorizontal="16dp"
             android:background="@color/white">
 
-            <Button
+            <ImageButton
                 android:id="@+id/btn_back"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:text="‹"
-                android:textSize="20sp"
-                android:textColor="@color/white"
-                android:background="@drawable/bg_button_primary"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:stateListAnimator="@null"
-                android:paddingHorizontal="0dp" />
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/abc_ic_ab_back_material"
+                android:tint="@color/text"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="뒤로가기" />
 
             <TextView
                 android:layout_width="0dp"
@@ -205,8 +203,6 @@
                 android:background="@drawable/bg_card_white"
                 android:padding="16dp"
                 android:layout_marginTop="16dp"
-                android:clickable="true"
-                android:focusable="true"
                 android:visibility="gone">
 
                 <TextView

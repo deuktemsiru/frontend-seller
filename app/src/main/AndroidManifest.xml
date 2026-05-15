@@ -74,6 +74,10 @@
             android:name=".ui.settings.NotificationSettingsActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.mypage.SettlementActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

@@ -46,6 +46,10 @@ class MyPageFragment : Fragment() {
             startActivity(Intent(requireContext(), NotificationSettingsActivity::class.java))
         }
 
+        binding.itemSettlement.setOnClickListener {
+            startActivity(Intent(requireContext(), SettlementActivity::class.java))
+        }
+
         binding.itemCustomerService.setOnClickListener {
             AlertDialog.Builder(requireContext())
                 .setTitle("고객센터")
