@@ -39,10 +39,15 @@ class LoginActivity : AppCompatActivity() {
 
         if (BuildConfig.DEBUG) {
             binding.btnKakaoLogin.text = "디버그 로그인으로 시작하기"
+            binding.btnMockLogin.visibility = View.VISIBLE
         }
 
         binding.btnKakaoLogin.setOnClickListener {
             if (BuildConfig.DEBUG) debugLogin() else startKakaoLogin()
+        }
+
+        binding.btnMockLogin.setOnClickListener {
+            mockLogin()
         }
     }
 
@@ -67,6 +72,15 @@ class LoginActivity : AppCompatActivity() {
             }
             setLoading(false)
         }
+    }
+
+    private fun mockLogin() {
+r        session.isMockSession = true
+        session.memberId = 1L
+        session.nickname = "베이커리 사장님"
+        session.accessToken = "mock-access-token"
+        session.refreshToken = "mock-refresh-token"
+        navigateToMain()
     }
 
     private fun startKakaoLogin() {
