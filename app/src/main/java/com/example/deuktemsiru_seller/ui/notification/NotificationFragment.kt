@@ -6,6 +6,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -24,11 +25,12 @@ class NotificationFragment : Fragment() {
     private var _binding: FragmentNotificationBinding? = null
     private val binding get() = _binding!!
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    private var selectedTarget = "regular" // "regular" or "nearby"
+    private var selectedRadiusKm = 3
+
+    private val defaultPhrases = mutableListOf("마감 특가!", "오늘만 할인", "선착순!")
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentNotificationBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -39,17 +41,10 @@ class NotificationFragment : Fragment() {
         val session = SessionManager(requireContext())
         binding.tvPreviewStoreName.text = session.nickname.ifBlank { "내 가게" }
 
+        setupTargetSelection()
+        setupMessageInput()
+        setupQuickPhrases()
         if (session.isLoggedIn()) loadHistory()
-
-        binding.etMessage.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                val count = s?.length ?: 0
-                binding.tvCharCount.text = "$count/40"
-                binding.tvPreviewMessage.text = s?.toString() ?: ""
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
 
         binding.btnSend.setOnClickListener {
             val message = binding.etMessage.text?.toString()?.trim() ?: ""
@@ -58,7 +53,6 @@ class NotificationFragment : Fragment() {
                 return@setOnClickListener
             }
             if (!session.isLoggedIn()) return@setOnClickListener
-
             AlertDialog.Builder(requireContext())
                 .setTitle("알림 발송 확인")
                 .setMessage("단골 고객들에게 알림을 보내시겠어요?")
@@ -68,15 +62,122 @@ class NotificationFragment : Fragment() {
         }
     }
 
+    private fun setupTargetSelection() {
+        updateTargetUI()
+
+        binding.optionRegular.setOnClickListener {
+            selectedTarget = "regular"
+            updateTargetUI()
+        }
+        binding.optionNearby.setOnClickListener {
+            selectedTarget = "nearby"
+            updateTargetUI()
+        }
+
+        binding.btnRadius3.setOnClickListener { selectedRadiusKm = 3; updateRadiusUI() }
+        binding.btnRadius5.setOnClickListener { selectedRadiusKm = 5; updateRadiusUI() }
+        binding.btnRadius10.setOnClickListener { selectedRadiusKm = 10; updateRadiusUI() }
+    }
+
+    private fun updateTargetUI() {
+        val isRegular = selectedTarget == "regular"
+        binding.optionRegular.setBackgroundResource(if (isRegular) R.drawable.bg_card_primary_border else R.drawable.bg_card_white)
+        binding.optionNearby.setBackgroundResource(if (!isRegular) R.drawable.bg_card_primary_border else R.drawable.bg_card_white)
+        binding.indicatorRegular.setBackgroundResource(if (isRegular) R.drawable.bg_rounded_primary else R.drawable.bg_rounded_muted)
+        binding.indicatorNearby.setBackgroundResource(if (!isRegular) R.drawable.bg_rounded_primary else R.drawable.bg_rounded_muted)
+        binding.layoutNearbyOptions.visibility = if (!isRegular) View.VISIBLE else View.GONE
+        if (!isRegular) updateRadiusUI()
+    }
+
+    private fun updateRadiusUI() {
+        val activeRes = R.drawable.bg_button_primary
+        val inactiveRes = R.drawable.bg_rounded_muted
+        val activeColor = requireContext().getColor(R.color.white)
+        val inactiveColor = requireContext().getColor(R.color.text_sub)
+
+        listOf(
+            Triple(binding.btnRadius3, 3, "btn_radius_3"),
+            Triple(binding.btnRadius5, 5, "btn_radius_5"),
+            Triple(binding.btnRadius10, 10, "btn_radius_10"),
+        ).forEach { (btn, km, _) ->
+            btn.setBackgroundResource(if (km == selectedRadiusKm) activeRes else inactiveRes)
+            btn.setTextColor(if (km == selectedRadiusKm) activeColor else inactiveColor)
+        }
+
+        binding.radiusMapView.radiusKm = selectedRadiusKm
+        val approxCount = when (selectedRadiusKm) { 3 -> 12; 5 -> 28; else -> 67 }
+        binding.tvNearbyCount.text = "반경 ${selectedRadiusKm}km 내 약 ${approxCount}명"
+    }
+
+    private fun setupMessageInput() {
+        binding.etMessage.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                val count = s?.length ?: 0
+                binding.tvCharCount.text = "$count/40"
+                binding.tvPreviewMessage.text = s?.toString() ?: ""
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+    }
+
+    private fun setupQuickPhrases() {
+        renderPhraseChips()
+
+        binding.btnAddPhrase.setOnClickListener {
+            val et = EditText(requireContext()).apply {
+                hint = "문구 입력 (최대 15자)"; maxLines = 1
+            }
+            AlertDialog.Builder(requireContext())
+                .setTitle("자주 쓰는 문구 추가")
+                .setView(et)
+                .setPositiveButton("추가") { _, _ ->
+                    val phrase = et.text?.toString()?.trim() ?: ""
+                    if (phrase.isNotBlank() && phrase.length <= 15) {
+                        defaultPhrases.add(phrase)
+                        renderPhraseChips()
+                    }
+                }
+                .setNegativeButton("취소", null)
+                .show()
+        }
+    }
+
+    private fun renderPhraseChips() {
+        binding.phraseChipsContainer.removeAllViews()
+        defaultPhrases.forEach { phrase ->
+            val chip = TextView(requireContext()).apply {
+                text = phrase
+                textSize = 12f
+                setTextColor(requireContext().getColor(R.color.text_sub))
+                setBackgroundResource(R.drawable.bg_chip_orange)
+                val hPad = (12 * resources.displayMetrics.density).toInt()
+                val vPad = (4 * resources.displayMetrics.density).toInt()
+                setPadding(hPad, vPad, hPad, vPad)
+                val lp = ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, (34 * resources.displayMetrics.density).toInt())
+                lp.marginEnd = (8 * resources.displayMetrics.density).toInt()
+                lp.bottomMargin = (6 * resources.displayMetrics.density).toInt()
+                layoutParams = lp
+                gravity = android.view.Gravity.CENTER
+                isClickable = true
+                isFocusable = true
+                setOnClickListener {
+                    val current = binding.etMessage.text?.toString() ?: ""
+                    if (current.length + phrase.length <= 40) {
+                        binding.etMessage.setText(if (current.isBlank()) phrase else "$current $phrase")
+                        binding.etMessage.setSelection(binding.etMessage.text?.length ?: 0)
+                    }
+                }
+            }
+            binding.phraseChipsContainer.addView(chip)
+        }
+    }
+
     private fun sendNotification(message: String) {
         lifecycleScope.launch {
             runCatching {
                 val result = RetrofitClient.api.sendNotification(SendNotificationRequest(message)).data
-                Toast.makeText(
-                    requireContext(),
-                    "${result?.recipientCount ?: 0}명에게 발송 완료!",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(requireContext(), "${result?.recipientCount ?: 0}명에게 발송 완료!", Toast.LENGTH_LONG).show()
                 binding.etMessage.text?.clear()
                 loadHistory()
             }.onFailure {
@@ -108,18 +209,15 @@ class NotificationFragment : Fragment() {
         }
     }
 
-    private fun historyText(text: String): TextView =
-        TextView(requireContext()).apply {
-            this.text = text
-            textSize = 13f
-            setTextColor(requireContext().getColor(R.color.text_sub))
-            setPadding(0, 8.dp, 0, 8.dp)
-        }
+    private fun historyText(text: String): TextView = TextView(requireContext()).apply {
+        this.text = text; textSize = 13f
+        setTextColor(requireContext().getColor(R.color.text_sub))
+        setPadding(0, 8.dp, 0, 8.dp)
+    }
 
     private fun formatSentAt(value: String): String = value.replace('T', ' ').take(16)
 
-    private val Int.dp: Int
-        get() = (this * resources.displayMetrics.density).toInt()
+    private val Int.dp: Int get() = (this * resources.displayMetrics.density).toInt()
 
     override fun onDestroyView() {
         super.onDestroyView()

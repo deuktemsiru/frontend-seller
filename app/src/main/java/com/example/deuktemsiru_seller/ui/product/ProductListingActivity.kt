@@ -1,12 +1,12 @@
 package com.example.deuktemsiru_seller.ui.product
 
-import android.app.TimePickerDialog
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.NumberPicker
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -165,8 +165,6 @@ class ProductListingActivity : AppCompatActivity() {
         val etDiscount = view.findViewById<android.widget.EditText>(R.id.et_discount_rate)
         val tvDiscounted = view.findViewById<TextView>(R.id.tv_discounted_price)
         val tvQty = view.findViewById<TextView>(R.id.tv_quantity)
-        val tvStart = view.findViewById<TextView>(R.id.tv_pickup_start)
-        val tvEnd = view.findViewById<TextView>(R.id.tv_pickup_end)
 
         val presetIds = mapOf(
             30 to view.findViewById<TextView>(R.id.preset_30),
@@ -210,33 +208,40 @@ class ProductListingActivity : AppCompatActivity() {
             if (selectedQuantity < 99) { selectedQuantity++; tvQty.text = selectedQuantity.toString() }
         }
 
-        fun refreshPickup() {
-            tvStart.text = formatTime(pickupStartMinutes)
-            tvEnd.text = formatTime(pickupEndMinutes)
+        val pickerStartHour = view.findViewById<NumberPicker>(R.id.picker_start_hour)
+        val pickerStartMin = view.findViewById<NumberPicker>(R.id.picker_start_minute)
+        val pickerEndHour = view.findViewById<NumberPicker>(R.id.picker_end_hour)
+        val pickerEndMin = view.findViewById<NumberPicker>(R.id.picker_end_minute)
+        val containerStart = view.findViewById<android.widget.LinearLayout>(R.id.container_pickup_start)
+        val containerEnd = view.findViewById<android.widget.LinearLayout>(R.id.container_pickup_end)
+
+        val hours = (0..23).map { "%02d".format(it) }.toTypedArray()
+        val minutes = (0..59 step 5).map { "%02d".format(it) }.toTypedArray()
+        listOf(pickerStartHour, pickerEndHour).forEach { p -> p.minValue = 0; p.maxValue = 23; p.displayedValues = hours; p.wrapSelectorWheel = true }
+        listOf(pickerStartMin, pickerEndMin).forEach { p -> p.minValue = 0; p.maxValue = 11; p.displayedValues = minutes; p.wrapSelectorWheel = true }
+
+        pickerStartHour.value = pickupStartMinutes / 60
+        pickerStartMin.value = (pickupStartMinutes % 60) / 5
+        pickerEndHour.value = pickupEndMinutes / 60
+        pickerEndMin.value = (pickupEndMinutes % 60) / 5
+
+        fun syncPickupFromPickers() {
+            pickupStartMinutes = pickerStartHour.value * 60 + pickerStartMin.value * 5
+            pickupEndMinutes = pickerEndHour.value * 60 + pickerEndMin.value * 5
             selectedPickupTimeSlot = "${formatTime(pickupStartMinutes)}-${formatTime(pickupEndMinutes)}"
         }
-        refreshPickup()
 
-        view.findViewById<View>(R.id.container_pickup_start).setOnClickListener {
-            showTimePicker(pickupStartMinutes) { m ->
-                pickupStartMinutes = m
-                if (pickupEndMinutes <= pickupStartMinutes) pickupEndMinutes = (m + 30).coerceAtMost(23 * 60 + 59)
-                refreshPickup()
-            }
+        fun highlightContainer(active: android.widget.LinearLayout, inactive: android.widget.LinearLayout) {
+            active.setBackgroundResource(R.drawable.bg_card_primary_border)
+            inactive.setBackgroundResource(R.drawable.bg_rounded_muted)
         }
-        view.findViewById<View>(R.id.container_pickup_end).setOnClickListener {
-            showTimePicker(pickupEndMinutes) { m ->
-                if (m <= pickupStartMinutes) Toast.makeText(this, "마감 시간은 시작보다 늦어야 해요", Toast.LENGTH_SHORT).show()
-                else { pickupEndMinutes = m; refreshPickup() }
-            }
-        }
-        view.findViewById<View>(R.id.chip_30min).setOnClickListener { pickupEndMinutes = (pickupStartMinutes + 30).coerceAtMost(23 * 60 + 59); refreshPickup() }
-        view.findViewById<View>(R.id.chip_1hour).setOnClickListener { pickupEndMinutes = (pickupStartMinutes + 60).coerceAtMost(23 * 60 + 59); refreshPickup() }
-        view.findViewById<View>(R.id.chip_until_close).setOnClickListener {
-            pickupEndMinutes = 21 * 60
-            if (pickupEndMinutes <= pickupStartMinutes) pickupEndMinutes = (pickupStartMinutes + 30).coerceAtMost(23 * 60 + 59)
-            refreshPickup()
-        }
+
+        pickerStartHour.setOnValueChangedListener { _, _, _ -> syncPickupFromPickers() }
+        pickerStartMin.setOnValueChangedListener { _, _, _ -> syncPickupFromPickers() }
+        pickerEndHour.setOnValueChangedListener { _, _, _ -> syncPickupFromPickers(); highlightContainer(containerEnd, containerStart) }
+        pickerEndMin.setOnValueChangedListener { _, _, _ -> syncPickupFromPickers(); highlightContainer(containerEnd, containerStart) }
+        pickerStartHour.setOnScrollListener { _, _ -> highlightContainer(containerStart, containerEnd) }
+        pickerStartMin.setOnScrollListener { _, _ -> highlightContainer(containerStart, containerEnd) }
     }
 
     private fun onNextClicked() {
@@ -280,6 +285,11 @@ class ProductListingActivity : AppCompatActivity() {
                     ),
                 )
                 Toast.makeText(this@ProductListingActivity, "상품이 등록됐어요!", Toast.LENGTH_SHORT).show()
+                val intent = android.content.Intent(this@ProductListingActivity, com.example.deuktemsiru_seller.MainActivity::class.java).apply {
+                    flags = android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    putExtra("navigate_to_product", true)
+                }
+                startActivity(intent)
                 finish()
             } catch (e: Exception) {
                 Toast.makeText(this@ProductListingActivity, "등록에 실패했어요", Toast.LENGTH_SHORT).show()
@@ -287,10 +297,6 @@ class ProductListingActivity : AppCompatActivity() {
                 binding.btnNext.text = "상품 등록"
             }
         }
-    }
-
-    private fun showTimePicker(initialMinutes: Int, onPicked: (Int) -> Unit) {
-        TimePickerDialog(this, { _, h, m -> onPicked(h * 60 + m) }, initialMinutes / 60, initialMinutes % 60, true).show()
     }
 
     private fun formatTime(minutes: Int) = "%02d:%02d".format(minutes / 60, minutes % 60)
