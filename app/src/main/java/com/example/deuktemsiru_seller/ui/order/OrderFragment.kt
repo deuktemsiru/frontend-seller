@@ -56,11 +56,17 @@ class OrderFragment : Fragment() {
         session = SessionManager(requireContext())
         setupTabs()
         val mainActivity = activity as? com.example.deuktemsiru_seller.MainActivity
-        if (mainActivity?.orderCompletedRequested == true) {
-            mainActivity.orderCompletedRequested = false
-            loadOrders(selectTabAfterLoad = 3)
-        } else {
-            loadOrders()
+        val pendingTab = mainActivity?.pendingOrderTab
+        when {
+            pendingTab != null -> {
+                mainActivity.pendingOrderTab = null
+                loadOrders(selectTabAfterLoad = pendingTab)
+            }
+            mainActivity?.orderCompletedRequested == true -> {
+                mainActivity.orderCompletedRequested = false
+                loadOrders(selectTabAfterLoad = 3)
+            }
+            else -> loadOrders()
         }
         binding.btnPickupVerify.setOnClickListener {
             startActivity(Intent(requireContext(), PickupVerifyActivity::class.java))

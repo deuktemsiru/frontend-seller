@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var session: SessionManager
     private var orderBadgeCount = 0
     var orderCompletedRequested = false
+    var pendingOrderTab: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,6 +85,11 @@ class MainActivity : AppCompatActivity() {
 
     // ── 화면 이동 ─────────────────────────────────────────────
     fun navigateToOrder() {
+        binding.bottomNav.selectedItemId = R.id.nav_order
+    }
+
+    fun navigateToOrderTab(tabIndex: Int) {
+        pendingOrderTab = tabIndex
         binding.bottomNav.selectedItemId = R.id.nav_order
     }
 

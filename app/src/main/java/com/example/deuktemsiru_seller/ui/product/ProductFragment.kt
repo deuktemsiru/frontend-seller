@@ -89,17 +89,23 @@ class ProductFragment : Fragment() {
                 (4 * resources.displayMetrics.density).toInt()
             )
 
-            fun styleButton(btn: android.widget.Button, isActive: Boolean, activeColor: Int) {
+            fun styleButton(btn: android.widget.Button, isActive: Boolean) {
+                val density = resources.displayMetrics.density
                 if (isActive) {
                     val bg = android.graphics.drawable.GradientDrawable().apply {
-                        setColor(activeColor)
-                        cornerRadius = 8f * resources.displayMetrics.density
+                        setColor(0xFFFF5C2E.toInt())
+                        cornerRadius = 8f * density
                     }
                     btn.background = bg
                     btn.setTextColor(0xFFFFFFFF.toInt())
                 } else {
-                    btn.setBackgroundResource(R.drawable.bg_rounded_muted)
-                    btn.setTextColor(requireContext().getColor(R.color.text_sub))
+                    val bg = android.graphics.drawable.GradientDrawable().apply {
+                        setColor(0xFFFFFFFF.toInt())
+                        setStroke((1.5f * density).toInt(), 0xFFFF5C2E.toInt())
+                        cornerRadius = 8f * density
+                    }
+                    btn.background = bg
+                    btn.setTextColor(0xFFFF5C2E.toInt())
                 }
             }
 
@@ -108,10 +114,9 @@ class ProductFragment : Fragment() {
             itemBinding.btnStatusSoldout.setOnClickListener { updateStatus(item.id, "SOLD_OUT") }
             itemBinding.btnCancel.setOnClickListener { confirmCancel(item) }
             val isFinal = item.status == "CANCELLED" || item.status == "EXPIRED"
-            styleButton(itemBinding.btnStatusAvailable, item.status == "AVAILABLE", 0xFF2E7D32.toInt())
-            styleButton(itemBinding.btnStatusSoldout, item.status == "SOLD_OUT", 0xFFE65100.toInt())
-            itemBinding.btnCancel.setBackgroundResource(R.drawable.bg_rounded_muted)
-            itemBinding.btnCancel.setTextColor(requireContext().getColor(R.color.text_sub))
+            styleButton(itemBinding.btnStatusAvailable, item.status == "AVAILABLE")
+            styleButton(itemBinding.btnStatusSoldout, item.status == "SOLD_OUT")
+            styleButton(itemBinding.btnCancel, false)
             itemBinding.btnStatusAvailable.isEnabled = !isFinal
             itemBinding.btnStatusSoldout.isEnabled = !isFinal
             itemBinding.btnCancel.isEnabled = !isFinal

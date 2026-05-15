@@ -15,6 +15,7 @@ import com.example.deuktemsiru_seller.databinding.FragmentHomeBinding
 import com.example.deuktemsiru_seller.databinding.ItemActiveMenuBinding
 import com.example.deuktemsiru_seller.network.SaleItemApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
+import com.example.deuktemsiru_seller.ui.order.PickupVerifyActivity
 import com.example.deuktemsiru_seller.ui.product.ProductListingActivity
 import com.example.deuktemsiru_seller.ui.product.SaleItemDetailBottomSheet
 import kotlinx.coroutines.launch
@@ -41,7 +42,6 @@ class HomeFragment : Fragment() {
         binding.tvStoreName.text = session.nickname.ifBlank { "내 가게" }
 
         binding.cardSales.setOnClickListener { (activity as? MainActivity)?.navigateToOrder() }
-        binding.cardNewOrder.setOnClickListener { (activity as? MainActivity)?.navigateToOrder() }
         binding.sectionSalesCount.setOnClickListener { (activity as? MainActivity)?.navigateToOrderCompleted() }
         binding.sectionWaste.setOnClickListener { (activity as? MainActivity)?.navigateToSales() }
         binding.sectionLoyal.setOnClickListener { (activity as? MainActivity)?.navigateToNotification() }
@@ -50,6 +50,21 @@ class HomeFragment : Fragment() {
         }
         binding.btnSendNotification.setOnClickListener {
             (activity as? MainActivity)?.navigateToNotification()
+        }
+        binding.btnBell.setOnClickListener {
+            (activity as? MainActivity)?.navigateToNotification()
+        }
+        binding.sectionOrderNew.setOnClickListener {
+            (activity as? MainActivity)?.navigateToOrderTab(0)
+        }
+        binding.sectionOrderPreparing.setOnClickListener {
+            (activity as? MainActivity)?.navigateToOrderTab(1)
+        }
+        binding.sectionOrderPickup.setOnClickListener {
+            (activity as? MainActivity)?.navigateToOrderTab(3)
+        }
+        binding.btnPickupVerifyHome.setOnClickListener {
+            startActivity(Intent(requireContext(), PickupVerifyActivity::class.java))
         }
 
         if (session.isLoggedIn()) {
@@ -145,17 +160,10 @@ class HomeFragment : Fragment() {
                 val newCount = orders.count { it.status.equals("PENDING", ignoreCase = true) }
                 val preparingCount = orders.count { it.status.equals("CONFIRMED", ignoreCase = true) }
                 val pickupCount = orders.count { it.status.equals("PICKED_UP", ignoreCase = true) }
-                binding.tvNewOrderAlert.text = if (newCount > 0) {
-                    getString(R.string.new_order_alert_count, newCount)
-                } else {
-                    getString(R.string.new_order_alert_empty)
-                }
                 binding.tvReservationNew.text = newCount.toString()
                 binding.tvReservationPreparing.text = preparingCount.toString()
                 binding.tvReservationPickup.text = pickupCount.toString()
-            }.onFailure {
-                binding.tvNewOrderAlert.text = getString(R.string.new_order_alert_empty)
-            }
+            }.onFailure { }
         }
     }
 
