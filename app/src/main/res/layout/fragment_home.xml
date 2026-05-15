@@ -128,9 +128,9 @@
                 android:layout_weight="1"
                 android:text="단골 알림 보내기"
                 android:textSize="14sp"
-                android:textColor="@color/text"
+                android:textColor="@color/white"
                 android:fontFamily="sans-serif-medium"
-                android:background="@drawable/bg_button_outline"
+                android:background="@drawable/bg_button_primary"
                 android:layout_marginStart="6dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -193,20 +193,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:background="@drawable/bg_card_white"
+            android:background="@drawable/bg_card_primary_border"
             android:paddingVertical="14dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginTop="10dp"
-            android:clickable="true"
-            android:focusable="true">
+            android:layout_marginTop="10dp">
 
             <LinearLayout
+                android:id="@+id/section_order_new"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true">
 
                 <TextView
                     android:id="@+id/tv_reservation_new"
@@ -214,7 +215,7 @@
                     android:layout_height="wrap_content"
                     android:text="0"
                     android:textSize="18sp"
-                    android:textColor="@color/primary_dark"
+                    android:textColor="@color/primary"
                     android:fontFamily="sans-serif-medium" />
 
                 <TextView
@@ -230,14 +231,17 @@
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
-                android:background="@color/text_muted" />
+                android:background="@color/border" />
 
             <LinearLayout
+                android:id="@+id/section_order_preparing"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true">
 
                 <TextView
                     android:id="@+id/tv_reservation_preparing"
@@ -261,14 +265,17 @@
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
-                android:background="@color/text_muted" />
+                android:background="@color/border" />
 
             <LinearLayout
+                android:id="@+id/section_order_pickup"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true">
 
                 <TextView
                     android:id="@+id/tv_reservation_pickup"
@@ -468,51 +475,22 @@
 
         </LinearLayout>
 
-        <!-- New Order Alert Card -->
-        <LinearLayout
-            android:id="@+id/card_new_order"
+        <!-- Pickup Verify Button -->
+        <Button
+            android:id="@+id/btn_pickup_verify_home"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@drawable/bg_card_primary_border"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="14dp"
-            android:paddingBottom="14dp"
+            android:layout_height="52dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginTop="12dp"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="12dp"
-                android:contentDescription="시흥시 캐릭터"
-                android:scaleType="fitCenter"
-                android:src="@drawable/img_siheung_character" />
-
-            <TextView
-                android:id="@+id/tv_new_order_alert"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/new_order_alert_empty"
-                android:textSize="14sp"
-                android:textColor="@color/text"
-                android:fontFamily="sans-serif-medium" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="확인하기 →"
-                android:textSize="13sp"
-                android:textColor="@color/primary"
-                android:fontFamily="sans-serif-medium" />
-
-        </LinearLayout>
+            android:background="@drawable/bg_button_outline_orange"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:stateListAnimator="@null"
+            android:text="📷  픽업 코드 확인"
+            android:textColor="@color/primary"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium" />
 
         <!-- Active Menus -->
         <LinearLayout
