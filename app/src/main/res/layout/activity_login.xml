@@ -48,11 +48,28 @@
         android:textStyle="bold"
         android:backgroundTint="#FEE500"
         android:stateListAnimator="@null"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btnMockLogin"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginBottom="120dp" />
+        android:layout_marginBottom="12dp" />
+
+    <!-- 목 데이터 로그인 버튼 (DEBUG only, gone in release) -->
+    <Button
+        android:id="@+id/btnMockLogin"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:text="[DEV] Bakery 목 데이터로 시작"
+        android:textSize="14sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#888888"
+        android:stateListAnimator="@null"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnKakaoLogin"
+        android:layout_marginBottom="60dp" />
 
     <!-- 로딩 인디케이터 -->
     <ProgressBar

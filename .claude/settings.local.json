@@ -3,5 +3,19 @@
     "allow": [
       "Bash(./gradlew assembleDebug --quiet)"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -Command \"[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms'); [System.Windows.Forms.MessageBox]::Show('Claude Code 작업 완료', '알림')\""
+          }
+        ]
+      }
+    ]
   }
 }
+

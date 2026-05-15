@@ -14,6 +14,13 @@ class SessionManager(context: Context) {
         }
     }
 
+    var isMockSession: Boolean
+        get() = prefs.getBoolean("isMockSession", false)
+        set(value) {
+            prefs.edit().putBoolean("isMockSession", value).apply()
+            RetrofitClient.isMockSession = value
+        }
+
     var memberId: Long
         get() = prefs.getLong("memberId", -1L)
         set(value) { prefs.edit().putLong("memberId", value).apply() }
@@ -41,11 +48,13 @@ class SessionManager(context: Context) {
     fun restoreToken() {
         RetrofitClient.accessToken = accessToken.takeIf { it.isNotBlank() }
         RetrofitClient.refreshToken = refreshToken.takeIf { it.isNotBlank() }
+        RetrofitClient.isMockSession = isMockSession
     }
 
     fun clear() {
         prefs.edit().clear().apply()
         RetrofitClient.accessToken = null
         RetrofitClient.refreshToken = null
+        RetrofitClient.isMockSession = false
     }
 }

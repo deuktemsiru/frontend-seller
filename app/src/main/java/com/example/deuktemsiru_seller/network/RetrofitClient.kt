@@ -20,6 +20,9 @@ object RetrofitClient {
     var refreshToken: String? = null
     var onTokenRefreshed: ((String) -> Unit)? = null
 
+    /** 목 로그인 세션 여부 — true이면 토큰 갱신 시도를 건너뜁니다. */
+    var isMockSession: Boolean = false
+
     private val client: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -56,6 +59,7 @@ object RetrofitClient {
             if (response.request.header("Authorization").isNullOrBlank()) return null
             if (responseCount(response) >= 2) return null
 
+            if (isMockSession) return null
             val savedRefreshToken = refreshToken?.takeIf { it.isNotBlank() } ?: return null
             val newAccessToken = synchronized(this) {
                 val currentRequestToken = response.request.header("Authorization")?.removePrefix("Bearer ")
