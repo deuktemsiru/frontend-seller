@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>득템시루 API 명세서 v2</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',sans-serif;font-size:14px;background:#fff;color:#37352f;line-height:1.6}
+.wrap{max-width:1020px;margin:0 auto;padding:2rem 1.5rem 5rem}
+
+.page-header{margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:2px solid #2e7d32}
+.page-header h1{font-size:22px;font-weight:700}
+.page-header h1 span{color:#2e7d32}
+.meta{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#9b9a97;margin-top:.5rem;align-items:center}
+.meta code{font-family:monospace;font-size:12px;background:#f1f0ec;padding:2px 7px;border-radius:4px;color:#37352f}
+
+.common-box{background:#f7f7f5;border:1px solid rgba(55,53,47,.1);border-radius:6px;padding:.75rem 1rem;font-size:13px;color:#6b6968;margin-bottom:1.5rem;line-height:2}
+.common-box strong{color:#37352f}
+code{font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;background:#f1f0ec;padding:1px 5px;border-radius:4px;color:#37352f}
+
+/* role tabs */
+.role-tabs{display:flex;border-bottom:2px solid #e8e8e6;margin-bottom:0}
+.role-tab{padding:10px 32px;font-size:14px;font-weight:500;cursor:pointer;border:none;background:transparent;color:#9b9a97;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;font-family:inherit}
+.role-tab.active{color:#2e7d32;border-bottom-color:#2e7d32;font-weight:600}
+.role-tab:hover:not(.active){color:#37352f}
+
+.role-panel{display:none}
+.role-panel.active{display:block}
+
+/* group filter */
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin:1rem 0 1.25rem}
+.filter-btn{padding:4px 13px;border-radius:999px;border:1px solid rgba(55,53,47,.2);background:transparent;font-size:12px;cursor:pointer;color:#6b6968;font-family:inherit;transition:all .15s}
+.filter-btn:hover{background:#f7f7f5}
+.filter-btn.active{background:#37352f;color:#fff;border-color:#37352f}
+
+.section-label{font-size:11px;font-weight:600;letter-spacing:.08em;color:#9b9a97;text-transform:uppercase;margin:1.75rem 0 .6rem;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:rgba(55,53,47,.1)}
+
+/* priority */
+.pri{font-size:10px;font-family:monospace;padding:1px 6px;border-radius:3px;flex-shrink:0;font-weight:600}
+.p0{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+.p1{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+.p2{background:#fefce8;color:#854d0e;border:1px solid #fde68a}
+.p3{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+
+/* card */
+.aside-card{border:1px solid rgba(55,53,47,.1);border-radius:6px;overflow:hidden;margin-bottom:.6rem;background:#fff}
+.aside-header{display:flex;align-items:center;gap:10px;padding:.7rem 1rem;cursor:pointer;user-select:none}
+.aside-header:hover{background:#f7f7f5}
+.method{font-size:12px;font-weight:600;padding:2px 9px;border-radius:4px;min-width:56px;text-align:center;flex-shrink:0}
+.GET{background:#e4f4ec;color:#1a6640}
+.POST{background:#e8f3fc;color:#0c4a8a}
+.PATCH{background:#fdf3e3;color:#7a4d10}
+.DELETE{background:#fde8e8;color:#7d2020}
+.PUT{background:#f3e8fd;color:#6b21a8}
+.endpoint{font-family:'SFMono-Regular',Consolas,monospace;font-size:13px;font-weight:600;color:#37352f}
+.h-desc{font-size:13px;color:#6b6968;margin-left:auto;padding-right:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.chevron{font-size:11px;color:#9b9a97;transition:transform .2s;flex-shrink:0}
+.chevron.open{transform:rotate(180deg)}
+.aside-body{display:none;border-top:1px solid rgba(55,53,47,.09)}
+.aside-body.open{display:block}
+
+.info-section{padding:.7rem 1rem;border-bottom:1px solid rgba(55,53,47,.07);font-size:13px;color:#6b6968;line-height:1.9}
+.info-row{display:flex;gap:10px;align-items:flex-start}
+.info-key{min-width:100px;color:#9b9a97;font-size:12px;padding-top:2px;flex-shrink:0}
+.block-title{font-size:11px;font-weight:600;color:#9b9a97;letter-spacing:.06em;text-transform:uppercase;padding:.55rem 1rem .4rem;border-bottom:1px solid rgba(55,53,47,.07);background:#f7f7f5}
+table{width:100%;font-size:13px;border-collapse:collapse;table-layout:fixed}
+th{text-align:left;font-size:11px;font-weight:600;color:#9b9a97;padding:6px 10px;border-bottom:1px solid rgba(55,53,47,.09);background:#f7f7f5;white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid rgba(55,53,47,.07);color:#37352f;vertical-align:top;line-height:1.5;word-break:break-word}
+tr:last-child td{border-bottom:none}
+.td-ko{color:#6b6968}
+.req-y{color:#1a6640;font-weight:600}
+.req-n{color:#9b9a97}
+.sample-block{padding:.75rem 1rem;background:#f6f5f0;font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;color:#6b6968;line-height:1.8;white-space:pre-wrap;word-break:break-all;border-bottom:1px solid rgba(55,53,47,.07)}
+.sample-comment{color:#9b9a97}
+.resp-code{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:4px}
+.r2{background:#e4f4ec;color:#1a6640}
+.r4{background:#fdf3e3;color:#7a4d10}
+.r5{background:#fde8e8;color:#7d2020}
+.auth-badge{font-size:11px;padding:1px 7px;border-radius:4px;background:#e8f3fc;color:#0c4a8a;border:1px solid #b5d4f4;margin-left:6px}
+.seller-badge{font-size:11px;padding:1px 7px;border-radius:4px;background:#f3e8fd;color:#6b21a8;border:1px solid #d8b4fe;margin-left:6px}
+.tbd-badge{font-size:11px;padding:1px 7px;border-radius:4px;background:#fdf3e3;color:#7a4d10;border:1px solid #fac775;margin-left:4px}
+.none-text{padding:.6rem 1rem;font-size:13px;color:#9b9a97;border-bottom:1px solid rgba(55,53,47,.07)}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="page-header">
+  <h1>득<span>템</span>시루 API 명세서 <small style="font-size:14px;font-weight:400;color:#9b9a97">v2.0</small></h1>
+  <div class="meta">
+    <span>Base URL</span><code>https://api.deuktem-siru.com/api/v1</code>
+    <span style="margin-left:8px">인증</span><code>Authorization: Bearer {accessToken}</code>
+    <span style="margin-left:8px">공통 응답</span><code>{ "code":200, "message":"...", "data":{} }</code>
+    <span style="margin-left:8px">네이밍</span><code>camelCase</code>
+  </div>
+</div>
+
+<div class="common-box">
+  <strong>공통 에러 코드</strong>&nbsp;&nbsp;
+  <code>400</code> 입력값 오류&nbsp;·&nbsp;
+  <code>401</code> 인증 실패&nbsp;·&nbsp;
+  <code>403</code> 권한 없음&nbsp;·&nbsp;
+  <code>404</code> 리소스 없음&nbsp;·&nbsp;
+  <code>409</code> 충돌 (중복·수량 초과)&nbsp;·&nbsp;
+  <code>500</code> 서버 오류<br>
+  <strong>memberId</strong>는 URL에 노출하지 않고 JWT에서 추출 &nbsp;·&nbsp;
+  <span class="tbd-badge">TBD</span> 시루 결제 연동 방식 미확정 &nbsp;·&nbsp; 픽업 코드 방식 미확정
+</div>
+
+<!-- ROLE TABS -->
+<div class="role-tabs">
+  <button class="role-tab active" onclick="switchRole(this,'consumer')">🛒 소비자 (CONSUMER)</button>
+  <button class="role-tab" onclick="switchRole(this,'seller')">🏪 판매자 (SELLER)</button>
+  <button class="role-tab" onclick="switchRole(this,'common')">⚙️ 공통</button>
+</div>
+
+<!-- ============================================================ -->
+<!-- 소비자 패널 -->
+<!-- ============================================================ -->
+<div class="role-panel active" id="panel-consumer">
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="filterGroup(this,'consumer','all')">전체</button>
+  <button class="filter-btn" onclick="filterGroup(this,'consumer','AUTH')">AUTH</button>
+  <button class="filter-btn" onclick="filterGroup(this,'consumer','HOME')">홈/탐색</button>
+  <button class="filter-btn" onclick="filterGroup(this,'consumer','PRODUCT')">상품</button>
+  <button class="filter-btn" onclick="filterGroup(this,'consumer','ORDER')">주문/결제</button>
+  <button class="filter-btn" onclick="filterGroup(this,'consumer','REVIEW')">리뷰</button>
+  <button class="filter-btn" onclick="filterGroup(this,'consumer','WISHLIST')">찜</button>
+  <button class="filter-btn" onclick="filterGroup(this,'consumer','MYPAGE')">마이페이지</button>
+  <button class="filter-btn" onclick="filterGroup(this,'consumer','NOTIFY')">알림</button>
+</div>
+<div id="list-consumer">
+
+<!-- AUTH -->
+<div class="section-label" data-consumer-group="AUTH">AUTH</div>
+
+<div class="aside-card" data-consumer-group="AUTH">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/auth/kakao/login</span>
+  <span class="h-desc">카카오 소셜 로그인 / 자동 회원가입</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>카카오 소셜 로그인. 신규 사용자는 자동 회원가입됩니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Content-Type: application/json</code></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span>없음</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span>없음</span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">카카오 액세스 토큰</td><td><code>kakaoAccessToken</code></td><td class="req-y">✓</td><td>String</td><td>카카오에서 발급받은 토큰</td></tr>
+    <tr><td class="td-ko">가입 유형</td><td><code>role</code></td><td class="req-y">✓</td><td>String</td><td><code>CONSUMER</code></td></tr>
+  </tbody></table>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">POST /api/v1/auth/kakao/login
+{ "kakaoAccessToken": "kakao_token_here", "role": "CONSUMER" }</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>기존 회원 로그인 성공</td></tr>
+    <tr><td>Success</td><td><span class="resp-code r2">201</span></td><td>신규 회원가입 후 로그인</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">400</span></td><td>유효하지 않은 카카오 토큰</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r5">500</span></td><td>서버 오류</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "로그인 성공",
+  "data": {
+    "accessToken": "eyJ...",
+    "refreshToken": "eyJ...",
+    "member": { "memberId": 1, "nickname": "득템러", "role": "CONSUMER" }
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="AUTH">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/auth/refresh</span>
+  <span class="h-desc">액세스 토큰 갱신</span>
+  <span class="pri p1">P1</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>만료된 액세스 토큰을 갱신합니다. (AT 30분 / RT 14일)</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Content-Type: application/json</code></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span>없음</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span>없음</span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">리프레시 토큰</td><td><code>refreshToken</code></td><td class="req-y">✓</td><td>String</td><td>발급받은 리프레시 토큰</td></tr>
+  </tbody></table>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">POST /api/v1/auth/refresh
+{ "refreshToken": "eyJ..." }</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>갱신 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">401</span></td><td>리프레시 토큰 만료/유효하지 않음</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{ "code": 200, "message": "토큰 갱신 성공", "data": { "accessToken": "eyJ..." } }</div>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="AUTH">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/auth/logout</span>
+  <span class="h-desc">로그아웃 (RefreshToken 무효화)</span>
+  <span class="pri p1">P1</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>로그아웃 처리. RefreshToken을 무효화하고 FcmToken을 비활성화합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span>없음</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span>없음</span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <div class="none-text">없음</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>로그아웃 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">401</span></td><td>인증 실패</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<!-- HOME / 탐색 -->
+<div class="section-label" data-consumer-group="HOME">홈 / 탐색</div>
+
+<div class="aside-card" data-consumer-group="HOME">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/stores</span>
+  <span class="h-desc">주변 가게 목록 (위치 기반·리스트 뷰)</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>현재 위치 기반으로 주변 가게 목록을 조회합니다. 홈 리스트 뷰에서 사용합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span>없음</span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span>없음</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span><code>latitude</code>, <code>longitude</code>, <code>radius</code>, <code>category</code>, <code>sort</code>, <code>keyword</code>, <code>page</code>, <code>size</code></span></div>
+  </div>
+  <div class="block-title">Request Body (Query String)</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">현재 위도</td><td><code>latitude</code></td><td class="req-y">✓</td><td>Double</td><td>현재 위도</td></tr>
+    <tr><td class="td-ko">현재 경도</td><td><code>longitude</code></td><td class="req-y">✓</td><td>Double</td><td>현재 경도</td></tr>
+    <tr><td class="td-ko">검색 반경</td><td><code>radius</code></td><td class="req-n">-</td><td>Integer</td><td>반경(m), 기본값 1000</td></tr>
+    <tr><td class="td-ko">카테고리</td><td><code>category</code></td><td class="req-n">-</td><td>String</td><td><code>BAKERY</code>/<code>RESTAURANT</code>/<code>CAFE</code>/<code>GROCERY</code>/<code>OTHER</code></td></tr>
+    <tr><td class="td-ko">정렬 기준</td><td><code>sort</code></td><td class="req-n">-</td><td>String</td><td><code>distance</code>(기본)/<code>discount_rate</code>/<code>pickup_end</code></td></tr>
+    <tr><td class="td-ko">검색어</td><td><code>keyword</code></td><td class="req-n">-</td><td>String</td><td>가게명 검색</td></tr>
+    <tr><td class="td-ko">페이지 번호</td><td><code>page</code></td><td class="req-n">-</td><td>Integer</td><td>기본값 0</td></tr>
+    <tr><td class="td-ko">페이지 크기</td><td><code>size</code></td><td class="req-n">-</td><td>Integer</td><td>기본값 20</td></tr>
+  </tbody></table>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">GET /api/v1/stores?latitude=37.123&longitude=126.456&radius=1000&sort=distance</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">400</span></td><td>위도/경도 누락</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "주변 가게 조회 성공",
+  "data": {
+    "stores": [{
+      "storeId": 1, "name": "삼미시장 떡집",
+      "thumbnailUrl": "https://s3.../thumb.jpg",
+      "distanceM": 320, "category": "BAKERY",
+      "ratingAvg": 4.5, "reviewCount": 12,
+      "availableProductCount": 3
+    }],
+    "hasNext": true
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="HOME">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/stores/map</span>
+  <span class="h-desc">지도 뷰용 주변 가게 마커 목록</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>네이버 지도 뷰에서 마커를 표시하기 위한 가게 위치 목록을 조회합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span>없음</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span><code>latitude</code>, <code>longitude</code>, <code>radius</code>, <code>category</code></span></div>
+  </div>
+  <div class="block-title">Request Body (Query String)</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">현재 위도</td><td><code>latitude</code></td><td class="req-y">✓</td><td>Double</td><td>현재 위도</td></tr>
+    <tr><td class="td-ko">현재 경도</td><td><code>longitude</code></td><td class="req-y">✓</td><td>Double</td><td>현재 경도</td></tr>
+    <tr><td class="td-ko">검색 반경</td><td><code>radius</code></td><td class="req-n">-</td><td>Integer</td><td>반경(m), 기본값 2000</td></tr>
+    <tr><td class="td-ko">카테고리</td><td><code>category</code></td><td class="req-n">-</td><td>String</td><td>카테고리 필터</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "지도 마커 조회 성공",
+  "data": {
+    "markers": [{
+      "storeId": 1, "name": "삼미시장 떡집",
+      "latitude": 37.123, "longitude": 126.456,
+      "availableProductCount": 3, "category": "BAKERY"
+    }]
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="HOME">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/stores/{storeId}</span>
+  <span class="h-desc">가게 상세 조회</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>가게 상세 정보와 현재 등록된 상품 목록을 함께 조회합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span>없음</span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>storeId</code> (Long) — 가게 ID</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span>없음</span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <div class="none-text">없음</div>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">GET /api/v1/stores/1</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">404</span></td><td>가게를 찾을 수 없음</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "가게 조회 성공",
+  "data": {
+    "storeId": 1, "name": "삼미시장 떡집",
+    "description": "전통 떡 전문점",
+    "address": "경기도 시흥시 정왕동 ...",
+    "latitude": 37.123, "longitude": 126.456,
+    "phone": "031-000-0000",
+    "thumbnailUrl": "https://s3.../thumb.jpg",
+    "images": ["https://s3.../img1.jpg"],
+    "categories": ["BAKERY"],
+    "ratingAvg": 4.5, "reviewCount": 12,
+    "products": [{ "productId": 1, "name": "마감 샌드위치", "discountPrice": 4000, "quantityRemaining": 3, "pickupEnd": "20:00", "status": "AVAILABLE" }]
+  }
+}</div>
+</div>
+</div>
+
+<!-- PRODUCT -->
+<div class="section-label" data-consumer-group="PRODUCT">상품</div>
+
+<div class="aside-card" data-consumer-group="PRODUCT">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/products</span>
+  <span class="h-desc">주변 마감할인 상품 목록</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>현재 위치 기반으로 주변 마감할인 상품을 조회합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span>없음</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span><code>latitude</code>, <code>longitude</code>, <code>radius</code>, <code>category</code>, <code>sort</code>, <code>page</code>, <code>size</code></span></div>
+  </div>
+  <div class="block-title">Request Body (Query String)</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">현재 위도</td><td><code>latitude</code></td><td class="req-y">✓</td><td>Double</td><td>현재 위도</td></tr>
+    <tr><td class="td-ko">현재 경도</td><td><code>longitude</code></td><td class="req-y">✓</td><td>Double</td><td>현재 경도</td></tr>
+    <tr><td class="td-ko">검색 반경</td><td><code>radius</code></td><td class="req-n">-</td><td>Integer</td><td>반경(m), 기본값 1000</td></tr>
+    <tr><td class="td-ko">카테고리</td><td><code>category</code></td><td class="req-n">-</td><td>String</td><td>카테고리 필터</td></tr>
+    <tr><td class="td-ko">정렬 기준</td><td><code>sort</code></td><td class="req-n">-</td><td>String</td><td><code>distance</code>/<code>discount_rate</code>/<code>pickup_end</code></td></tr>
+    <tr><td class="td-ko">페이지 번호</td><td><code>page</code></td><td class="req-n">-</td><td>Integer</td><td>기본값 0</td></tr>
+    <tr><td class="td-ko">페이지 크기</td><td><code>size</code></td><td class="req-n">-</td><td>Integer</td><td>기본값 20</td></tr>
+  </tbody></table>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">GET /api/v1/products?latitude=37.123&longitude=126.456&sort=pickup_end</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">400</span></td><td>위도/경도 누락</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "상품 조회 성공",
+  "data": {
+    "products": [{
+      "productId": 1, "name": "마감 샌드위치 세트",
+      "thumbnailUrl": "https://s3.../thumb.jpg",
+      "originalPrice": 8000, "discountPrice": 4000,
+      "quantityRemaining": 3, "pickupEnd": "20:00",
+      "status": "AVAILABLE", "storeName": "삼미시장 떡집", "distanceM": 320
+    }],
+    "hasNext": false
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="PRODUCT">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/products/{productId}</span>
+  <span class="h-desc">상품 상세 조회 (알레르기·만든시간·픽업시간)</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>상품 상세 정보를 조회합니다. 알레르기 성분·만들어진 시간·픽업 가능 시간 포함.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span>없음</span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>productId</code> (Long) — 상품 ID</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span>없음</span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <div class="none-text">없음</div>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">GET /api/v1/products/1</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">404</span></td><td>상품을 찾을 수 없음</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "상품 상세 조회 성공",
+  "data": {
+    "productId": 1, "name": "마감 샌드위치 세트",
+    "description": "오늘 만든 신선한 샌드위치",
+    "thumbnailUrl": "https://s3.../thumb.jpg",
+    "images": ["https://s3.../img1.jpg"],
+    "originalPrice": 8000, "discountPrice": 4000,
+    "quantityTotal": 5, "quantityRemaining": 3,
+    "allergenInfo": "밀, 계란, 우유",
+    "madeAt": "08:00",
+    "pickupStart": "17:00", "pickupEnd": "20:00",
+    "availableDate": "2026-04-11",
+    "status": "AVAILABLE", "carbonSavedKg": 0.3,
+    "store": { "storeId": 1, "name": "삼미시장 떡집", "address": "경기도 시흥시 ..." }
+  }
+}</div>
+</div>
+</div>
+
+<!-- ORDER -->
+<div class="section-label" data-consumer-group="ORDER">주문 / 결제 / 장바구니</div>
+
+<div class="aside-card" data-consumer-group="ORDER">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/cart</span>
+  <span class="h-desc">장바구니 상품 추가</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>상품을 장바구니에 추가합니다. 같은 가게 상품만 담을 수 있습니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">CONSUMER</span></span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">상품 ID</td><td><code>productId</code></td><td class="req-y">✓</td><td>Long</td><td>담을 상품 ID</td></tr>
+    <tr><td class="td-ko">수량</td><td><code>quantity</code></td><td class="req-y">✓</td><td>Integer</td><td>담을 수량</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">201</span></td><td>장바구니 추가 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">409</span></td><td>재고 부족 / 다른 가게 상품 혼재</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="ORDER">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/cart</span>
+  <span class="h-desc">장바구니 조회</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>현재 장바구니에 담긴 상품 목록을 조회합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">CONSUMER</span></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="ORDER">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method DELETE">DELETE</span><span class="endpoint">/cart/{cartItemId}</span>
+  <span class="h-desc">장바구니 상품 삭제</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>장바구니에서 특정 상품을 제거합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">CONSUMER</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>cartItemId</code> (Long)</span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>삭제 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">404</span></td><td>아이템 없음</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="ORDER">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method DELETE">DELETE</span><span class="endpoint">/cart</span>
+  <span class="h-desc">장바구니 전체 비우기</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>장바구니를 전체 비웁니다. 주문 완료 후 자동 호출됩니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">CONSUMER</span></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>전체 삭제 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+<div class="aside-card" data-consumer-group="ORDER">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/orders</span>
+  <span class="h-desc">주문 생성 (예약 확정)</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>소비자가 마감할인 상품을 주문(예약)합니다. 결제 확정 후 픽업 코드가 발급됩니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">CONSUMER</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span>없음</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span>없음</span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">상품 ID</td><td><code>items[].productId</code></td><td class="req-y">✓</td><td>Long</td><td>주문할 상품 ID</td></tr>
+    <tr><td class="td-ko">주문 수량</td><td><code>items[].quantity</code></td><td class="req-y">✓</td><td>Integer</td><td>주문 수량</td></tr>
+    <tr><td class="td-ko">결제 수단</td><td><code>paymentMethod</code></td><td class="req-y">✓</td><td>String</td><td><code>SIRU</code>/<code>CARD</code>/<code>CASH</code><span class="tbd-badge">TBD</span></td></tr>
+  </tbody></table>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">POST /api/v1/orders
+{ "items": [{ "productId": 1, "quantity": 2 }], "paymentMethod": "SIRU" }</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">201</span></td><td>주문 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">400</span></td><td>입력값 오류</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">409</span></td><td>수량 초과 또는 품절</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r5">500</span></td><td>서버 오류</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 201 Created</span>
+{
+  "code": 201, "message": "주문 성공",
+  "data": {
+    "orderId": 1, "pickupCode": "A1B2",
+    "status": "PENDING", "totalPrice": 8000,
+    "payment": { "method": "SIRU", "status": "PENDING" }
+  }
+}
+
+<span class="sample-comment">// 409 Conflict</span>
+{ "code": 409, "message": "남은 수량이 부족합니다.", "data": null }</div>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="ORDER">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/orders/my</span>
+  <span class="h-desc">내 주문 목록 (진행중·픽업완료 탭)</span>
+  <span class="pri p1">P1</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>로그인한 소비자의 주문 목록을 조회합니다. 예약 목록 화면에서 사용합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">CONSUMER</span></span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span><code>status</code>, <code>page</code>, <code>size</code></span></div>
+  </div>
+  <div class="block-title">Request Body (Query String)</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">주문 상태</td><td><code>status</code></td><td class="req-n">-</td><td>String</td><td><code>PENDING</code>/<code>CONFIRMED</code>/<code>PICKED_UP</code>/<code>CANCELLED</code></td></tr>
+    <tr><td class="td-ko">페이지 번호</td><td><code>page</code></td><td class="req-n">-</td><td>Integer</td><td>기본값 0</td></tr>
+    <tr><td class="td-ko">페이지 크기</td><td><code>size</code></td><td class="req-n">-</td><td>Integer</td><td>기본값 20</td></tr>
+  </tbody></table>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">GET /api/v1/orders/my?status=PICKED_UP&page=0</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">401</span></td><td>인증 실패</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="ORDER">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/orders/{orderId}</span>
+  <span class="h-desc">주문 상세 조회 (픽업 코드 포함)</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>주문 완료 화면에서 픽업 코드를 표시합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">CONSUMER</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>orderId</code> (Long) — 주문 ID</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span>없음</span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <div class="none-text">없음</div>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">GET /api/v1/orders/1</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">403</span></td><td>권한 없음</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">404</span></td><td>주문 없음</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "주문 상세 조회 성공",
+  "data": {
+    "orderId": 1, "pickupCode": "A1B2",
+    "status": "CONFIRMED", "totalPrice": 8000,
+    "storeName": "삼미시장 떡집",
+    "items": [{ "productName": "마감 샌드위치", "quantity": 2, "unitPrice": 4000 }],
+    "payment": { "method": "SIRU", "status": "COMPLETED" }
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="ORDER">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method PATCH">PATCH</span><span class="endpoint">/orders/{orderId}/cancel</span>
+  <span class="h-desc">주문 취소 (픽업 전)</span>
+  <span class="pri p1">P1</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>픽업 전 상태의 주문을 취소합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">CONSUMER</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>orderId</code> (Long) — 주문 ID</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span>없음</span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <div class="none-text">없음</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>취소 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">400</span></td><td>취소 불가 상태 (픽업 완료 등)</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">403</span></td><td>권한 없음</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">404</span></td><td>주문을 찾을 수 없음</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<!-- REVIEW -->
+<div class="section-label" data-consumer-group="REVIEW">리뷰</div>
+
+<div class="aside-card" data-consumer-group="REVIEW">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/reviews</span>
+  <span class="h-desc">리뷰 작성 (픽업 완료 후)</span>
+  <span class="pri p1">P1</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>픽업이 완료된 주문에 대해 리뷰를 작성합니다. 주문당 1개만 작성 가능합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">CONSUMER</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span>없음</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span>없음</span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">가게 ID</td><td><code>storeId</code></td><td class="req-y">✓</td><td>Long</td><td>리뷰 대상 가게 ID</td></tr>
+    <tr><td class="td-ko">주문 ID</td><td><code>orderId</code></td><td class="req-y">✓</td><td>Long</td><td>PICKED_UP 상태여야 함</td></tr>
+    <tr><td class="td-ko">별점</td><td><code>rating</code></td><td class="req-y">✓</td><td>Integer</td><td>1~5</td></tr>
+    <tr><td class="td-ko">리뷰 내용</td><td><code>content</code></td><td class="req-n">-</td><td>String</td><td>리뷰 텍스트</td></tr>
+  </tbody></table>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">POST /api/v1/reviews
+{ "storeId": 1, "orderId": 1, "rating": 5, "content": "신선하고 맛있었어요!" }</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">201</span></td><td>리뷰 작성 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">400</span></td><td>픽업 미완료 주문</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">409</span></td><td>이미 작성된 리뷰</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="REVIEW">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/stores/{storeId}/reviews</span>
+  <span class="h-desc">가게 리뷰 목록</span>
+  <span class="pri p1">P1</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>특정 가게의 리뷰 목록을 조회합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span>없음</span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>storeId</code> (Long) — 가게 ID</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span><code>page</code>, <code>size</code></span></div>
+  </div>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">GET /api/v1/stores/1/reviews?page=0&size=10</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">404</span></td><td>가게를 찾을 수 없음</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="REVIEW">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method DELETE">DELETE</span><span class="endpoint">/reviews/{reviewId}</span>
+  <span class="h-desc">리뷰 삭제 (소프트 딜리트)</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>본인이 작성한 리뷰를 삭제합니다. (is_deleted = 1 처리)</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>reviewId</code> (Long) — 리뷰 ID</span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span>없음</span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>삭제 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">403</span></td><td>권한 없음</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">404</span></td><td>리뷰 없음</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<!-- WISHLIST -->
+<div class="section-label" data-consumer-group="WISHLIST">찜 (Wishlist)</div>
+
+<div class="aside-card" data-consumer-group="WISHLIST">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/wishlist/{storeId}</span>
+  <span class="h-desc">가게 찜 등록</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>가게를 찜 목록에 추가합니다. 중복 추가 시 409 반환.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">CONSUMER</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>storeId</code> (Long) — 가게 ID</span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">201</span></td><td>찜 등록 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">409</span></td><td>이미 찜한 가게</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="WISHLIST">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method DELETE">DELETE</span><span class="endpoint">/wishlist/{storeId}</span>
+  <span class="h-desc">가게 찜 해제</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>가게를 찜 목록에서 제거합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">CONSUMER</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>storeId</code> (Long) — 가게 ID</span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>찜 해제 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">404</span></td><td>찜한 가게가 아님</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="WISHLIST">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/wishlist</span>
+  <span class="h-desc">찜 목록 조회</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>로그인한 소비자의 찜 가게 목록을 조회합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">CONSUMER</span></span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span><code>page</code>, <code>size</code></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<!-- MYPAGE -->
+<div class="section-label" data-consumer-group="MYPAGE">마이페이지</div>
+
+<div class="aside-card" data-consumer-group="MYPAGE">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/members/me</span>
+  <span class="h-desc">마이페이지 조회</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>로그인한 회원의 마이페이지 정보를 조회합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span>없음 (JWT에서 memberId 추출)</span></div>
+  </div>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">GET /api/v1/members/me</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">401</span></td><td>인증 실패</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "마이페이지 조회 성공",
+  "data": {
+    "memberId": 1, "email": "user@example.com",
+    "nickname": "득템러", "name": "홍길동",
+    "profileImageUrl": "https://s3.../profile.jpg",
+    "phone": "010-1234-5678",
+    "gender": "MALE", "birth": "1995-04-15",
+    "role": "CONSUMER", "status": 1,
+    "createdAt": "2026-01-12T09:00:00+09:00"
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="MYPAGE">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/members/me/stats</span>
+  <span class="h-desc">ESG 대시보드 — 절약 금액·탄소 저감량</span>
+  <span class="pri p1">P1</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>절약 금액·탄소 저감량 통계 조회. MPAndroidChart 그래프 연동용 데이터입니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "통계 조회 성공",
+  "data": {
+    "totalSavedAmount": 32000,
+    "totalCarbonSavedKg": 1.24,
+    "totalOrders": 8
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="MYPAGE">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method PUT">PUT</span><span class="endpoint">/members/me</span>
+  <span class="h-desc">내 정보 수정</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>닉네임·전화번호 등 회원 정보를 수정합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">닉네임</td><td><code>nickname</code></td><td class="req-n">-</td><td>String</td><td>최대 30자</td></tr>
+    <tr><td class="td-ko">전화번호</td><td><code>phone</code></td><td class="req-n">-</td><td>String</td><td>전화번호</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>수정 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="MYPAGE">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method DELETE">DELETE</span><span class="endpoint">/members/me</span>
+  <span class="h-desc">회원 탈퇴 (소프트 딜리트)</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>회원 탈퇴. deleted_at에 현재 시각을 기록합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>탈퇴 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<!-- NOTIFY -->
+<div class="section-label" data-consumer-group="NOTIFY">알림</div>
+
+<div class="aside-card" data-consumer-group="NOTIFY">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/fcm/token</span>
+  <span class="h-desc">FCM 토큰 등록/갱신</span>
+  <span class="pri p1">P1</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>앱 실행 시 FCM 디바이스 토큰을 등록하거나 갱신합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">FCM 토큰</td><td><code>token</code></td><td class="req-y">✓</td><td>String</td><td>FCM 디바이스 토큰</td></tr>
+    <tr><td class="td-ko">기기 정보</td><td><code>deviceInfo</code></td><td class="req-n">-</td><td>String</td><td>기기 모델명 등</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>토큰 등록/갱신 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="NOTIFY">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/notifications</span>
+  <span class="h-desc">알림 목록 조회</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>수신한 알림 목록을 조회합니다. (찜 가게 신규 등록·픽업 임박·주문 확정)</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span><code>page</code>, <code>size</code></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-consumer-group="NOTIFY">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method PATCH">PATCH</span><span class="endpoint">/notifications/{notificationId}/read</span>
+  <span class="h-desc">알림 읽음 처리</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>알림을 읽음 처리합니다. (is_read = 1)</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>notificationId</code> (Long)</span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>읽음 처리 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+</div><!-- end list-consumer -->
+</div><!-- end panel-consumer -->
+
+<!-- ============================================================ -->
+<!-- 판매자 패널 -->
+<!-- ============================================================ -->
+<div class="role-panel" id="panel-seller">
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="filterGroup(this,'seller','all')">전체</button>
+  <button class="filter-btn" onclick="filterGroup(this,'seller','S-AUTH')">AUTH</button>
+  <button class="filter-btn" onclick="filterGroup(this,'seller','S-STORE')">가게 등록</button>
+  <button class="filter-btn" onclick="filterGroup(this,'seller','S-MENU')">메뉴/상품</button>
+  <button class="filter-btn" onclick="filterGroup(this,'seller','S-ORDER')">주문 관리</button>
+  <button class="filter-btn" onclick="filterGroup(this,'seller','S-SALES')">매출/정산</button>
+  <button class="filter-btn" onclick="filterGroup(this,'seller','S-MYPAGE')">마이페이지</button>
+</div>
+<div id="list-seller">
+
+<!-- S-AUTH -->
+<div class="section-label" data-seller-group="S-AUTH">AUTH (판매자 회원가입)</div>
+
+<div class="aside-card" data-seller-group="S-AUTH">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/auth/kakao/login</span>
+  <span class="h-desc">카카오 로그인 (role=SELLER)</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>소비자와 동일한 엔드포인트. <code>role: "SELLER"</code>로 요청합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Content-Type: application/json</code></span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">카카오 액세스 토큰</td><td><code>kakaoAccessToken</code></td><td class="req-y">✓</td><td>String</td><td>카카오에서 발급받은 토큰</td></tr>
+    <tr><td class="td-ko">가입 유형</td><td><code>role</code></td><td class="req-y">✓</td><td>String</td><td><code>SELLER</code></td></tr>
+  </tbody></table>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">POST /api/v1/auth/kakao/login
+{ "kakaoAccessToken": "kakao_token_here", "role": "SELLER" }</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>로그인 성공</td></tr>
+    <tr><td>Success</td><td><span class="resp-code r2">201</span></td><td>신규 판매자 회원가입</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-seller-group="S-AUTH">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/sellers/business-info</span>
+  <span class="h-desc">사업자 정보 등록 (사업자번호·시루가맹 확인)</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>판매자 회원가입 후 사업자 등록번호 인증 및 시루 가맹점 여부 확인을 처리합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span>없음</span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">사업자 등록번호</td><td><code>businessNumber</code></td><td class="req-y">✓</td><td>String</td><td>10자리 사업자 등록번호</td></tr>
+  </tbody></table>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">POST /api/v1/sellers/business-info
+{ "businessNumber": "123-45-67890" }</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">201</span></td><td>사업자 정보 등록 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">400</span></td><td>유효하지 않은 사업자 번호</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">409</span></td><td>이미 등록된 사업자 번호</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 201 Created</span>
+{
+  "code": 201, "message": "사업자 정보 등록 성공",
+  "data": {
+    "businessInfoId": 1,
+    "businessNumber": "123-45-67890",
+    "isVerified": 1,
+    "isSiruVerified": 1,
+    "siruStoreId": "SIRU-12345"
+  }
+}</div>
+</div>
+</div>
+
+<!-- S-STORE -->
+<div class="section-label" data-seller-group="S-STORE">가게 등록·관리</div>
+
+<div class="aside-card" data-seller-group="S-STORE">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/sellers/stores</span>
+  <span class="h-desc">가게 등록</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>판매자가 가게를 등록합니다. 사업자 인증(is_verified=1) 후 가능합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span>&nbsp;&nbsp;<code>Content-Type: multipart/form-data</code></span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">가게명</td><td><code>name</code></td><td class="req-y">✓</td><td>String</td><td>최대 100자</td></tr>
+    <tr><td class="td-ko">가게 소개</td><td><code>description</code></td><td class="req-n">-</td><td>String</td><td>가게 설명</td></tr>
+    <tr><td class="td-ko">주소</td><td><code>address</code></td><td class="req-y">✓</td><td>String</td><td>최대 255자</td></tr>
+    <tr><td class="td-ko">위도</td><td><code>latitude</code></td><td class="req-y">✓</td><td>Double</td><td>가게 위도</td></tr>
+    <tr><td class="td-ko">경도</td><td><code>longitude</code></td><td class="req-y">✓</td><td>Double</td><td>가게 경도</td></tr>
+    <tr><td class="td-ko">전화번호</td><td><code>phone</code></td><td class="req-n">-</td><td>String</td><td>가게 전화번호</td></tr>
+    <tr><td class="td-ko">카테고리</td><td><code>categories</code></td><td class="req-y">✓</td><td>List</td><td><code>BAKERY</code>/<code>RESTAURANT</code>/<code>CAFE</code>/<code>GROCERY</code>/<code>OTHER</code></td></tr>
+    <tr><td class="td-ko">대표 이미지</td><td><code>thumbnail</code></td><td class="req-y">✓</td><td>File</td><td>썸네일 이미지 1장</td></tr>
+    <tr><td class="td-ko">소개 이미지</td><td><code>images</code></td><td class="req-n">-</td><td>List&lt;File&gt;</td><td>최대 5장</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">201</span></td><td>가게 등록 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">400</span></td><td>입력값 오류</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">403</span></td><td>사업자 미인증 상태</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-seller-group="S-STORE">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/sellers/stores/my</span>
+  <span class="h-desc">내 가게 조회 (판매자 홈)</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>판매자 홈 화면에서 내 가게 정보를 조회합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">404</span></td><td>등록된 가게 없음</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "가게 조회 성공",
+  "data": {
+    "storeId": 1, "name": "삼미시장 떡집",
+    "isActive": 1, "isVerified": 1,
+    "todayProductCount": 3,
+    "pendingOrderCount": 2,
+    "ratingAvg": 4.5, "reviewCount": 12
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-seller-group="S-STORE">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method PUT">PUT</span><span class="endpoint">/sellers/stores/my</span>
+  <span class="h-desc">가게 정보 수정</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>가게 소개·전화번호·이미지 등을 수정합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">가게 소개</td><td><code>description</code></td><td class="req-n">-</td><td>String</td><td>가게 설명</td></tr>
+    <tr><td class="td-ko">전화번호</td><td><code>phone</code></td><td class="req-n">-</td><td>String</td><td>가게 전화번호</td></tr>
+    <tr><td class="td-ko">대표 이미지</td><td><code>thumbnail</code></td><td class="req-n">-</td><td>File</td><td>썸네일 이미지</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>수정 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<!-- S-MENU -->
+<div class="section-label" data-seller-group="S-MENU">메뉴 마스터 / 상품 등록</div>
+
+<div class="aside-card" data-seller-group="S-MENU">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/sellers/menu-items</span>
+  <span class="h-desc">메뉴 마스터 등록 (사진·이름·원가·알레르기)</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>재사용 가능한 메뉴 마스터를 등록합니다. 상품 등록 시 이 메뉴를 참조합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">메뉴명</td><td><code>name</code></td><td class="req-y">✓</td><td>String</td><td>최대 100자</td></tr>
+    <tr><td class="td-ko">메뉴 설명</td><td><code>description</code></td><td class="req-n">-</td><td>String</td><td>메뉴 설명</td></tr>
+    <tr><td class="td-ko">원가</td><td><code>originalPrice</code></td><td class="req-y">✓</td><td>Integer</td><td>원가 (원)</td></tr>
+    <tr><td class="td-ko">알레르기 성분</td><td><code>allergenInfo</code></td><td class="req-n">-</td><td>String</td><td>알레르기 성분 (예: 밀, 계란)</td></tr>
+    <tr><td class="td-ko">메뉴 이미지</td><td><code>image</code></td><td class="req-y">✓</td><td>File</td><td>메뉴 사진 최소 1장</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">201</span></td><td>메뉴 등록 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-seller-group="S-MENU">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/sellers/menu-items</span>
+  <span class="h-desc">내 메뉴 마스터 목록</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>등록된 메뉴 마스터 목록을 조회합니다. 상품 등록 시 선택 화면에서 사용합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-seller-group="S-MENU">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/sellers/products</span>
+  <span class="h-desc">마감할인 상품 등록 (초간편)</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>마감할인 상품을 등록합니다. 기존 메뉴 선택 또는 새 메뉴 직접 입력 두 가지 방식 지원합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span>&nbsp;&nbsp;<code>Content-Type: multipart/form-data</code></span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">메뉴 마스터 ID</td><td><code>menuItemId</code></td><td class="req-n">-</td><td>Long</td><td>기존 메뉴 선택 시 사용. 없으면 직접 입력</td></tr>
+    <tr><td class="td-ko">상품명</td><td><code>name</code></td><td class="req-y">✓</td><td>String</td><td>직접 입력 시 필수</td></tr>
+    <tr><td class="td-ko">할인가</td><td><code>discountPrice</code></td><td class="req-y">✓</td><td>Integer</td><td>할인가 (원)</td></tr>
+    <tr><td class="td-ko">원가</td><td><code>originalPrice</code></td><td class="req-y">✓</td><td>Integer</td><td>정가 (원)</td></tr>
+    <tr><td class="td-ko">총 수량</td><td><code>quantityTotal</code></td><td class="req-y">✓</td><td>Integer</td><td>판매 수량</td></tr>
+    <tr><td class="td-ko">만들어진 시간</td><td><code>madeAt</code></td><td class="req-n">-</td><td>String</td><td>HH:mm 형식</td></tr>
+    <tr><td class="td-ko">픽업 시작</td><td><code>pickupStart</code></td><td class="req-y">✓</td><td>String</td><td>HH:mm 형식</td></tr>
+    <tr><td class="td-ko">픽업 마감</td><td><code>pickupEnd</code></td><td class="req-y">✓</td><td>String</td><td>HH:mm 형식</td></tr>
+    <tr><td class="td-ko">판매 날짜</td><td><code>availableDate</code></td><td class="req-y">✓</td><td>String</td><td>yyyy-MM-dd</td></tr>
+    <tr><td class="td-ko">알레르기 성분</td><td><code>allergenInfo</code></td><td class="req-n">-</td><td>String</td><td>알레르기 성분</td></tr>
+    <tr><td class="td-ko">상품 이미지</td><td><code>images</code></td><td class="req-y">✓</td><td>List&lt;File&gt;</td><td>최소 1장, 최대 3장</td></tr>
+  </tbody></table>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">POST /api/v1/sellers/products
+Content-Type: multipart/form-data
+
+{
+  "name": "마감 샌드위치 세트",
+  "discountPrice": 4000, "originalPrice": 8000,
+  "quantityTotal": 5,
+  "pickupStart": "18:00", "pickupEnd": "20:00",
+  "availableDate": "2026-04-11",
+  "images": [(file)]
+}</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">201</span></td><td>상품 등록 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">400</span></td><td>입력값 오류</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">403</span></td><td>판매자 권한 없음</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card" data-seller-group="S-MENU">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/sellers/products</span>
+  <span class="h-desc">내 상품 목록 (재고 관리)</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>오늘 등록한 상품 목록과 재고 현황을 조회합니다. (AVAILABLE/SOLD_OUT/EXPIRED)</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span><code>date</code> (yyyy-MM-dd, 기본값: 오늘), <code>status</code></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "상품 목록 조회 성공",
+  "data": {
+    "products": [{
+      "productId": 1, "name": "마감 샌드위치",
+      "quantityTotal": 5, "quantityRemaining": 3,
+      "status": "AVAILABLE",
+      "pickupStart": "18:00", "pickupEnd": "20:00"
+    }]
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-seller-group="S-MENU">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method PATCH">PATCH</span><span class="endpoint">/sellers/products/{productId}/status</span>
+  <span class="h-desc">상품 상태 변경 (판매 취소/마감 처리)</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>상품 상태를 변경합니다. 판매 등록 취소 또는 강제 마감 처리에 사용합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>productId</code> (Long)</span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">변경 상태</td><td><code>status</code></td><td class="req-y">✓</td><td>String</td><td><code>SOLD_OUT</code>/<code>EXPIRED</code></td></tr>
+  </tbody></table>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>상태 변경 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">403</span></td><td>권한 없음</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">404</span></td><td>상품 없음</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<!-- S-ORDER -->
+<div class="section-label" data-seller-group="S-ORDER">주문 관리</div>
+
+<div class="aside-card" data-seller-group="S-ORDER">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/sellers/orders</span>
+  <span class="h-desc">가게 주문 목록 (신규·픽업완료)</span>
+  <span class="pri p1">P1</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>내 가게에 들어온 주문 목록을 조회합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span><code>status</code>, <code>date</code>, <code>page</code>, <code>size</code></span></div>
+  </div>
+  <div class="block-title">Request Body (Query String)</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">주문 상태</td><td><code>status</code></td><td class="req-n">-</td><td>String</td><td><code>PENDING</code>/<code>CONFIRMED</code>/<code>PICKED_UP</code>/<code>CANCELLED</code></td></tr>
+    <tr><td class="td-ko">날짜</td><td><code>date</code></td><td class="req-n">-</td><td>String</td><td>yyyy-MM-dd, 기본값: 오늘</td></tr>
+    <tr><td class="td-ko">페이지 번호</td><td><code>page</code></td><td class="req-n">-</td><td>Integer</td><td>기본값 0</td></tr>
+    <tr><td class="td-ko">페이지 크기</td><td><code>size</code></td><td class="req-n">-</td><td>Integer</td><td>기본값 20</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "주문 목록 조회 성공",
+  "data": {
+    "orders": [{
+      "orderId": 1, "status": "CONFIRMED",
+      "totalPrice": 8000, "pickupCode": "A1B2",
+      "items": [{ "productName": "마감 샌드위치", "quantity": 2 }],
+      "createdAt": "2026-04-11T17:30:00+09:00"
+    }]
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-seller-group="S-ORDER">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/sellers/orders/{orderId}</span>
+  <span class="h-desc">주문 상세 조회 (고객명·메뉴·수량·픽업시각)</span>
+  <span class="pri p1">P1</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>주문 상세 정보를 조회합니다. 예약 상세 화면에서 사용합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>orderId</code> (Long)</span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">403</span></td><td>권한 없음 (다른 가게 주문)</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">404</span></td><td>주문 없음</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "주문 상세 조회 성공",
+  "data": {
+    "orderId": 1, "status": "CONFIRMED",
+    "consumerNickname": "득템러",
+    "pickupCode": "A1B2",
+    "totalPrice": 8000,
+    "items": [{ "productName": "마감 샌드위치", "quantity": 2, "unitPrice": 4000 }],
+    "createdAt": "2026-04-11T17:30:00+09:00"
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-seller-group="S-ORDER">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method PATCH">PATCH</span><span class="endpoint">/sellers/orders/{orderId}/confirm</span>
+  <span class="h-desc">픽업 완료 처리 (픽업 코드 확인)</span>
+  <span class="pri p0">P0</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>소비자가 제시한 픽업 코드를 확인하고 주문을 완료 처리합니다. 재고 자동 차감됩니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+    <div class="info-row"><span class="info-key">Path Variable</span><span><code>orderId</code> (Long)</span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">픽업 코드</td><td><code>pickupCode</code></td><td class="req-y">✓</td><td>String</td><td>소비자 픽업 확인 코드<span class="tbd-badge">방식 TBD</span></td></tr>
+  </tbody></table>
+  <div class="block-title">Request Sample</div>
+  <div class="sample-block">PATCH /api/v1/sellers/orders/1/confirm
+{ "pickupCode": "A1B2" }</div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>픽업 완료 처리 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">400</span></td><td>픽업 코드 불일치</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">403</span></td><td>권한 없음</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<!-- S-SALES -->
+<div class="section-label" data-seller-group="S-SALES">매출 대시보드 / 정산</div>
+
+<div class="aside-card" data-seller-group="S-SALES">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/sellers/sales/summary</span>
+  <span class="h-desc">매출 대시보드 (일/주/월 그래프·메뉴별 판매량)</span>
+  <span class="pri p1">P1</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>기간별 매출 집계, 메뉴별 판매량 Top5, 폐기 절감 효과를 조회합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span><code>period</code> (DAY/WEEK/MONTH, 기본값: DAY), <code>date</code></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "매출 조회 성공",
+  "data": {
+    "totalAmount": 120000,
+    "totalOrders": 15,
+    "topProducts": [
+      { "productName": "마감 샌드위치", "soldCount": 10 }
+    ],
+    "carbonSavedKg": 3.5,
+    "chartData": [
+      { "date": "2026-04-11", "amount": 40000 }
+    ]
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-seller-group="S-SALES">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/sellers/settlements</span>
+  <span class="h-desc">정산 내역 (시루 결제 정산·수수료)</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>시루 결제 정산 내역·출금 신청·수수료 월별 합계를 조회합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+    <div class="info-row"><span class="info-key">Query String</span><span><code>year</code>, <code>month</code></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<!-- S-MYPAGE -->
+<div class="section-label" data-seller-group="S-MYPAGE">판매자 마이페이지</div>
+
+<div class="aside-card" data-seller-group="S-MYPAGE">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/members/me</span>
+  <span class="h-desc">판매자 내 정보 조회</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>소비자와 동일 엔드포인트. 판매자는 사업자 정보·시루 가맹 현황 추가 포함.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+  </div>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK</span>
+{
+  "code": 200, "message": "마이페이지 조회 성공",
+  "data": {
+    "memberId": 1, "email": "seller@example.com",
+    "nickname": "삼미시장 떡집 사장님", "role": "SELLER",
+    "businessInfo": {
+      "businessNumber": "123-45-67890",
+      "isVerified": 1, "isSiruVerified": 1,
+      "siruStoreId": "SIRU-12345"
+    }
+  }
+}</div>
+</div>
+</div>
+
+<div class="aside-card" data-seller-group="S-MYPAGE">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/fcm/token</span>
+  <span class="h-desc">FCM 토큰 등록 (신규주문·픽업완료 알림)</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>소비자와 동일 엔드포인트. 판매자 알림(신규 주문·픽업 완료·판매 완료)에 사용합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="seller-badge">SELLER</span></span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">FCM 토큰</td><td><code>token</code></td><td class="req-y">✓</td><td>String</td><td>FCM 디바이스 토큰</td></tr>
+    <tr><td class="td-ko">기기 정보</td><td><code>deviceInfo</code></td><td class="req-n">-</td><td>String</td><td>기기 모델명 등</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>토큰 등록/갱신 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+</div><!-- end list-seller -->
+</div><!-- end panel-seller -->
+
+<!-- ============================================================ -->
+<!-- 공통 패널 (아직은 필요 없는듯?)-->
+<!-- ============================================================ -->
+<div class="role-panel" id="panel-common">
+<div id="list-common">
+<div id="list-common">
+
+<div class="section-label">알림 설정 (소비자·판매자 공통)</div>
+
+<div class="aside-card">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method GET">GET</span><span class="endpoint">/members/me/notification-settings</span>
+  <span class="h-desc">알림 설정 조회</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>현재 알림 설정 상태를 조회합니다. 소비자·판매자 공통 사용.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>조회 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">401</span></td><td>인증 실패</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Sample</div>
+  <div class="sample-block"><span class="sample-comment">// 200 OK — 소비자</span>
+{ "code": 200, "data": { "newProduct": true, "pickupReminder": true, "orderConfirmed": true, "event": false } }
+<span class="sample-comment">// 200 OK — 판매자</span>
+{ "code": 200, "data": { "newOrder": true, "pickupComplete": true, "soldOut": true, "event": false } }</div>
+</div>
+</div>
+
+<div class="aside-card">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method PUT">PUT</span><span class="endpoint">/members/me/notification-settings</span>
+  <span class="h-desc">알림 설정 변경 (ON/OFF 토글)</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>알림 항목별 ON/OFF를 설정합니다. 소비자·판매자 공통 사용.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">신규 상품 알림</td><td><code>newProduct</code></td><td class="req-n">-</td><td>Boolean</td><td>소비자 — 찜 가게 신규 상품 등록 시</td></tr>
+    <tr><td class="td-ko">픽업 임박 알림</td><td><code>pickupReminder</code></td><td class="req-n">-</td><td>Boolean</td><td>소비자 — 픽업 시간 임박 시</td></tr>
+    <tr><td class="td-ko">주문 확정 알림</td><td><code>orderConfirmed</code></td><td class="req-n">-</td><td>Boolean</td><td>소비자 — 주문 확정 시</td></tr>
+    <tr><td class="td-ko">신규 주문 알림</td><td><code>newOrder</code></td><td class="req-n">-</td><td>Boolean</td><td>판매자 — 신규 주문 수신 시</td></tr>
+    <tr><td class="td-ko">픽업 완료 알림</td><td><code>pickupComplete</code></td><td class="req-n">-</td><td>Boolean</td><td>판매자 — 픽업 완료 처리 시</td></tr>
+    <tr><td class="td-ko">판매 완료 알림</td><td><code>soldOut</code></td><td class="req-n">-</td><td>Boolean</td><td>판매자 — 상품 전량 판매 완료 시</td></tr>
+    <tr><td class="td-ko">이벤트·공지 알림</td><td><code>event</code></td><td class="req-n">-</td><td>Boolean</td><td>공통 — 이벤트·공지사항 알림</td></tr>
+  </tbody></table>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>설정 변경 성공</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="section-label">시루 연동 (소비자·판매자 공통)</div>
+
+<div class="aside-card">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method POST">POST</span><span class="endpoint">/auth/siru/link</span>
+  <span class="h-desc">시루 연동</span>
+  <span class="pri p0">P0</span><span class="tbd-badge">TBD</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>모바일 시루 계정을 득템시루 계정과 연동합니다. 소비자·판매자 모두 온보딩 시 진행. 시루 API 확정 후 상세 스펙 업데이트 예정.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+  </div>
+  <div class="block-title">Request Body</div>
+  <table><thead><tr><th style="width:22%">요청 종류</th><th style="width:28%">필드 이름</th><th style="width:8%">필수</th><th style="width:14%">타입</th><th>설명</th></tr></thead><tbody>
+    <tr><td class="td-ko">시루 액세스 토큰</td><td><code>siruAccessToken</code></td><td class="req-y">✓</td><td>String</td><td>시루 앱에서 발급받은 토큰 <span class="tbd-badge">TBD</span></td></tr>
+  </tbody></table>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>시루 연동 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">400</span></td><td>유효하지 않은 시루 토큰</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">409</span></td><td>이미 연동된 시루 계정</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div class="aside-card">
+<div class="aside-header" onclick="toggle(this)">
+  <span class="method DELETE">DELETE</span><span class="endpoint">/auth/siru/link</span>
+  <span class="h-desc">시루 연동 해제</span>
+  <span class="pri p2">P2</span><span class="chevron">▼</span>
+</div>
+<div class="aside-body">
+  <div class="info-section">
+    <div class="info-row"><span class="info-key">설명</span><span>시루 연동을 해제합니다. 마이페이지 — 시루 연동 관리에서 사용합니다.</span></div>
+    <div class="info-row"><span class="info-key">헤더</span><span><code>Authorization: Bearer {accessToken}</code><span class="auth-badge">JWT 필요</span></span></div>
+  </div>
+  <div class="block-title">Response Body</div>
+  <table><thead><tr><th style="width:22%">성공 여부</th><th style="width:22%">응답 코드</th><th>설명</th></tr></thead><tbody>
+    <tr><td>Success</td><td><span class="resp-code r2">200</span></td><td>연동 해제 성공</td></tr>
+    <tr><td>Error</td><td><span class="resp-code r4">404</span></td><td>연동된 시루 계정 없음</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div><!-- end panel-common -->
+
+</div><!-- end wrap -->
+
+<script>
+function switchRole(btn, role) {
+  document.querySelectorAll('.role-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.role-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + role).classList.add('active');
+}
+
+function toggle(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.chevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chevron.classList.toggle('open', !isOpen);
+}
+
+function filterGroup(btn, role, group) {
+  const bar = btn.closest('.filter-bar');
+  bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const list = document.getElementById('list-' + role);
+  list.querySelectorAll('.aside-card, .section-label').forEach(el => {
+    if (group === 'all') {
+      el.classList.remove('hidden');
+    } else {
+      const g = el.dataset[role + 'Group'] || el.dataset['sellerGroup'] || el.dataset['consumerGroup'];
+      el.classList.toggle('hidden', g !== group);
+    }
+  });
+}
+</script>
+</body>
+</html>

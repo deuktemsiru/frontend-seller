@@ -7,7 +7,6 @@
     android:background="@color/white"
     android:padding="32dp">
 
-    <!-- 앱 로고 / 타이틀 -->
     <TextView
         android:id="@+id/tvAppName"
         android:layout_width="wrap_content"
@@ -31,13 +30,67 @@
         android:textSize="15sp"
         android:textColor="#666666"
         android:gravity="center"
-        app:layout_constraintBottom_toTopOf="@+id/btnKakaoLogin"
+        app:layout_constraintBottom_toTopOf="@+id/layoutDebugForm"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvAppName"
-        android:layout_marginBottom="64dp" />
+        android:layout_marginBottom="40dp" />
 
-    <!-- 카카오 로그인 버튼 -->
+    <!-- DEBUG 전용 ID/PW 폼 (코드에서 visibility 제어) -->
+    <LinearLayout
+        android:id="@+id/layoutDebugForm"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/btnKakaoLogin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvSubtitle"
+        android:layout_marginBottom="16dp">
+
+        <EditText
+            android:id="@+id/etLoginId"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:hint="아이디"
+            android:inputType="text"
+            android:textSize="15sp"
+            android:textColor="#1A1A1A"
+            android:textColorHint="#AAAAAA"
+            android:background="@drawable/bg_card_white"
+            android:paddingHorizontal="16dp"
+            android:singleLine="true"
+            android:imeOptions="actionNext" />
+
+        <EditText
+            android:id="@+id/etLoginPassword"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:hint="패스워드"
+            android:inputType="textPassword"
+            android:textSize="15sp"
+            android:textColor="#1A1A1A"
+            android:textColorHint="#AAAAAA"
+            android:background="@drawable/bg_card_white"
+            android:paddingHorizontal="16dp"
+            android:singleLine="true"
+            android:layout_marginTop="10dp"
+            android:imeOptions="actionDone" />
+
+        <Button
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="12dp"
+            android:text="로그인"
+            android:textSize="15sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#1A1A1A"
+            android:stateListAnimator="@null" />
+
+    </LinearLayout>
+
     <Button
         android:id="@+id/btnKakaoLogin"
         android:layout_width="0dp"
@@ -48,30 +101,12 @@
         android:textStyle="bold"
         android:backgroundTint="#FEE500"
         android:stateListAnimator="@null"
-        app:layout_constraintBottom_toTopOf="@+id/btnMockLogin"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginBottom="12dp" />
-
-    <!-- 목 데이터 로그인 버튼 (DEBUG only, gone in release) -->
-    <Button
-        android:id="@+id/btnMockLogin"
-        android:layout_width="0dp"
-        android:layout_height="52dp"
-        android:text="[DEV] Bakery 목 데이터로 시작"
-        android:textSize="14sp"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#888888"
-        android:stateListAnimator="@null"
-        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnKakaoLogin"
-        android:layout_marginBottom="60dp" />
+        app:layout_constraintTop_toBottomOf="@+id/layoutDebugForm"
+        android:layout_marginBottom="120dp" />
 
-    <!-- 로딩 인디케이터 -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"

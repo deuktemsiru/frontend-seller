@@ -19,7 +19,7 @@ import com.example.deuktemsiru_seller.databinding.ActivityProductListingBinding
 import com.example.deuktemsiru_seller.databinding.ItemChooseMenuBinding
 import com.example.deuktemsiru_seller.network.MenuItemApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
-import com.example.deuktemsiru_seller.network.SaleItemRequest
+import com.example.deuktemsiru_seller.network.SaleItemCreateRequest
 import com.example.deuktemsiru_seller.ui.registration.MenuRegistrationActivity
 import kotlinx.coroutines.launch
 
@@ -31,6 +31,7 @@ class ProductListingActivity : AppCompatActivity() {
     private var menus: List<MenuItemApiResponse> = emptyList()
     private var selectedMenu: MenuItemApiResponse? = null
     private var selectedDiscountRate = 60
+    private var selectedPriceMode: String = "rate"
     private var selectedQuantity = 5
     private var pickupStartMinutes = 16 * 60 + 30
     private var pickupEndMinutes = 18 * 60
@@ -134,6 +135,33 @@ class ProductListingActivity : AppCompatActivity() {
         view.findViewById<TextView>(R.id.tv_selected_name).text = menu.name
         view.findViewById<TextView>(R.id.tv_selected_price).text = "정상가 %,d원".format(menu.originalPrice)
 
+        val layoutRateMode = view.findViewById<android.widget.LinearLayout>(R.id.layout_rate_mode)
+        val layoutPriceMode = view.findViewById<android.widget.LinearLayout>(R.id.layout_price_mode)
+        val btnModeRate = view.findViewById<TextView>(R.id.btn_mode_rate)
+        val btnModePrice = view.findViewById<TextView>(R.id.btn_mode_price)
+
+        fun updateModeUI() {
+            if (selectedPriceMode == "rate") {
+                layoutRateMode.visibility = android.view.View.VISIBLE
+                layoutPriceMode.visibility = android.view.View.GONE
+                btnModeRate.setBackgroundResource(R.drawable.bg_discount_preset_selected)
+                btnModeRate.setTextColor(getColor(R.color.white))
+                btnModePrice.setBackgroundResource(R.drawable.bg_discount_preset_normal)
+                btnModePrice.setTextColor(getColor(R.color.text_sub))
+            } else {
+                layoutRateMode.visibility = android.view.View.GONE
+                layoutPriceMode.visibility = android.view.View.VISIBLE
+                btnModePrice.setBackgroundResource(R.drawable.bg_discount_preset_selected)
+                btnModePrice.setTextColor(getColor(R.color.white))
+                btnModeRate.setBackgroundResource(R.drawable.bg_discount_preset_normal)
+                btnModeRate.setTextColor(getColor(R.color.text_sub))
+            }
+        }
+
+        updateModeUI()
+        btnModeRate.setOnClickListener { selectedPriceMode = "rate"; updateModeUI() }
+        btnModePrice.setOnClickListener { selectedPriceMode = "price"; updateModeUI() }
+
         val etDiscount = view.findViewById<android.widget.EditText>(R.id.et_discount_rate)
         val tvDiscounted = view.findViewById<TextView>(R.id.tv_discounted_price)
         val tvQty = view.findViewById<TextView>(R.id.tv_quantity)
@@ -216,7 +244,7 @@ class ProductListingActivity : AppCompatActivity() {
             if (selectedMenu == null) { Toast.makeText(this, "메뉴를 선택해주세요", Toast.LENGTH_SHORT).show(); return }
             loadStep(2)
         } else {
-            if (selectedDiscountRate !in 1..99) { Toast.makeText(this, "1~99 사이의 할인율을 입력해주세요", Toast.LENGTH_SHORT).show(); return }
+            if (selectedPriceMode == "rate" && selectedDiscountRate !in 1..99) { Toast.makeText(this, "1~99 사이의 할인율을 입력해주세요", Toast.LENGTH_SHORT).show(); return }
             registerProduct()
         }
     }
@@ -227,12 +255,28 @@ class ProductListingActivity : AppCompatActivity() {
         binding.btnNext.text = "등록 중..."
         lifecycleScope.launch {
             try {
+                val discountPrice = if (selectedPriceMode == "price") {
+                    val stepView = binding.stepContainer.getChildAt(0)
+                    stepView?.findViewById<android.widget.EditText>(R.id.et_direct_price)
+                        ?.text?.toString()?.toIntOrNull() ?: run {
+                        Toast.makeText(this@ProductListingActivity, "할인가를 입력해주세요", Toast.LENGTH_SHORT).show()
+                        binding.btnNext.isEnabled = true
+                        binding.btnNext.text = "상품 등록"
+                        return@launch
+                    }
+                } else {
+                    menu.originalPrice * (100 - selectedDiscountRate) / 100
+                }
                 RetrofitClient.api.createSaleItem(
-                    SaleItemRequest(
+                    SaleItemCreateRequest(
                         menuItemId = menu.id,
-                        discountRate = selectedDiscountRate,
-                        quantity = selectedQuantity,
-                        pickupTimeSlot = selectedPickupTimeSlot,
+                        name = menu.name,
+                        discountPrice = discountPrice,
+                        originalPrice = menu.originalPrice,
+                        quantityTotal = selectedQuantity,
+                        pickupStart = formatTime(pickupStartMinutes),
+                        pickupEnd = formatTime(pickupEndMinutes),
+                        availableDate = java.time.LocalDate.now().toString(),
                     ),
                 )
                 Toast.makeText(this@ProductListingActivity, "상품이 등록됐어요!", Toast.LENGTH_SHORT).show()

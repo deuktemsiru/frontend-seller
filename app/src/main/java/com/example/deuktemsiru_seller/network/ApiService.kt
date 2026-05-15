@@ -19,31 +19,49 @@ interface ApiService {
     @POST("api/v1/auth/logout")
     suspend fun logout(): ApiResponse<Unit>
 
+    // ── 멤버 ──────────────────────────────────────────────────
+    @GET("api/v1/members/me")
+    suspend fun getMyInfo(): ApiResponse<MemberMeResponse>
+
     // ── 판매 상품 ──────────────────────────────────────────────
-    @GET("api/v1/seller/products")
-    suspend fun getSaleItems(): ApiResponse<List<SaleItemApiResponse>>
+    @GET("api/v1/sellers/products")
+    suspend fun getSaleItems(): ApiResponse<ProductListData>
 
-    @POST("api/v1/seller/products")
-    suspend fun createSaleItem(@Body req: SaleItemRequest): ApiResponse<SaleItemApiResponse>
+    @POST("api/v1/sellers/products")
+    suspend fun createSaleItem(@Body req: SaleItemCreateRequest): ApiResponse<SaleItemApiResponse>
 
-    @PATCH("api/v1/seller/products/{id}")
+    @Multipart
+    @POST("api/v1/sellers/products")
+    suspend fun createSaleItemWithImage(
+        @Part("name") name: RequestBody,
+        @Part("discountPrice") discountPrice: RequestBody,
+        @Part("originalPrice") originalPrice: RequestBody,
+        @Part("quantityTotal") quantityTotal: RequestBody,
+        @Part("pickupStart") pickupStart: RequestBody,
+        @Part("pickupEnd") pickupEnd: RequestBody,
+        @Part("availableDate") availableDate: RequestBody,
+        @Part("allergenInfo") allergenInfo: RequestBody?,
+        @Part images: List<MultipartBody.Part>?,
+    ): ApiResponse<SaleItemApiResponse>
+
+    @PATCH("api/v1/sellers/products/{productId}/status")
     suspend fun updateSaleStatus(
-        @Path("id") id: Long,
+        @Path("productId") id: Long,
         @Body req: UpdateSaleStatusRequest,
     ): ApiResponse<SaleItemApiResponse>
 
-    @DELETE("api/v1/seller/products/{id}")
-    suspend fun cancelSaleItem(@Path("id") id: Long): ApiResponse<Unit>
+    @DELETE("api/v1/sellers/products/{productId}")
+    suspend fun cancelSaleItem(@Path("productId") id: Long): ApiResponse<Unit>
 
-    // ── 메뉴 ──────────────────────────────────────────────────
-    @GET("api/v1/seller/menus")
+    // ── 메뉴 마스터 ────────────────────────────────────────────
+    @GET("api/v1/sellers/menu-items")
     suspend fun getMenus(): ApiResponse<List<MenuItemApiResponse>>
 
-    @POST("api/v1/seller/menus")
+    @POST("api/v1/sellers/menu-items")
     suspend fun addMenu(@Body req: MenuItemRequest): ApiResponse<MenuItemApiResponse>
 
     @Multipart
-    @POST("api/v1/seller/menus")
+    @POST("api/v1/sellers/menu-items")
     suspend fun addMenuWithImage(
         @Part("name") name: RequestBody,
         @Part("emoji") emoji: RequestBody,
@@ -55,33 +73,39 @@ interface ApiService {
         @Part image: MultipartBody.Part?,
     ): ApiResponse<MenuItemApiResponse>
 
-    @PATCH("api/v1/seller/menus/{menuItemId}")
+    @PATCH("api/v1/sellers/menu-items/{menuItemId}")
     suspend fun updateMenu(
         @Path("menuItemId") menuItemId: Long,
         @Body req: MenuItemUpdateRequest,
     ): ApiResponse<MenuItemApiResponse>
 
-    @DELETE("api/v1/seller/menus/{menuItemId}")
+    @DELETE("api/v1/sellers/menu-items/{menuItemId}")
     suspend fun deleteMenu(@Path("menuItemId") menuItemId: Long): ApiResponse<Unit>
 
     // ── 주문 ──────────────────────────────────────────────────
-    @GET("api/v1/seller/orders")
-    suspend fun getOrders(): ApiResponse<List<OrderApiResponse>>
+    @GET("api/v1/sellers/orders")
+    suspend fun getOrders(): ApiResponse<OrderListData>
 
-    @PATCH("api/v1/seller/orders/{orderId}")
+    @PATCH("api/v1/sellers/orders/{orderId}/status")
     suspend fun updateOrderStatus(
         @Path("orderId") orderId: Long,
         @Body req: UpdateOrderStatusRequest,
     ): ApiResponse<OrderApiResponse>
 
-    @GET("api/v1/seller/pickup/verify")
+    @PATCH("api/v1/sellers/orders/{orderId}/confirm")
+    suspend fun confirmPickup(
+        @Path("orderId") orderId: Long,
+        @Body req: ConfirmPickupRequest,
+    ): ApiResponse<OrderApiResponse>
+
+    @GET("api/v1/sellers/pickup/verify")
     suspend fun verifyPickupCode(@Query("code") code: String): ApiResponse<OrderApiResponse>
 
     // ── 가게 ──────────────────────────────────────────────────
-    @GET("api/v1/seller/store")
+    @GET("api/v1/sellers/stores/my")
     suspend fun getMyStore(): ApiResponse<StoreApiResponse>
 
-    @PATCH("api/v1/seller/store")
+    @PUT("api/v1/sellers/stores/my")
     suspend fun updateStore(@Body req: UpdateStoreRequest): ApiResponse<StoreApiResponse>
 
     // ── 알림 ──────────────────────────────────────────────────
@@ -92,9 +116,9 @@ interface ApiService {
     suspend fun getNotifications(): ApiResponse<List<NotificationApiResponse>>
 
     // ── 매출 ──────────────────────────────────────────────────
-    @GET("api/v1/seller/sales")
+    @GET("api/v1/sellers/sales/summary")
     suspend fun getSales(
-        @Query("period") period: String = "weekly",
-        @Query("offset") offset: Int = 0,
+        @Query("period") period: String = "DAY",
+        @Query("date") date: String? = null,
     ): ApiResponse<SalesApiResponse>
 }
