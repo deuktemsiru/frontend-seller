@@ -25,7 +25,7 @@ interface ApiService {
 
     // ── 판매 상품 ──────────────────────────────────────────────
     @GET("api/v1/sellers/products")
-    suspend fun getSaleItems(): ApiResponse<ProductListData>
+    suspend fun getSaleItems(): ApiResponse<List<SaleItemApiResponse>>
 
     @POST("api/v1/sellers/products")
     suspend fun createSaleItem(@Body req: SaleItemCreateRequest): ApiResponse<SaleItemApiResponse>
@@ -84,7 +84,7 @@ interface ApiService {
 
     // ── 주문 ──────────────────────────────────────────────────
     @GET("api/v1/sellers/orders")
-    suspend fun getOrders(): ApiResponse<OrderListData>
+    suspend fun getOrders(): ApiResponse<List<OrderApiResponse>>
 
     @PATCH("api/v1/sellers/orders/{orderId}/status")
     suspend fun updateOrderStatus(
@@ -109,11 +109,21 @@ interface ApiService {
     suspend fun updateStore(@Body req: UpdateStoreRequest): ApiResponse<StoreApiResponse>
 
     // ── 알림 ──────────────────────────────────────────────────
-    @POST("api/v1/seller/notifications")
+    @POST("api/v1/sellers/notifications")
     suspend fun sendNotification(@Body req: SendNotificationRequest): ApiResponse<NotificationApiResponse>
 
-    @GET("api/v1/seller/notifications")
+    @GET("api/v1/sellers/notifications")
     suspend fun getNotifications(): ApiResponse<List<NotificationApiResponse>>
+
+    // ── 정산 ──────────────────────────────────────────────────
+    @GET("api/v1/sellers/settlements")
+    suspend fun getSettlements(
+        @Query("year") year: Int,
+        @Query("month") month: Int,
+    ): ApiResponse<SettlementListResponse>
+
+    @POST("api/v1/sellers/settlements/withdrawals")
+    suspend fun requestWithdrawal(@Body req: SettlementWithdrawRequest): ApiResponse<SettlementItem>
 
     // ── 매출 ──────────────────────────────────────────────────
     @GET("api/v1/sellers/sales/summary")

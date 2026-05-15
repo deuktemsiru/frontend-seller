@@ -92,7 +92,7 @@ class HomeFragment : Fragment() {
             }
             // 활성 판매 상품 목록 로드
             runCatching {
-                val items = RetrofitClient.api.getSaleItems().data?.products ?: emptyList()
+                val items = RetrofitClient.api.getSaleItems().data ?: emptyList()
                 renderActiveSaleItems(items)
             }.onFailure {
                 renderActiveSaleItems(emptyList())
@@ -156,7 +156,7 @@ class HomeFragment : Fragment() {
         }
         lifecycleScope.launch {
             runCatching {
-                val orders = RetrofitClient.api.getOrders().data?.orders ?: emptyList()
+                val orders = RetrofitClient.api.getOrders().data ?: emptyList()
                 val newCount = orders.count { it.status.equals("PENDING", ignoreCase = true) }
                 val preparingCount = orders.count { it.status.equals("CONFIRMED", ignoreCase = true) }
                 val pickupCount = orders.count { it.status.equals("PICKED_UP", ignoreCase = true) }

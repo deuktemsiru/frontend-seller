@@ -120,7 +120,7 @@ class PickupVerifyActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val completedOrder = RetrofitClient.api
-                    .updateOrderStatus(orderId, UpdateOrderStatusRequest("COMPLETED"))
+                    .updateOrderStatus(orderId, UpdateOrderStatusRequest("PICKED_UP"))
                     .data
                 binding.cardResult.visibility = View.GONE
                 binding.etPickupCode.setText("")

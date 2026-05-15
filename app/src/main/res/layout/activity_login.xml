@@ -53,7 +53,7 @@
             android:id="@+id/etLoginId"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:hint="아이디"
+            android:hint="디버그 ID 또는 판매자 이메일"
             android:inputType="text"
             android:textSize="15sp"
             android:textColor="#1A1A1A"

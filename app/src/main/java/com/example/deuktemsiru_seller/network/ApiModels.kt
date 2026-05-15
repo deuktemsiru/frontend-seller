@@ -17,6 +17,7 @@ data class KakaoLoginRequest(
 
 data class DebugLoginRequest(
     val role: String = "SELLER",
+    val email: String? = null,
 )
 
 data class TokenRefreshRequest(val refreshToken: String)
@@ -67,10 +68,6 @@ data class SaleItemApiResponse(
 }
 
 // 상품 목록 래퍼 (GET /sellers/products → data.products)
-data class ProductListData(
-    val products: List<SaleItemApiResponse> = emptyList(),
-)
-
 data class SaleItemCreateRequest(
     val menuItemId: Long? = null,
     val name: String,
@@ -88,9 +85,9 @@ data class UpdateSaleStatusRequest(val status: String)
 
 // ── 메뉴 ──────────────────────────────────────────────────────
 data class MenuItemApiResponse(
-    val id: Long,
+    @SerializedName("menuItemId") val id: Long,
     val name: String,
-    val emoji: String,
+    val emoji: String = "🍽️",
     val imageUrl: String? = null,
     val originalPrice: Int,
 )
@@ -133,10 +130,6 @@ data class OrderApiResponse(
 )
 
 // 주문 목록 래퍼 (GET /sellers/orders → data.orders)
-data class OrderListData(
-    val orders: List<OrderApiResponse> = emptyList(),
-)
-
 data class UpdateOrderStatusRequest(val status: String)
 
 data class ConfirmPickupRequest(val pickupCode: String)
@@ -146,8 +139,8 @@ data class StoreApiResponse(
     // 명세서 v2 필드
     val storeId: Long? = null,
     val name: String,
-    val isActive: Int? = null,
-    val isVerified: Int? = null,
+    val isActive: Boolean? = null,
+    val isVerified: Boolean? = null,
     val todayProductCount: Int? = null,
     val pendingOrderCount: Int? = null,
     val ratingAvg: Float? = null,
@@ -171,7 +164,11 @@ data class UpdateStoreRequest(
 )
 
 // ── 알림 ──────────────────────────────────────────────────────
-data class SendNotificationRequest(val message: String)
+data class SendNotificationRequest(
+    val message: String,
+    val targetType: String = "REGULAR",
+    val radiusKm: Int? = null,
+)
 
 data class NotificationApiResponse(
     val id: Long,
@@ -197,4 +194,24 @@ data class SalesApiResponse(
     @SerializedName("chartData") val salesData: List<DailySales> = emptyList(),
     @SerializedName("topProducts") val topMenus: List<TopMenu> = emptyList(),
     val carbonSavedKg: Float? = null,
+)
+
+data class SettlementItem(
+    val settlementId: Long,
+    val periodStart: String,
+    val periodEnd: String,
+    val totalSales: Int,
+    val platformFee: Int,
+    val settlementAmount: Int,
+    val status: String,
+    val settledAt: String?,
+)
+
+data class SettlementListResponse(
+    val settlements: List<SettlementItem> = emptyList(),
+)
+
+data class SettlementWithdrawRequest(
+    val year: Int,
+    val month: Int,
 )

@@ -17,6 +17,7 @@ import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class LoginActivity : AppCompatActivity() {
 
@@ -47,10 +48,10 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(this, "아이디와 패스워드를 입력해주세요", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            if (id == "bakery" && pw == "bakery") {
+            if (id == "mock" && pw == "mock") {
                 mockLogin()
             } else {
-                debugLogin()
+                debugLogin(id)
             }
         }
 
@@ -68,11 +69,12 @@ class LoginActivity : AppCompatActivity() {
         navigateToMain()
     }
 
-    private fun debugLogin() {
+    private fun debugLogin(loginId: String) {
+        session.isMockSession = false
         setLoading(true)
         lifecycleScope.launch {
             runCatching {
-                RetrofitClient.api.debugLogin(DebugLoginRequest())
+                RetrofitClient.api.debugLogin(DebugLoginRequest(email = loginId.toDebugSellerEmail()))
             }.onSuccess { response ->
                 val loginData = response.data
                 if (loginData != null) {
@@ -90,6 +92,26 @@ class LoginActivity : AppCompatActivity() {
             setLoading(false)
         }
     }
+
+    private fun String.toDebugSellerEmail(): String {
+        val normalized = trim().lowercase(Locale.ROOT)
+        return debugSellerEmails[normalized] ?: trim()
+    }
+
+    private val debugSellerEmails = mapOf(
+        "bakery" to "bakery@test.com",
+        "oido" to "bakery@test.com",
+        "오이도" to "bakery@test.com",
+        "cafe" to "cafe@siheung.test",
+        "baegot" to "cafe@siheung.test",
+        "배곧" to "cafe@siheung.test",
+        "bunsik" to "bunsik@siheung.test",
+        "정왕" to "bunsik@siheung.test",
+        "dosirak" to "dosirak@siheung.test",
+        "은행" to "dosirak@siheung.test",
+        "mart" to "mart@siheung.test",
+        "목감" to "mart@siheung.test",
+    )
 
     private fun startKakaoLogin() {
         setLoading(true)

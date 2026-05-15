@@ -80,7 +80,7 @@ class OrderFragment : Fragment() {
         if (!session.isLoggedIn()) return
         lifecycleScope.launch {
             try {
-                allOrders = RetrofitClient.api.getOrders().data?.orders ?: emptyList()
+                allOrders = RetrofitClient.api.getOrders().data ?: emptyList()
                 updateTabCounts()
                 selectTab(selectTabAfterLoad)
             } catch (e: Exception) {

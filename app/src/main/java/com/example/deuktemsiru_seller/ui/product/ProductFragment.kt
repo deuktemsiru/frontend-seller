@@ -48,7 +48,7 @@ class ProductFragment : Fragment() {
         if (!session.isLoggedIn()) return
         lifecycleScope.launch {
             runCatching {
-                val items = RetrofitClient.api.getSaleItems().data?.products ?: emptyList()
+                val items = RetrofitClient.api.getSaleItems().data ?: emptyList()
                 renderItems(items)
             }.onFailure {
                 Toast.makeText(requireContext(), "상품 목록을 불러올 수 없어요", Toast.LENGTH_SHORT).show()

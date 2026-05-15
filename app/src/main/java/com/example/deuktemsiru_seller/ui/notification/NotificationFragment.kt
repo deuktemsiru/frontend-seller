@@ -176,7 +176,13 @@ class NotificationFragment : Fragment() {
     private fun sendNotification(message: String) {
         lifecycleScope.launch {
             runCatching {
-                val result = RetrofitClient.api.sendNotification(SendNotificationRequest(message)).data
+                val result = RetrofitClient.api.sendNotification(
+                    SendNotificationRequest(
+                        message = message,
+                        targetType = if (selectedTarget == "nearby") "NEARBY" else "REGULAR",
+                        radiusKm = if (selectedTarget == "nearby") selectedRadiusKm else null,
+                    )
+                ).data
                 Toast.makeText(requireContext(), "${result?.recipientCount ?: 0}명에게 발송 완료!", Toast.LENGTH_LONG).show()
                 binding.etMessage.text?.clear()
                 loadHistory()

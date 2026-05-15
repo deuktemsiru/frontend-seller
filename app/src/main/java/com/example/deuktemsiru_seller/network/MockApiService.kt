@@ -109,7 +109,7 @@ object MockApiService : ApiService {
     ))
 
     // ── 판매 상품 ─────────────────────────────────────────────────
-    override suspend fun getSaleItems() = ApiResponse(200, "ok", ProductListData(saleItems.toList()))
+    override suspend fun getSaleItems() = ApiResponse(200, "ok", saleItems.toList())
 
     override suspend fun createSaleItem(req: SaleItemCreateRequest): ApiResponse<SaleItemApiResponse> {
         val newId = (saleItems.maxOfOrNull { it.id } ?: 0L) + 1L
@@ -186,7 +186,7 @@ object MockApiService : ApiService {
     }
 
     // ── 주문 ─────────────────────────────────────────────────────
-    override suspend fun getOrders() = ApiResponse(200, "ok", OrderListData(orders.toList()))
+    override suspend fun getOrders() = ApiResponse(200, "ok", orders.toList())
 
     override suspend fun updateOrderStatus(orderId: Long, req: UpdateOrderStatusRequest): ApiResponse<OrderApiResponse> {
         val idx = orders.indexOfFirst { it.id == orderId }
@@ -234,6 +234,35 @@ object MockApiService : ApiService {
     }
 
     override suspend fun getNotifications() = ApiResponse(200, "ok", notifications.toList())
+
+    override suspend fun getSettlements(year: Int, month: Int): ApiResponse<SettlementListResponse> {
+        val total = orders.filter { it.status == "PICKED_UP" || it.status == "COMPLETED" }.sumOf { it.totalAmount }
+        val fee = (total * 0.03).toInt()
+        return ApiResponse(
+            200,
+            "ok",
+            SettlementListResponse(
+                listOf(
+                    SettlementItem(
+                        settlementId = 0,
+                        periodStart = "%04d-%02d-01".format(year, month),
+                        periodEnd = "%04d-%02d-28".format(year, month),
+                        totalSales = total,
+                        platformFee = fee,
+                        settlementAmount = total - fee,
+                        status = "PENDING",
+                        settledAt = null,
+                    )
+                )
+            )
+        )
+    }
+
+    override suspend fun requestWithdrawal(req: SettlementWithdrawRequest): ApiResponse<SettlementItem> {
+        val item = getSettlements(req.year, req.month).data?.settlements?.firstOrNull()
+            ?: SettlementItem(0, "${req.year}-${req.month}-01", "${req.year}-${req.month}-28", 0, 0, 0, "PENDING", null)
+        return ApiResponse(200, "ok", item)
+    }
 
     // ── 매출 ─────────────────────────────────────────────────────
     override suspend fun getSales(period: String, date: String?): ApiResponse<SalesApiResponse> {

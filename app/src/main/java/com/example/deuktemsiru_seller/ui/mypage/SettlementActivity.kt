@@ -10,9 +10,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.databinding.ActivitySettlementBinding
 import com.example.deuktemsiru_seller.network.RetrofitClient
+import com.example.deuktemsiru_seller.network.SettlementWithdrawRequest
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 class SettlementActivity : AppCompatActivity() {
 
@@ -60,14 +60,14 @@ class SettlementActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             runCatching {
-                val sales = RetrofitClient.api.getSales(
-                    period = "MONTH",
-                    date = target.format(DateTimeFormatter.ISO_LOCAL_DATE),
-                ).data ?: return@runCatching
+                val settlementItem = RetrofitClient.api.getSettlements(
+                    year = target.year,
+                    month = target.monthValue,
+                ).data?.settlements?.firstOrNull()
 
-                val total = sales.salesData.sumOf { it.amount }
-                val commission = (total * 0.025).toInt()
-                val settlement = total - commission
+                val total = settlementItem?.totalSales ?: 0
+                val commission = settlementItem?.platformFee ?: 0
+                val settlement = settlementItem?.settlementAmount ?: 0
 
                 binding.tvTotalSales.text = "%,d원".format(total)
                 binding.tvCommission.text = "%,d원".format(commission)
@@ -84,7 +84,19 @@ class SettlementActivity : AppCompatActivity() {
             .setTitle("출금 신청")
             .setMessage("정산 예정금액 ${amount}을 출금 신청하시겠어요?\n\n영업일 기준 3–5일 이내 등록된 계좌로 입금됩니다.")
             .setPositiveButton("신청하기") { _, _ ->
-                Toast.makeText(this, "출금 신청이 완료됐어요.", Toast.LENGTH_SHORT).show()
+                val target = LocalDate.now().minusMonths(currentOffset.toLong())
+                lifecycleScope.launch {
+                    runCatching {
+                        RetrofitClient.api.requestWithdrawal(
+                            SettlementWithdrawRequest(target.year, target.monthValue)
+                        )
+                    }.onSuccess {
+                        Toast.makeText(this@SettlementActivity, "출금 신청이 완료됐어요.", Toast.LENGTH_SHORT).show()
+                        loadSettlement()
+                    }.onFailure {
+                        Toast.makeText(this@SettlementActivity, "출금 신청에 실패했어요.", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
             .setNegativeButton("취소", null)
             .show()
