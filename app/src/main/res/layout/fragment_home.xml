@@ -87,12 +87,54 @@
                 android:focusable="true" />
 
             <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
                 android:layout_marginStart="10dp"
                 android:contentDescription="시흥시 BI"
                 android:scaleType="fitCenter"
                 android:src="@drawable/img_siheung_bi" />
+
+        </LinearLayout>
+
+        <!-- Dual Action Buttons (moved to top) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="4dp">
+
+            <Button
+                android:id="@+id/btn_register_menu"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:text="+ 마감 메뉴 등록"
+                android:textSize="14sp"
+                android:textColor="@color/white"
+                android:fontFamily="sans-serif-medium"
+                android:background="@drawable/bg_button_dark"
+                android:layout_marginEnd="6dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:stateListAnimator="@null" />
+
+            <Button
+                android:id="@+id/btn_send_notification"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:text="단골 알림 보내기"
+                android:textSize="14sp"
+                android:textColor="@color/text"
+                android:fontFamily="sans-serif-medium"
+                android:background="@drawable/bg_button_outline"
+                android:layout_marginStart="6dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:stateListAnimator="@null" />
 
         </LinearLayout>
 
@@ -328,11 +370,14 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
+                    android:id="@+id/section_sales_count"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <TextView
                         android:id="@+id/tv_today_orders"
@@ -359,11 +404,14 @@
                     android:background="#33FFFFFF" />
 
                 <LinearLayout
+                    android:id="@+id/section_waste"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -389,11 +437,14 @@
                     android:background="#33FFFFFF" />
 
                 <LinearLayout
+                    android:id="@+id/section_loyal"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -502,48 +553,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
-
-        </LinearLayout>
-
-        <!-- Dual Action Buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="8dp">
-
-            <Button
-                android:id="@+id/btn_register_menu"
-                android:layout_width="0dp"
-                android:layout_height="52dp"
-                android:layout_weight="1"
-                android:text="+ 마감 메뉴 등록"
-                android:textSize="14sp"
-                android:textColor="@color/white"
-                android:fontFamily="sans-serif-medium"
-                android:background="@drawable/bg_button_dark"
-                android:layout_marginEnd="6dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:stateListAnimator="@null" />
-
-            <Button
-                android:id="@+id/btn_send_notification"
-                android:layout_width="0dp"
-                android:layout_height="52dp"
-                android:layout_weight="1"
-                android:text="단골 알림 보내기"
-                android:textSize="14sp"
-                android:textColor="@color/text"
-                android:fontFamily="sans-serif-medium"
-                android:background="@drawable/bg_button_outline"
-                android:layout_marginStart="6dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:stateListAnimator="@null" />
 
         </LinearLayout>
 

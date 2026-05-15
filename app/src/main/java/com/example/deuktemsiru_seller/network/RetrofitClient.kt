@@ -36,7 +36,7 @@ object RetrofitClient {
             .build()
     }
 
-    val api: ApiService by lazy {
+    private val realApi: ApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
@@ -44,6 +44,9 @@ object RetrofitClient {
             .build()
             .create(ApiService::class.java)
     }
+
+    val api: ApiService
+        get() = if (isMockSession) MockApiService else realApi
 
     private val refreshApi: ApiService by lazy {
         Retrofit.Builder()

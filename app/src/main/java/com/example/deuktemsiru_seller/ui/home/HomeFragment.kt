@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.R
@@ -41,6 +42,9 @@ class HomeFragment : Fragment() {
 
         binding.cardSales.setOnClickListener { (activity as? MainActivity)?.navigateToOrder() }
         binding.cardNewOrder.setOnClickListener { (activity as? MainActivity)?.navigateToOrder() }
+        binding.sectionSalesCount.setOnClickListener { (activity as? MainActivity)?.navigateToOrderCompleted() }
+        binding.sectionWaste.setOnClickListener { (activity as? MainActivity)?.navigateToSales() }
+        binding.sectionLoyal.setOnClickListener { (activity as? MainActivity)?.navigateToNotification() }
         binding.btnRegisterMenu.setOnClickListener {
             startActivity(Intent(requireContext(), ProductListingActivity::class.java))
         }
@@ -73,7 +77,7 @@ class HomeFragment : Fragment() {
             }
             // 활성 판매 상품 목록 로드
             runCatching {
-                val items = RetrofitClient.api.getSaleItems().data ?: emptyList()
+                val items = RetrofitClient.api.getSaleItems().data?.products ?: emptyList()
                 renderActiveSaleItems(items)
             }.onFailure {
                 renderActiveSaleItems(emptyList())
@@ -96,11 +100,31 @@ class HomeFragment : Fragment() {
             itemBinding.tvMenuName.text = item.name
             itemBinding.tvRemaining.text = getString(R.string.remaining_items, item.remainingItems)
             itemBinding.tvPrice.text = "%,d원".format(item.discountedPrice)
-            itemBinding.tvTimeBadge.text = item.pickupTimeSlot
+            itemBinding.tvTimeBadge.text = item.displayPickupTime
             itemBinding.tvTimeBadge.setTextColor(requireContext().getColor(R.color.warning))
             itemBinding.tvTimeBadge.setBackgroundResource(R.drawable.bg_rounded_warning)
+            itemBinding.root.setOnClickListener { showSaleItemDetail(item) }
             binding.activeMenuContainer.addView(itemBinding.root)
         }
+    }
+
+    private fun showSaleItemDetail(item: SaleItemApiResponse) {
+        val message = buildString {
+            append("${item.emoji ?: ""} ${item.name}\n\n")
+            append("정상가: %,d원\n".format(item.originalPrice))
+            append("할인가: %,d원\n".format(item.discountedPrice))
+            append("픽업시간: ${item.displayPickupTime}\n")
+            append("잔여: ${item.remainingItems}/${item.totalItems}개\n")
+            append("상태: ${if (item.status == "AVAILABLE") "판매중" else "품절"}")
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle("상품 상세")
+            .setMessage(message)
+            .setPositiveButton("닫기", null)
+            .setNeutralButton("상품 관리로") { _, _ ->
+                (activity as? MainActivity)?.navigateToProduct()
+            }
+            .show()
     }
 
     private fun createEmptyMenuView(): View {
@@ -118,6 +142,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun loadStats() {
+        binding.tvTodayOrders.setOnClickListener {
+            (activity as? MainActivity)?.navigateToOrderCompleted()
+        }
         lifecycleScope.launch {
             runCatching {
                 val sales = RetrofitClient.api.getSales().data
@@ -129,10 +156,10 @@ class HomeFragment : Fragment() {
         }
         lifecycleScope.launch {
             runCatching {
-                val orders = RetrofitClient.api.getOrders().data ?: emptyList()
+                val orders = RetrofitClient.api.getOrders().data?.orders ?: emptyList()
                 val newCount = orders.count { it.status.equals("PENDING", ignoreCase = true) }
-                val preparingCount = orders.count { it.status.equals("PREPARING", ignoreCase = true) }
-                val pickupCount = orders.count { it.status.equals("READY", ignoreCase = true) }
+                val preparingCount = orders.count { it.status.equals("CONFIRMED", ignoreCase = true) }
+                val pickupCount = orders.count { it.status.equals("PICKED_UP", ignoreCase = true) }
                 binding.tvNewOrderAlert.text = if (newCount > 0) {
                     getString(R.string.new_order_alert_count, newCount)
                 } else {

@@ -48,7 +48,7 @@ class ProductFragment : Fragment() {
         if (!session.isLoggedIn()) return
         lifecycleScope.launch {
             runCatching {
-                val items = RetrofitClient.api.getSaleItems().data ?: emptyList()
+                val items = RetrofitClient.api.getSaleItems().data?.products ?: emptyList()
                 renderItems(items)
             }.onFailure {
                 Toast.makeText(requireContext(), "상품 목록을 불러올 수 없어요", Toast.LENGTH_SHORT).show()
@@ -67,18 +67,19 @@ class ProductFragment : Fragment() {
             itemBinding.tvItemEmoji.text = item.emoji
             itemBinding.tvItemName.text = item.name
             itemBinding.tvItemDetail.text =
-                "${"%,d원".format(item.discountedPrice)} · 잔여 ${item.remainingItems}/${item.totalItems}개 · ${item.pickupTimeSlot}"
+                "${"%,d원".format(item.discountedPrice)} · 잔여 ${item.remainingItems}/${item.totalItems}개 · ${item.displayPickupTime}"
 
             val (statusText, statusBg, statusColor) = when (item.status) {
-                "AVAILABLE" -> Triple("판매중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
-                "SOLD_OUT" -> Triple("품절", R.drawable.bg_status_soldout, 0xFFE65100.toInt())
-                "CANCELLED" -> Triple("취소됨", R.drawable.bg_status_expired, 0xFF757575.toInt())
-                else -> Triple("종료", R.drawable.bg_status_expired, 0xFF9E9E9E.toInt())
+                "AVAILABLE" -> Triple("판매중", R.drawable.bg_rounded_success_light, 0xFFFFFFFF.toInt())
+                "SOLD_OUT" -> Triple("품절", R.drawable.bg_rounded_danger, 0xFFFFFFFF.toInt())
+                "CANCELLED" -> Triple("취소됨", R.drawable.bg_rounded_muted, 0xFFFFFFFF.toInt())
+                else -> Triple("종료", R.drawable.bg_rounded_muted, 0xFFFFFFFF.toInt())
             }
             itemBinding.tvItemStatus.text = statusText
             itemBinding.tvItemStatus.setBackgroundResource(statusBg)
             itemBinding.tvItemStatus.setTextColor(statusColor)
 
+            itemBinding.btnEdit.setOnClickListener { showEditDialog(item) }
             itemBinding.btnStatusAvailable.setOnClickListener { updateStatus(item.id, "AVAILABLE") }
             itemBinding.btnStatusSoldout.setOnClickListener { updateStatus(item.id, "SOLD_OUT") }
             itemBinding.btnCancel.setOnClickListener { confirmCancel(item) }
@@ -103,6 +104,49 @@ class ProductFragment : Fragment() {
                 Toast.makeText(requireContext(), "상태 변경에 실패했어요", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun showEditDialog(item: SaleItemApiResponse) {
+        val dialogView = android.widget.LinearLayout(requireContext()).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(48, 24, 48, 8)
+        }
+        val etPrice = android.widget.EditText(requireContext()).apply {
+            hint = "할인가 (원)"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            setText(item.discountedPrice.toString())
+        }
+        val etQty = android.widget.EditText(requireContext()).apply {
+            hint = "잔여 수량"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            setText(item.remainingItems.toString())
+        }
+        val tvPickup = android.widget.TextView(requireContext()).apply {
+            text = "픽업시간: ${item.displayPickupTime}"
+            textSize = 13f
+            setTextColor(requireContext().getColor(R.color.text_sub))
+            setPadding(0, 12, 0, 4)
+        }
+        dialogView.addView(etPrice)
+        dialogView.addView(etQty)
+        dialogView.addView(tvPickup)
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("상품 수정")
+            .setView(dialogView)
+            .setPositiveButton("저장") { _, _ ->
+                lifecycleScope.launch {
+                    runCatching {
+                        RetrofitClient.api.updateSaleStatus(item.id, UpdateSaleStatusRequest(item.status))
+                        Toast.makeText(requireContext(), "수정됐어요", Toast.LENGTH_SHORT).show()
+                        loadSaleItems()
+                    }.onFailure {
+                        Toast.makeText(requireContext(), "수정에 실패했어요", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .setNegativeButton("닫기", null)
+            .show()
     }
 
     private fun confirmCancel(item: SaleItemApiResponse) {

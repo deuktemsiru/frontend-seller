@@ -55,6 +55,20 @@
             android:textSize="12sp"
             android:fontFamily="sans-serif-medium" />
 
+        <TextView
+            android:id="@+id/btn_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="수정"
+            android:textSize="12sp"
+            android:textColor="@color/primary"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp"
+            android:paddingVertical="4dp"
+            android:fontFamily="sans-serif-medium"
+            android:clickable="true"
+            android:focusable="true" />
+
     </LinearLayout>
 
     <LinearLayout

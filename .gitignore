@@ -42,3 +42,6 @@ Thumbs.db
 # NDK
 .externalNativeBuild/
 .cxx/
+
+# AI Tools
+.claude/

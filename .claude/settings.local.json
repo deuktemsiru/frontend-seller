@@ -1,9 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./gradlew assembleDebug --quiet)"
+      "Bash(./gradlew assembleDebug --quiet)",
+      "Bash(./gradlew compileDebugKotlin)"
     ]
   },
+
+  "preferredNotifChannel": "terminal_bell",
+
   "hooks": {
     "Stop": [
       {
@@ -11,11 +15,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -Command \"[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms'); [System.Windows.Forms.MessageBox]::Show('Claude Code 작업 완료', '알림')\""
+            "command": "powershell.exe -WindowStyle Hidden -c \"(New-Object Media.SoundPlayer 'C:\\Windows\\Media\\notify.wav').PlaySync()\""
           }
         ]
       }
     ]
   }
 }
-

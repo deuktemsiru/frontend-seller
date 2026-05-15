@@ -27,9 +27,8 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
         private const val STATUS_NEW = "PENDING"
-        private const val STATUS_PREPARING = "PREPARING"
-        private const val STATUS_READY = "READY"
-        private const val STATUS_COMPLETED = "COMPLETED"
+        private const val STATUS_CONFIRMED = "CONFIRMED"
+        private const val STATUS_PICKED_UP = "PICKED_UP"
         private const val STATUS_CANCELLED = "CANCELLED"
 
         fun newInstance(order: OrderApiResponse) = OrderDetailBottomSheet().apply {
@@ -55,25 +54,24 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun renderOrder() {
-        binding.tvOrderNumber.text = order.orderNumber
+        binding.tvOrderNumber.text = order.orderNumber ?: "#${order.id}"
         binding.tvCreatedAt.text = order.createdAt.take(16).replace("T", " ")
 
         val name = order.customerName
         if (name.isNullOrBlank()) {
-            binding.rowCustomerName.visibility = android.view.View.GONE
+            binding.rowCustomerName.visibility = View.GONE
         } else {
             binding.tvCustomerName.text = name
         }
 
-        binding.tvPickupTime.text = order.pickupTime
+        binding.tvPickupTime.text = order.pickupTime ?: ""
         binding.tvPickupCode.text = order.pickupCode.chunked(2).joinToString("-")
         binding.tvTotalAmount.text = "%,d원".format(order.totalAmount)
 
         val (statusText, statusBg, statusColor) = when (order.status.uppercase()) {
             STATUS_NEW -> Triple("신규 주문", R.drawable.bg_status_soldout, 0xFFE65100.toInt())
-            STATUS_PREPARING -> Triple("준비 중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
-            STATUS_READY -> Triple("픽업 대기", R.drawable.bg_rounded_primary, 0xFFFFFFFF.toInt())
-            STATUS_COMPLETED -> Triple("완료", R.drawable.bg_status_expired, 0xFF757575.toInt())
+            STATUS_CONFIRMED -> Triple("준비 중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
+            STATUS_PICKED_UP -> Triple("픽업 완료", R.drawable.bg_status_expired, 0xFF757575.toInt())
             STATUS_CANCELLED -> Triple("취소됨", R.drawable.bg_status_expired, 0xFF757575.toInt())
             else -> Triple(order.status, R.drawable.bg_status_expired, 0xFF757575.toInt())
         }
@@ -84,7 +82,8 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
         binding.itemsContainer.removeAllViews()
         order.items.forEach { item ->
             val row = TextView(requireContext()).apply {
-                text = "${item.emoji} ${item.name}  ×${item.quantity}  %,d원".format(item.price * item.quantity)
+                val emojiPart = item.emoji?.let { "$it " } ?: ""
+                text = "$emojiPart${item.name}  ×${item.quantity}  %,d원".format(item.price * item.quantity)
                 textSize = 14f
                 setTextColor(requireContext().getColor(R.color.text))
                 setPadding(0, 4, 0, 4)
@@ -93,9 +92,8 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
         }
 
         val (actionText, nextStatus) = when (order.status.uppercase()) {
-            STATUS_NEW -> "수락하기" to STATUS_PREPARING
-            STATUS_PREPARING -> "준비 완료" to STATUS_READY
-            STATUS_READY -> "픽업 완료 처리" to STATUS_COMPLETED
+            STATUS_NEW -> "수락하기" to STATUS_CONFIRMED
+            STATUS_CONFIRMED -> "픽업 완료 처리" to STATUS_PICKED_UP
             else -> null to null
         }
 
@@ -103,6 +101,8 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
             binding.btnAction.text = actionText
             binding.btnAction.visibility = View.VISIBLE
             binding.btnAction.setOnClickListener { performAction(nextStatus) }
+        } else {
+            binding.btnAction.visibility = View.GONE
         }
     }
 
@@ -114,9 +114,8 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
                     order.id, UpdateOrderStatusRequest(nextStatus)
                 )
                 val (title, body) = when (nextStatus) {
-                    STATUS_PREPARING -> "🛍️ 주문 수락됨" to order.orderNumber
-                    STATUS_READY -> "✅ 픽업 준비 완료" to "${order.orderNumber} · 코드 ${order.pickupCode}"
-                    STATUS_COMPLETED -> "🎉 픽업 완료" to "+%,d원".format(order.totalAmount)
+                    STATUS_CONFIRMED -> "🛍️ 주문 수락됨" to (order.orderNumber ?: "")
+                    STATUS_PICKED_UP -> "🎉 픽업 완료" to "+%,d원".format(order.totalAmount)
                     else -> "" to ""
                 }
                 if (title.isNotEmpty()) LocalNotificationHelper.show(requireContext(), title, body)
@@ -133,9 +132,8 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun statusToTabIndex(status: String) = when (status) {
-        STATUS_PREPARING -> 1
-        STATUS_READY -> 2
-        STATUS_COMPLETED -> 3
+        STATUS_CONFIRMED -> 1
+        STATUS_PICKED_UP -> 3
         else -> 0
     }
 

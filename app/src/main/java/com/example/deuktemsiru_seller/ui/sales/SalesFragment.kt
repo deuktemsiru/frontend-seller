@@ -22,8 +22,9 @@ class SalesFragment : Fragment() {
     private var _binding: FragmentSalesBinding? = null
     private val binding get() = _binding!!
 
-    private var currentPeriod = "daily"
+    private var currentPeriod = "DAY"
     private var currentOffset = 0
+    private var showPieChart = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,9 +40,10 @@ class SalesFragment : Fragment() {
 
         val session = SessionManager(requireContext())
 
-        binding.tabDaily.setOnClickListener { switchPeriod("daily") }
-        binding.tabWeekly.setOnClickListener { switchPeriod("weekly") }
-        binding.tabMonthly.setOnClickListener { switchPeriod("monthly") }
+        binding.tabDaily.setOnClickListener { switchPeriod("DAY") }
+        binding.tabWeekly.setOnClickListener { switchPeriod("WEEK") }
+        binding.tabMonthly.setOnClickListener { switchPeriod("MONTH") }
+        binding.btnToggleChart.setOnClickListener { toggleChartMode() }
 
         binding.btnPrev.setOnClickListener {
             currentOffset++
@@ -67,9 +69,9 @@ class SalesFragment : Fragment() {
 
     private fun updateTabs() {
         val tabs = listOf(
-            binding.tabDaily to "daily",
-            binding.tabWeekly to "weekly",
-            binding.tabMonthly to "monthly",
+            binding.tabDaily to "DAY",
+            binding.tabWeekly to "WEEK",
+            binding.tabMonthly to "MONTH",
         )
         tabs.forEach { (tab, period) ->
             if (period == currentPeriod) {
@@ -81,10 +83,20 @@ class SalesFragment : Fragment() {
             }
         }
         binding.tvSalesTitle.text = when (currentPeriod) {
-            "daily" -> "일간 매출"
-            "monthly" -> "월간 매출"
+            "DAY" -> "일간 매출"
+            "MONTH" -> "월간 매출"
             else -> "주간 매출"
         }
+    }
+
+    private fun computeDateStr(): String {
+        val today = LocalDate.now()
+        val target = when (currentPeriod) {
+            "DAY" -> today.minusDays(currentOffset.toLong())
+            "MONTH" -> today.minusMonths(currentOffset.toLong())
+            else -> today.minusWeeks(currentOffset.toLong())
+        }
+        return target.format(DateTimeFormatter.ISO_LOCAL_DATE)
     }
 
     private fun loadSales() {
@@ -95,7 +107,7 @@ class SalesFragment : Fragment() {
             runCatching {
                 val sales = RetrofitClient.api.getSales(
                     period = currentPeriod,
-                    offset = currentOffset,
+                    date = computeDateStr(),
                 ).data ?: return@runCatching
 
                 val total = sales.salesData.sumOf { it.amount }
@@ -112,9 +124,11 @@ class SalesFragment : Fragment() {
 
                 val totalOrders = sales.salesData.sumOf { it.amount } / 6000
                 binding.tvWasteCount.text = "절감 폐기 ${totalOrders}개"
-                binding.tvCo2Amount.text = "탄소 ${(totalOrders * 0.2f).toInt()}kg 절감"
+                val carbonSaved = sales.carbonSavedKg ?: (totalOrders * 0.2f).toInt().toFloat()
+                binding.tvCo2Amount.text = "탄소 ${carbonSaved.toInt()}kg 절감"
 
                 renderTopMenus(sales.topMenus)
+                binding.pieChart.setSlices(sales.topMenus.map { PieChartView.Slice(it.name, it.count) })
                 updateInsight(sales.salesData.map { it.amount }, sales.topMenus)
             }.onFailure {
                 Toast.makeText(requireContext(), "데이터를 불러올 수 없어요.", Toast.LENGTH_SHORT).show()
@@ -126,22 +140,29 @@ class SalesFragment : Fragment() {
     private fun updatePeriodLabel() {
         val today = LocalDate.now()
         binding.tvPeriodRange.text = when (currentPeriod) {
-            "daily" -> {
+            "DAY" -> {
                 val day = today.minusDays(currentOffset.toLong())
                 day.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
             }
-            "monthly" -> {
+            "MONTH" -> {
                 val month = today.minusMonths(currentOffset.toLong())
                 "${month.year}년 ${month.monthValue}월"
             }
             else -> {
-                val endDay = today.minusDays((currentOffset * 7).toLong())
+                val endDay = today.minusWeeks(currentOffset.toLong())
                 val startDay = endDay.minusDays(6)
                 val fmt = DateTimeFormatter.ofPattern("MM.dd")
                 "${startDay.format(fmt)} – ${endDay.format(fmt)}"
             }
         }
         binding.btnNext.alpha = if (currentOffset > 0) 1f else 0.3f
+    }
+
+    private fun toggleChartMode() {
+        showPieChart = !showPieChart
+        binding.containerTopMenus.visibility = if (showPieChart) View.GONE else View.VISIBLE
+        binding.pieChart.visibility = if (showPieChart) View.VISIBLE else View.GONE
+        binding.btnToggleChart.text = if (showPieChart) "TOP 3 목록" else "파이차트"
     }
 
     private fun renderTopMenus(menus: List<TopMenu>) {
@@ -173,7 +194,7 @@ class SalesFragment : Fragment() {
                 setBackgroundResource(rankBgDrawables[i])
                 setTextColor(requireContext().getColor(rankTextColors[i]))
             }
-            itemView.findViewById<TextView>(R.id.tvMenuEmoji).text = menu.emoji
+            itemView.findViewById<TextView>(R.id.tvMenuEmoji).text = menu.emoji ?: "🍽️"
             itemView.findViewById<TextView>(R.id.tvMenuName).text = menu.name
             itemView.findViewById<TextView>(R.id.tvMenuCount).text = "${menu.count}건 판매"
             if (i < menus.lastIndex) {

@@ -73,6 +73,51 @@
                 android:textColor="@color/text_sub"
                 android:layout_marginBottom="10dp" />
 
+            <!-- Mode toggle buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:id="@+id/btn_mode_rate"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:gravity="center"
+                    android:text="% 할인율"
+                    android:textSize="13sp"
+                    android:background="@drawable/bg_discount_preset_selected"
+                    android:textColor="@color/white"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/btn_mode_price"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:gravity="center"
+                    android:text="₩ 직접 입력"
+                    android:textSize="13sp"
+                    android:background="@drawable/bg_discount_preset_normal"
+                    android:textColor="@color/text_sub"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+            </LinearLayout>
+
+            <!-- Rate mode layout -->
+            <LinearLayout
+                android:id="@+id/layout_rate_mode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -173,6 +218,31 @@
                     android:text="—원"
                     android:textSize="18sp"
                     android:textColor="@color/primary_dark"
+                    android:fontFamily="sans-serif-medium" />
+
+            </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Price mode layout -->
+            <LinearLayout
+                android:id="@+id/layout_price_mode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/et_direct_price"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_rounded_muted"
+                    android:gravity="center"
+                    android:hint="할인가 직접 입력 (원)"
+                    android:inputType="number"
+                    android:singleLine="true"
+                    android:textColor="@color/text"
+                    android:textSize="16sp"
                     android:fontFamily="sans-serif-medium" />
 
             </LinearLayout>
