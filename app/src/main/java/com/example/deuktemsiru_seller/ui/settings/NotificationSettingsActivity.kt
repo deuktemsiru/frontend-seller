@@ -42,6 +42,9 @@ class NotificationSettingsActivity : AppCompatActivity() {
 
     companion object {
         fun isEnabled(context: android.content.Context, key: String): Boolean =
-            context.getSharedPreferences("notif_settings", MODE_PRIVATE).getBoolean(key, key != "sale_complete")
+            context.getSharedPreferences("notif_settings", MODE_PRIVATE).getBoolean(
+                key,
+                when (key) { "new_order" -> true; "pickup_complete" -> true; else -> false }
+            )
     }
 }

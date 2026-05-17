@@ -43,12 +43,11 @@ class LoginActivity : AppCompatActivity() {
 
         binding.btnLogin.setOnClickListener {
             val id = binding.etLoginId.text?.toString()?.trim() ?: ""
-            val pw = binding.etLoginPassword.text?.toString()?.trim() ?: ""
-            if (id.isBlank() || pw.isBlank()) {
-                Toast.makeText(this, "아이디와 패스워드를 입력해주세요", Toast.LENGTH_SHORT).show()
+            if (id.isBlank()) {
+                Toast.makeText(this, "디버그 ID 또는 판매자 이메일을 입력해주세요", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            if (id == "mock" && pw == "mock") {
+            if (id == "mock") {
                 mockLogin()
             } else {
                 debugLogin(id)
@@ -183,6 +182,7 @@ class LoginActivity : AppCompatActivity() {
         binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
         binding.btnKakaoLogin.isEnabled = !loading
         binding.btnLogin.isEnabled = !loading
+        binding.etLoginId.isEnabled = !loading
     }
 
     private fun showError(message: String) {

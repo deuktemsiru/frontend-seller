@@ -4,9 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.app.TimePickerDialog
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.NumberPicker
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -30,11 +30,12 @@ class ProductListingActivity : AppCompatActivity() {
     private var currentStep = 1
     private var menus: List<MenuItemApiResponse> = emptyList()
     private var selectedMenu: MenuItemApiResponse? = null
-    private var selectedDiscountRate = 60
+    private var selectedDiscountRate = 20
     private var selectedPriceMode: String = "rate"
     private var selectedQuantity = 5
     private var pickupStartMinutes = 16 * 60 + 30
     private var pickupEndMinutes = 18 * 60
+    private var reloadMenusOnResume = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +51,14 @@ class ProductListingActivity : AppCompatActivity() {
         binding.btnNext.setOnClickListener { onNextClicked() }
         binding.btnPrev.setOnClickListener { loadStep(1) }
         loadMenus()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (reloadMenusOnResume) {
+            reloadMenusOnResume = false
+            loadMenus()
+        }
     }
 
     private fun loadMenus() {
@@ -113,12 +122,23 @@ class ProductListingActivity : AppCompatActivity() {
                         updateMenuSelection(childBinding, selectedMenu?.id == menus[i].id)
                     }
                 }
+                itemBinding.root.setOnLongClickListener {
+                    confirmDeleteMenu(menu)
+                    true
+                }
+                itemBinding.btnDeleteMenu.setOnClickListener {
+                    confirmDeleteMenu(menu)
+                }
                 container.addView(itemBinding.root)
             }
         }
 
-        view.findViewById<android.widget.Button>(R.id.btn_new_menu).setOnClickListener {
-            startActivity(Intent(this, MenuRegistrationActivity::class.java))
+        view.findViewById<TextView>(R.id.btn_new_menu).setOnClickListener {
+            reloadMenusOnResume = true
+            startActivity(
+                Intent(this, MenuRegistrationActivity::class.java)
+                    .putExtra(MenuRegistrationActivity.EXTRA_MENU_ONLY, true)
+            )
         }
     }
 
@@ -166,11 +186,12 @@ class ProductListingActivity : AppCompatActivity() {
         val tvQty = view.findViewById<TextView>(R.id.tv_quantity)
 
         val presetIds = mapOf(
-            30 to view.findViewById<TextView>(R.id.preset_30),
-            50 to view.findViewById<TextView>(R.id.preset_50),
-            60 to view.findViewById<TextView>(R.id.preset_60),
-            70 to view.findViewById<TextView>(R.id.preset_70),
+            10 to view.findViewById<TextView>(R.id.preset_30),
+            20 to view.findViewById<TextView>(R.id.preset_50),
+            30 to view.findViewById<TextView>(R.id.preset_60),
+            40 to view.findViewById<TextView>(R.id.preset_70),
         )
+        presetIds.forEach { (discount, presetView) -> presetView.text = "$discount%" }
 
         fun refreshDiscount() {
             val rate = etDiscount.text?.toString()?.toIntOrNull() ?: 0
@@ -207,39 +228,58 @@ class ProductListingActivity : AppCompatActivity() {
             if (selectedQuantity < 99) { selectedQuantity++; tvQty.text = selectedQuantity.toString() }
         }
 
-        val pickerStartHour = view.findViewById<NumberPicker>(R.id.picker_start_hour)
-        val pickerStartMin = view.findViewById<NumberPicker>(R.id.picker_start_minute)
-        val pickerEndHour = view.findViewById<NumberPicker>(R.id.picker_end_hour)
-        val pickerEndMin = view.findViewById<NumberPicker>(R.id.picker_end_minute)
         val containerStart = view.findViewById<android.widget.LinearLayout>(R.id.container_pickup_start)
         val containerEnd = view.findViewById<android.widget.LinearLayout>(R.id.container_pickup_end)
-
-        val hours = (0..23).map { "%02d".format(it) }.toTypedArray()
-        val minutes = (0..59 step 5).map { "%02d".format(it) }.toTypedArray()
-        listOf(pickerStartHour, pickerEndHour).forEach { p -> p.minValue = 0; p.maxValue = 23; p.displayedValues = hours; p.wrapSelectorWheel = true }
-        listOf(pickerStartMin, pickerEndMin).forEach { p -> p.minValue = 0; p.maxValue = 11; p.displayedValues = minutes; p.wrapSelectorWheel = true }
-
-        pickerStartHour.value = pickupStartMinutes / 60
-        pickerStartMin.value = (pickupStartMinutes % 60) / 5
-        pickerEndHour.value = pickupEndMinutes / 60
-        pickerEndMin.value = (pickupEndMinutes % 60) / 5
-
-        fun syncPickupFromPickers() {
-            pickupStartMinutes = pickerStartHour.value * 60 + pickerStartMin.value * 5
-            pickupEndMinutes = pickerEndHour.value * 60 + pickerEndMin.value * 5
-        }
+        val tvStart = view.findViewById<TextView>(R.id.tv_pickup_start)
+        val tvEnd = view.findViewById<TextView>(R.id.tv_pickup_end)
+        val chip30Min = view.findViewById<TextView>(R.id.chip_30min)
+        val chip1Hour = view.findViewById<TextView>(R.id.chip_1hour)
+        val chip2Hour = view.findViewById<TextView>(R.id.chip_2hour)
 
         fun highlightContainer(active: android.widget.LinearLayout, inactive: android.widget.LinearLayout) {
             active.setBackgroundResource(R.drawable.bg_card_primary_border)
             inactive.setBackgroundResource(R.drawable.bg_rounded_muted)
         }
 
-        pickerStartHour.setOnValueChangedListener { _, _, _ -> syncPickupFromPickers() }
-        pickerStartMin.setOnValueChangedListener { _, _, _ -> syncPickupFromPickers() }
-        pickerEndHour.setOnValueChangedListener { _, _, _ -> syncPickupFromPickers(); highlightContainer(containerEnd, containerStart) }
-        pickerEndMin.setOnValueChangedListener { _, _, _ -> syncPickupFromPickers(); highlightContainer(containerEnd, containerStart) }
-        pickerStartHour.setOnScrollListener { _, _ -> highlightContainer(containerStart, containerEnd) }
-        pickerStartMin.setOnScrollListener { _, _ -> highlightContainer(containerStart, containerEnd) }
+        fun refreshPickupViews() {
+            tvStart.text = formatTime(pickupStartMinutes)
+            tvEnd.text = formatTime(pickupEndMinutes)
+        }
+
+        fun showTimePicker(initialMinutes: Int, onPicked: (Int) -> Unit) {
+            TimePickerDialog(this, { _, hour, minute ->
+                onPicked(hour * 60 + minute)
+                refreshPickupViews()
+            }, initialMinutes / 60, initialMinutes % 60, true).show()
+        }
+
+        fun setDuration(minutes: Int) {
+            pickupEndMinutes = (pickupStartMinutes + minutes).coerceAtMost(23 * 60 + 59)
+            highlightContainer(containerEnd, containerStart)
+            refreshPickupViews()
+        }
+
+        containerStart.setOnClickListener {
+            highlightContainer(containerStart, containerEnd)
+            showTimePicker(pickupStartMinutes) { picked ->
+                pickupStartMinutes = picked
+                if (pickupEndMinutes <= pickupStartMinutes) pickupEndMinutes = (pickupStartMinutes + 60).coerceAtMost(23 * 60 + 59)
+            }
+        }
+        containerEnd.setOnClickListener {
+            highlightContainer(containerEnd, containerStart)
+            showTimePicker(pickupEndMinutes) { picked ->
+                if (picked <= pickupStartMinutes) {
+                    Toast.makeText(this, "마감 시간은 시작 시간보다 늦어야 해요.", Toast.LENGTH_SHORT).show()
+                } else {
+                    pickupEndMinutes = picked
+                }
+            }
+        }
+        chip30Min.setOnClickListener { setDuration(30) }
+        chip1Hour.setOnClickListener { setDuration(60) }
+        chip2Hour.setOnClickListener { setDuration(120) }
+        refreshPickupViews()
     }
 
     private fun onNextClicked() {
@@ -260,18 +300,25 @@ class ProductListingActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val discountPrice = if (selectedPriceMode == "price") {
-                    val stepView = binding.stepContainer.getChildAt(0)
-                    stepView?.findViewById<android.widget.EditText>(R.id.et_direct_price)
+                    val stepView = binding.stepContainer.getChildAt(0) ?: return@launch
+                    val price = stepView.findViewById<android.widget.EditText>(R.id.et_direct_price)
                         ?.text?.toString()?.toIntOrNull() ?: run {
                         Toast.makeText(this@ProductListingActivity, "할인가를 입력해주세요", Toast.LENGTH_SHORT).show()
                         binding.btnNext.isEnabled = true
                         binding.btnNext.text = "상품 등록"
                         return@launch
                     }
+                    if (price <= 0 || price >= menu.originalPrice) {
+                        Toast.makeText(this@ProductListingActivity, "할인가는 정가보다 낮은 1원 이상이어야 해요.", Toast.LENGTH_SHORT).show()
+                        binding.btnNext.isEnabled = true
+                        binding.btnNext.text = "상품 등록"
+                        return@launch
+                    }
+                    price
                 } else {
                     menu.originalPrice * (100 - selectedDiscountRate) / 100
                 }
-                RetrofitClient.api.createSaleItem(
+                val response = RetrofitClient.api.createSaleItem(
                     SaleItemCreateRequest(
                         menuItemId = menu.id,
                         name = menu.name,
@@ -283,6 +330,9 @@ class ProductListingActivity : AppCompatActivity() {
                         availableDate = java.time.LocalDate.now().toString(),
                     ),
                 )
+                if (response.code !in 200..299 || response.data == null) {
+                    throw IllegalStateException(response.message)
+                }
                 Toast.makeText(this@ProductListingActivity, "상품이 등록됐어요!", Toast.LENGTH_SHORT).show()
                 val intent = android.content.Intent(this@ProductListingActivity, com.example.deuktemsiru_seller.MainActivity::class.java).apply {
                     flags = android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -296,6 +346,27 @@ class ProductListingActivity : AppCompatActivity() {
                 binding.btnNext.text = "상품 등록"
             }
         }
+    }
+
+    private fun confirmDeleteMenu(menu: MenuItemApiResponse) {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("메뉴 삭제")
+            .setMessage("${menu.name}을(를) 삭제할까요?")
+            .setPositiveButton("삭제") { _, _ ->
+                lifecycleScope.launch {
+                    runCatching {
+                        RetrofitClient.api.deleteMenu(menu.id)
+                    }.onSuccess {
+                        if (selectedMenu?.id == menu.id) selectedMenu = null
+                        Toast.makeText(this@ProductListingActivity, "메뉴가 삭제됐어요", Toast.LENGTH_SHORT).show()
+                        loadMenus()
+                    }.onFailure {
+                        Toast.makeText(this@ProductListingActivity, "메뉴 삭제에 실패했어요", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .setNegativeButton("취소", null)
+            .show()
     }
 
     private fun formatTime(minutes: Int) = "%02d:%02d".format(minutes / 60, minutes % 60)

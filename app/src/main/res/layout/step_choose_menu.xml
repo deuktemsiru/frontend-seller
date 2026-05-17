@@ -58,18 +58,19 @@
         </LinearLayout>
 
         <!-- New menu button -->
-        <Button
+        <TextView
             android:id="@+id/btn_new_menu"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:background="@drawable/bg_button_outline"
-            android:backgroundTint="@null"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:stateListAnimator="@null"
             android:text="+ 새 메뉴 만들기"
-            android:textColor="@color/text"
-            android:textSize="14sp" />
+            android:textColor="@color/primary_dark"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground" />
 
     </LinearLayout>
 

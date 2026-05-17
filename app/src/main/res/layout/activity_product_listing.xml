@@ -85,20 +85,21 @@
         android:padding="16dp"
         android:background="@color/white">
 
-        <Button
+        <TextView
             android:id="@+id/btn_prev"
             android:layout_width="0dp"
             android:layout_height="52dp"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:background="@drawable/bg_button_outline"
-            android:backgroundTint="@null"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:stateListAnimator="@null"
             android:text="이전"
-            android:textColor="@color/text"
+            android:textColor="@color/primary_dark"
             android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
             android:visibility="gone" />
 
         <Button

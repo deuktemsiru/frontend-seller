@@ -71,43 +71,23 @@ class ProductFragment : Fragment() {
             itemBinding.tvItemDetail.text =
                 "${"%,d원".format(item.discountedPrice)} · 잔여 ${item.remainingItems}/${item.totalItems}개 · ${item.displayPickupTime}"
 
-            val (statusText, badgeBgColor, badgeTextColor) = when (item.status) {
-                "AVAILABLE" -> Triple("● 판매중", 0xFF2E7D32.toInt(), 0xFFFFFFFF.toInt())
-                "SOLD_OUT"  -> Triple("● 품절",   0xFFE65100.toInt(), 0xFFFFFFFF.toInt())
-                "CANCELLED" -> Triple("취소됨",   0xFF9E9E9E.toInt(), 0xFFFFFFFF.toInt())
-                else        -> Triple("종료",     0xFF9E9E9E.toInt(), 0xFFFFFFFF.toInt())
+            val (statusText, badgeBackground, badgeTextColor) = when (item.status) {
+                "AVAILABLE" -> Triple("● 판매중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
+                "SOLD_OUT"  -> Triple("● 품절", R.drawable.bg_status_soldout, 0xFFE65100.toInt())
+                "EXPIRED"   -> Triple("종료", R.drawable.bg_status_expired, 0xFF616161.toInt())
+                else        -> Triple(item.status, R.drawable.bg_status_expired, 0xFF616161.toInt())
             }
             itemBinding.tvItemStatus.text = statusText
             itemBinding.tvItemStatus.setTextColor(badgeTextColor)
-            val badgeBg = android.graphics.drawable.GradientDrawable().apply {
-                setColor(badgeBgColor)
-                cornerRadius = 20f * resources.displayMetrics.density
-            }
-            itemBinding.tvItemStatus.background = badgeBg
-            itemBinding.tvItemStatus.setPadding(
-                (8 * resources.displayMetrics.density).toInt(),
-                (4 * resources.displayMetrics.density).toInt(),
-                (8 * resources.displayMetrics.density).toInt(),
-                (4 * resources.displayMetrics.density).toInt()
-            )
+            itemBinding.tvItemStatus.setBackgroundResource(badgeBackground)
 
             fun styleButton(btn: TextView, isActive: Boolean) {
-                val density = resources.displayMetrics.density
                 val primaryColor = ContextCompat.getColor(requireContext(), R.color.primary)
                 if (isActive) {
-                    val bg = android.graphics.drawable.GradientDrawable().apply {
-                        setColor(primaryColor)
-                        cornerRadius = 8f * density
-                    }
-                    btn.background = bg
+                    btn.setBackgroundResource(R.drawable.bg_button_primary)
                     btn.setTextColor(0xFFFFFFFF.toInt())
                 } else {
-                    val bg = android.graphics.drawable.GradientDrawable().apply {
-                        setColor(0xFFFFFFFF.toInt())
-                        setStroke((1.5f * density).toInt(), primaryColor)
-                        cornerRadius = 8f * density
-                    }
-                    btn.background = bg
+                    btn.setBackgroundResource(R.drawable.bg_button_outline)
                     btn.setTextColor(primaryColor)
                 }
             }
@@ -115,17 +95,18 @@ class ProductFragment : Fragment() {
             itemBinding.btnEdit.setOnClickListener { showEditDialog(item) }
             itemBinding.btnStatusAvailable.setOnClickListener { updateStatus(item.id, "AVAILABLE") }
             itemBinding.btnStatusSoldout.setOnClickListener { updateStatus(item.id, "SOLD_OUT") }
+            val isFinal = item.status == "EXPIRED" || item.status == "SOLD_OUT"
+            itemBinding.btnCancel.text = if (isFinal) "삭제" else "취소"
             itemBinding.btnCancel.setOnClickListener { confirmCancel(item) }
-            val isFinal = item.status == "CANCELLED" || item.status == "EXPIRED"
             styleButton(itemBinding.btnStatusAvailable, item.status == "AVAILABLE")
             styleButton(itemBinding.btnStatusSoldout, item.status == "SOLD_OUT")
             styleButton(itemBinding.btnCancel, false)
             itemBinding.btnStatusAvailable.isEnabled = !isFinal
             itemBinding.btnStatusSoldout.isEnabled = !isFinal
-            itemBinding.btnCancel.isEnabled = !isFinal
+            itemBinding.btnCancel.isEnabled = true
             itemBinding.btnStatusAvailable.alpha = if (isFinal) 0.35f else 1f
             itemBinding.btnStatusSoldout.alpha = if (isFinal) 0.35f else 1f
-            itemBinding.btnCancel.alpha = if (isFinal) 0.35f else 1f
+            itemBinding.btnCancel.alpha = 1f
 
             binding.saleItemsContainer.addView(itemBinding.root)
         }
@@ -183,7 +164,10 @@ class ProductFragment : Fragment() {
                 }
                 viewLifecycleOwner.lifecycleScope.launch {
                     runCatching {
-                        RetrofitClient.api.updateSaleItem(item.id, UpdateSaleItemRequest(newPrice, newQty))
+                        RetrofitClient.api.updateSaleItem(
+                            item.id,
+                            UpdateSaleItemRequest(discountPrice = newPrice, quantityRemaining = newQty),
+                        )
                         Toast.makeText(requireContext(), "수정됐어요", Toast.LENGTH_SHORT).show()
                         loadSaleItems()
                     }.onFailure {
@@ -196,17 +180,19 @@ class ProductFragment : Fragment() {
     }
 
     private fun confirmCancel(item: SaleItemApiResponse) {
+        val isFinal = item.status == "EXPIRED" || item.status == "SOLD_OUT"
+        val actionLabel = if (isFinal) "삭제" else "취소"
         AlertDialog.Builder(requireContext())
-            .setTitle("상품 취소")
-            .setMessage("${item.name} 상품 등록을 취소할까요?")
-            .setPositiveButton("취소하기") { _, _ ->
+            .setTitle("상품 $actionLabel")
+            .setMessage("${item.name} 상품을 ${actionLabel}할까요?")
+            .setPositiveButton("${actionLabel}하기") { _, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     runCatching {
                         RetrofitClient.api.cancelSaleItem(item.id)
-                        Toast.makeText(requireContext(), "상품이 취소됐어요", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "상품이 ${actionLabel}됐어요", Toast.LENGTH_SHORT).show()
                         loadSaleItems()
                     }.onFailure {
-                        Toast.makeText(requireContext(), "취소에 실패했어요", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "${actionLabel}에 실패했어요", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

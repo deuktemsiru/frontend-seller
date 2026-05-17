@@ -134,7 +134,8 @@ object MockApiService : ApiService {
     override suspend fun createSaleItemWithImage(
         name: RequestBody, discountPrice: RequestBody, originalPrice: RequestBody,
         quantityTotal: RequestBody, pickupStart: RequestBody, pickupEnd: RequestBody,
-        availableDate: RequestBody, allergenInfo: RequestBody?, images: List<MultipartBody.Part>?,
+        availableDate: RequestBody, menuItemId: RequestBody?, madeAt: RequestBody?,
+        allergenInfo: RequestBody?, images: List<MultipartBody.Part>?,
     ): ApiResponse<SaleItemApiResponse> = ApiResponse(400, "not supported in mock", null)
 
     override suspend fun updateSaleStatus(id: Long, req: UpdateSaleStatusRequest): ApiResponse<SaleItemApiResponse> {
@@ -148,15 +149,16 @@ object MockApiService : ApiService {
         val idx = saleItems.indexOfFirst { it.id == id }
         if (idx < 0) return ApiResponse(404, "not found", null)
         saleItems[idx] = saleItems[idx].copy(
-            discountedPrice = req.discountPrice,
-            remainingItems = req.quantityRemaining,
+            originalPrice = req.originalPrice ?: saleItems[idx].originalPrice,
+            discountedPrice = req.discountPrice ?: saleItems[idx].discountedPrice,
+            remainingItems = req.quantityRemaining ?: saleItems[idx].remainingItems,
         )
         return ApiResponse(200, "ok", saleItems[idx])
     }
 
     override suspend fun cancelSaleItem(id: Long): ApiResponse<Unit> {
         val idx = saleItems.indexOfFirst { it.id == id }
-        if (idx >= 0) saleItems[idx] = saleItems[idx].copy(status = "CANCELLED")
+        if (idx >= 0) saleItems[idx] = saleItems[idx].copy(status = "EXPIRED")
         return ApiResponse(200, "ok", Unit)
     }
 

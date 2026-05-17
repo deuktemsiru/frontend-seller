@@ -40,6 +40,8 @@ interface ApiService {
         @Part("pickupStart") pickupStart: RequestBody,
         @Part("pickupEnd") pickupEnd: RequestBody,
         @Part("availableDate") availableDate: RequestBody,
+        @Part("menuItemId") menuItemId: RequestBody?,
+        @Part("madeAt") madeAt: RequestBody?,
         @Part("allergenInfo") allergenInfo: RequestBody?,
         @Part images: List<MultipartBody.Part>?,
     ): ApiResponse<SaleItemApiResponse>

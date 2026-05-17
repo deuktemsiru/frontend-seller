@@ -32,7 +32,8 @@ class MenuRegistrationActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMenuRegistrationBinding
     private var currentStep = 1
-    private val totalSteps = 4
+    private var totalSteps = 4
+    private var menuOnlyMode = false
 
     private var selectedMenuName = ""
     private var selectedImageUri: Uri? = null
@@ -55,6 +56,12 @@ class MenuRegistrationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMenuRegistrationBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        menuOnlyMode = intent.getBooleanExtra(EXTRA_MENU_ONLY, false)
+        totalSteps = if (menuOnlyMode) 1 else 4
+        if (menuOnlyMode) {
+            binding.tvTitle.text = "새 메뉴 만들기"
+            binding.progressContainer.visibility = View.GONE
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -97,20 +104,16 @@ class MenuRegistrationActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                RetrofitClient.api.createSaleItemWithImage(
+                RetrofitClient.api.addMenuWithImage(
                     name = selectedMenuName.toTextPart(),
-                    discountPrice = discountedPrice().toString().toTextPart(),
                     originalPrice = selectedOriginalPrice.toString().toTextPart(),
-                    quantityTotal = selectedQuantity.toString().toTextPart(),
-                    pickupStart = formatTime(pickupStartMinutes).toTextPart(),
-                    pickupEnd = formatTime(pickupEndMinutes).toTextPart(),
-                    availableDate = java.time.LocalDate.now().toString().toTextPart(),
+                    description = null,
                     allergenInfo = selectedAllergyInfo?.toTextPart(),
-                    images = createImagePart("images")?.let(::listOf),
+                    image = createImagePart("image"),
                 )
                 Toast.makeText(
                     this@MenuRegistrationActivity,
-                    "마감 메뉴가 등록됐어요! 단골 알림을 보내볼까요?",
+                    "메뉴가 등록됐어요! 판매 상품으로 등록해보세요.",
                     Toast.LENGTH_LONG
                 ).show()
                 finish()
@@ -129,7 +132,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
         updateBottomButtons()
 
         val layoutRes = when (step) {
-            1 -> R.layout.step1_menu_select
+            1 -> if (menuOnlyMode) R.layout.step_quick_menu else R.layout.step1_menu_select
             2 -> R.layout.step2_price_setting
             3 -> R.layout.step3_quantity_time
             4 -> R.layout.step4_preview
@@ -177,11 +180,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
             }
         }
 
-        val watcher = object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = refreshSummary()
-            override fun afterTextChanged(s: Editable?) = Unit
-        }
+        val watcher = simpleTextWatcher { refreshSummary() }
         etName.addTextChangedListener(watcher)
         etPrice.addTextChangedListener(watcher)
         refreshSummary()
@@ -250,11 +249,12 @@ class MenuRegistrationActivity : AppCompatActivity() {
 
     private fun setupStep2(view: View) {
         val presetIds = mapOf(
-            30 to view.findViewById<TextView>(R.id.preset_30),
-            50 to view.findViewById<TextView>(R.id.preset_50),
-            60 to view.findViewById<TextView>(R.id.preset_60),
-            70 to view.findViewById<TextView>(R.id.preset_70)
+            10 to view.findViewById<TextView>(R.id.preset_30),
+            20 to view.findViewById<TextView>(R.id.preset_50),
+            30 to view.findViewById<TextView>(R.id.preset_60),
+            40 to view.findViewById<TextView>(R.id.preset_70)
         )
+        presetIds.forEach { (discount, presetView) -> presetView.text = "$discount%" }
         val etDiscountRate = view.findViewById<EditText>(R.id.et_discount_rate)
         val tvOriginalPrice = view.findViewById<TextView>(R.id.tv_original_price)
         val tvDiscountPrice = view.findViewById<TextView>(R.id.tv_discount_price)
@@ -280,13 +280,9 @@ class MenuRegistrationActivity : AppCompatActivity() {
             etDiscountRate.setText(selectedDiscountRate.toString())
         }
 
-        etDiscountRate.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                selectedDiscountRate = s?.toString()?.toIntOrNull() ?: 0
-                refreshPrices()
-            }
-            override fun afterTextChanged(s: Editable?) = Unit
+        etDiscountRate.addTextChangedListener(simpleTextWatcher { text ->
+            selectedDiscountRate = text.toIntOrNull() ?: 0
+            refreshPrices()
         })
 
         presetIds.forEach { (discount, presetView) ->
@@ -403,6 +399,12 @@ class MenuRegistrationActivity : AppCompatActivity() {
         return MultipartBody.Part.createFormData(partName, filename, body)
     }
 
+    private fun simpleTextWatcher(onChanged: (String) -> Unit) = object : TextWatcher {
+        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = onChanged(s?.toString() ?: "")
+        override fun afterTextChanged(s: Editable?) = Unit
+    }
+
     private fun getDisplayName(uri: Uri): String? {
         var cursor: Cursor? = null
         return try {
@@ -436,11 +438,15 @@ class MenuRegistrationActivity : AppCompatActivity() {
     private fun updateBottomButtons() {
         when (currentStep) {
             totalSteps -> {
-                binding.btnNext.text = "등록하기"
+                binding.btnNext.text = if (menuOnlyMode) "메뉴 등록" else "등록하기"
             }
             else -> {
                 binding.btnNext.text = "다음 ($currentStep/${totalSteps})"
             }
         }
+    }
+
+    companion object {
+        const val EXTRA_MENU_ONLY = "extra_menu_only"
     }
 }

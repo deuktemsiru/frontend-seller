@@ -44,6 +44,17 @@
     </LinearLayout>
 
     <TextView
+        android:id="@+id/btn_delete_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:gravity="center"
+        android:paddingHorizontal="10dp"
+        android:text="삭제"
+        android:textColor="@color/danger"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-medium" />
+
+    <TextView
         android:id="@+id/tv_check"
         android:layout_width="24dp"
         android:layout_height="24dp"

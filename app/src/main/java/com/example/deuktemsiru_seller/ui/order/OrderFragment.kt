@@ -33,6 +33,7 @@ class OrderFragment : Fragment() {
     private var currentTab = 0
     private var allOrders: List<OrderApiResponse> = emptyList()
     private lateinit var session: SessionManager
+    private var isPending = false
 
     private companion object {
         const val TAG = "OrderFragment"
@@ -119,21 +120,18 @@ class OrderFragment : Fragment() {
         when (index) {
             0 -> showNewOrders(ordersByStatus(STATUS_NEW))
             1 -> showConfirmedOrders(ordersByStatus(STATUS_CONFIRMED))
-            3 -> showCompletedOrders(ordersByStatuses(STATUS_PICKED_UP, STATUS_CANCELLED))
-            else -> showNewOrders(ordersByStatus(STATUS_NEW))
+            3 -> showCompletedOrders(ordersByStatus(STATUS_PICKED_UP, STATUS_CANCELLED))
+            // index 2 = tabPickup은 UI에서 숨김 처리되어 있으므로 아무것도 하지 않음
         }
     }
 
-    private fun ordersByStatus(status: String): List<OrderApiResponse> =
-        allOrders.filter { it.status.equals(status, ignoreCase = true) }
-
-    private fun ordersByStatuses(vararg statuses: String): List<OrderApiResponse> =
+    private fun ordersByStatus(vararg statuses: String): List<OrderApiResponse> =
         allOrders.filter { order -> statuses.any { order.status.equals(it, ignoreCase = true) } }
 
     private fun updateTabCounts() {
         binding.tabNew.text = getString(R.string.tab_new_order_count, ordersByStatus(STATUS_NEW).size)
         binding.tabPreparing.text = getString(R.string.tab_preparing_count, ordersByStatus(STATUS_CONFIRMED).size)
-        binding.tabDone.text = getString(R.string.tab_completed_count, ordersByStatuses(STATUS_PICKED_UP, STATUS_CANCELLED).size)
+        binding.tabDone.text = getString(R.string.tab_completed_count, ordersByStatus(STATUS_PICKED_UP, STATUS_CANCELLED).size)
     }
 
     private fun showNewOrders(orders: List<OrderApiResponse>) {
@@ -218,6 +216,8 @@ class OrderFragment : Fragment() {
         onSuccess: (OrderApiResponse) -> Unit,
         onFailure: () -> Unit,
     ) {
+        if (isPending) return
+        isPending = true
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val updatedOrder = RetrofitClient.api.updateOrderStatus(
@@ -232,6 +232,8 @@ class OrderFragment : Fragment() {
                 Toast.makeText(requireContext(), statusUpdateErrorMessage(e), Toast.LENGTH_SHORT).show()
                 // Intentionally reload the full order list on failure to restore consistent UI state.
                 loadOrders()
+            } finally {
+                isPending = false
             }
         }
     }

@@ -11,12 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.deuktemsiru_seller.MainActivity
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityPickupVerifyBinding
+import com.example.deuktemsiru_seller.network.ConfirmPickupRequest
 import com.example.deuktemsiru_seller.network.OrderApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
-import com.example.deuktemsiru_seller.network.UpdateOrderStatusRequest
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
@@ -27,6 +26,7 @@ class PickupVerifyActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPickupVerifyBinding
     private lateinit var session: SessionManager
     private var currentOrderId: Long? = null
+    private var currentPickupCode: String? = null
 
     private val cameraPermission = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
@@ -96,6 +96,7 @@ class PickupVerifyActivity : AppCompatActivity() {
                 val order = response.data
                 if (order != null) {
                     currentOrderId = order.id
+                    currentPickupCode = code
                     showStatus("✓ 확인되었습니다", success = true)
                     populateResultCard(order)
                     binding.cardResult.visibility = View.VISIBLE
@@ -123,14 +124,16 @@ class PickupVerifyActivity : AppCompatActivity() {
     }
 
     private fun completePickup(orderId: Long) {
+        val code = currentPickupCode ?: run { showStatus("픽업 코드를 확인해주세요", success = false); return }
         lifecycleScope.launch {
             try {
                 val completedOrder = RetrofitClient.api
-                    .updateOrderStatus(orderId, UpdateOrderStatusRequest("PICKED_UP"))
+                    .confirmPickup(orderId, ConfirmPickupRequest(code))
                     .data
                 binding.cardResult.visibility = View.GONE
                 binding.etPickupCode.setText("")
                 currentOrderId = null
+                currentPickupCode = null
 
                 if (completedOrder != null) {
                     showCompletedCard(completedOrder)

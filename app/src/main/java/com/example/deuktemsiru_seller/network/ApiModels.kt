@@ -83,7 +83,11 @@ data class SaleItemCreateRequest(
 )
 
 data class UpdateSaleStatusRequest(val status: String)
-data class UpdateSaleItemRequest(val discountPrice: Int, val quantityRemaining: Int)
+data class UpdateSaleItemRequest(
+    val originalPrice: Int? = null,
+    val discountPrice: Int? = null,
+    val quantityRemaining: Int? = null,
+)
 
 // ── 메뉴 ──────────────────────────────────────────────────────
 data class MenuItemApiResponse(
@@ -99,7 +103,7 @@ data class MenuItemRequest(
     val emoji: String,
     val originalPrice: Int,
     val costPrice: Int? = null,
-    val allergyInfo: String? = null,
+    @SerializedName("allergenInfo") val allergyInfo: String? = null,
 )
 
 data class MenuItemUpdateRequest(
@@ -185,9 +189,9 @@ data class NotificationApiResponse(
 data class DailySales(val date: String, val amount: Int)
 
 data class TopMenu(
-    @SerializedName("productName") val name: String,
+    @SerializedName(value = "productName", alternate = ["name"]) val name: String,
     val emoji: String? = null,
-    @SerializedName("soldCount") val count: Int,
+    @SerializedName(value = "soldCount", alternate = ["count"]) val count: Int,
 )
 
 data class SalesApiResponse(

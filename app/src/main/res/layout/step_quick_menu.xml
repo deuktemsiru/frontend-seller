@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/surface">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="상품명과 기준 가격만 입력하세요"
+            android:textSize="16sp"
+            android:textColor="@color/text"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="16dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_white"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="메뉴명"
+                android:textSize="13sp"
+                android:textColor="@color/text_sub"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_menu_name"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_rounded_muted"
+                android:hint="예: 크루아상"
+                android:singleLine="true"
+                android:maxLength="24"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:textColor="@color/text"
+                android:textColorHint="@color/text_muted"
+                android:textSize="15sp"
+                android:layout_marginBottom="14dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="정상가"
+                android:textSize="13sp"
+                android:textColor="@color/text_sub"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_original_price"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_rounded_muted"
+                android:hint="예: 3800"
+                android:inputType="number"
+                android:maxLength="8"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:singleLine="true"
+                android:textColor="@color/text"
+                android:textColorHint="@color/text_muted"
+                android:textSize="15sp"
+                android:layout_marginBottom="14dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="메뉴 이모지 (선택)"
+                android:textSize="13sp"
+                android:textColor="@color/text_sub"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_emoji"
+                android:layout_width="72dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_rounded_muted"
+                android:hint="🍽️"
+                android:inputType="text"
+                android:maxLength="2"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:singleLine="true"
+                android:textColor="@color/text"
+                android:textColorHint="@color/text_muted"
+                android:textSize="24sp"
+                android:layout_marginBottom="14dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="메뉴 이미지 (선택)"
+                android:textSize="13sp"
+                android:textColor="@color/text_sub"
+                android:layout_marginBottom="8dp" />
+
+            <FrameLayout
+                android:id="@+id/container_image_upload"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:background="@drawable/bg_image_upload"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:id="@+id/iv_menu_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tv_image_upload_hint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="+ 이미지 업로드"
+                    android:textSize="14sp"
+                    android:textColor="@color/primary"
+                    android:fontFamily="sans-serif-medium" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_rounded_primary_light"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="등록할 메뉴"
+                android:textSize="13sp"
+                android:textColor="@color/text_sub" />
+
+            <TextView
+                android:id="@+id/tv_selected_menu_summary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="메뉴 정보를 입력해주세요"
+                android:textSize="13sp"
+                android:textColor="@color/primary_dark"
+                android:fontFamily="sans-serif-medium" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

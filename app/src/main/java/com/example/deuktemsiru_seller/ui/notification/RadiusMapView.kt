@@ -50,6 +50,10 @@ class RadiusMapView @JvmOverloads constructor(
         color = 0xFF2E7D32.toInt()
         style = Paint.Style.FILL
     }
+    private val pinCenterPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        style = Paint.Style.FILL
+    }
 
     override fun onDraw(canvas: Canvas) {
         val w = width.toFloat(); val h = height.toFloat()
@@ -78,7 +82,7 @@ class RadiusMapView @JvmOverloads constructor(
         // pin
         val pinR = 10f * resources.displayMetrics.density
         canvas.drawCircle(cx, cy, pinR, pinPaint)
-        canvas.drawCircle(cx, cy, pinR * 0.4f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; style = Paint.Style.FILL })
+        canvas.drawCircle(cx, cy, pinR * 0.4f, pinCenterPaint)
 
         // location label
         val labelText = SessionManager(context).nickname.ifBlank { "내 가게" }
