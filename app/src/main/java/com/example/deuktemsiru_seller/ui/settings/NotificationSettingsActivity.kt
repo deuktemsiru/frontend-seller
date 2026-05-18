@@ -1,7 +1,6 @@
 package com.example.deuktemsiru_seller.ui.settings
 
 import android.os.Bundle
-import android.widget.CompoundButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -24,27 +23,31 @@ class NotificationSettingsActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
 
-        binding.switchNewOrder.isChecked = prefs.getBoolean("new_order", true)
-        binding.switchPickupComplete.isChecked = prefs.getBoolean("pickup_complete", true)
-        binding.switchSaleComplete.isChecked = prefs.getBoolean("sale_complete", false)
-
-        val listener = CompoundButton.OnCheckedChangeListener { button, checked ->
-            when (button.id) {
-                binding.switchNewOrder.id -> prefs.edit().putBoolean("new_order", checked).apply()
-                binding.switchPickupComplete.id -> prefs.edit().putBoolean("pickup_complete", checked).apply()
-                binding.switchSaleComplete.id -> prefs.edit().putBoolean("sale_complete", checked).apply()
+        notificationSettings().forEach { setting ->
+            setting.switch.isChecked = prefs.getBoolean(setting.key, setting.defaultValue)
+            setting.switch.setOnCheckedChangeListener { _, checked ->
+                prefs.edit().putBoolean(setting.key, checked).apply()
             }
         }
-        binding.switchNewOrder.setOnCheckedChangeListener(listener)
-        binding.switchPickupComplete.setOnCheckedChangeListener(listener)
-        binding.switchSaleComplete.setOnCheckedChangeListener(listener)
     }
+
+    private data class NotificationSetting(
+        val switch: android.widget.CompoundButton,
+        val key: String,
+        val defaultValue: Boolean,
+    )
+
+    private fun notificationSettings() = listOf(
+        NotificationSetting(binding.switchNewOrder, "new_order", true),
+        NotificationSetting(binding.switchPickupComplete, "pickup_complete", true),
+        NotificationSetting(binding.switchSaleComplete, "sale_complete", false),
+    )
 
     companion object {
         fun isEnabled(context: android.content.Context, key: String): Boolean =
             context.getSharedPreferences("notif_settings", MODE_PRIVATE).getBoolean(
                 key,
-                when (key) { "new_order" -> true; "pickup_complete" -> true; else -> false }
+                key in setOf("new_order", "pickup_complete")
             )
     }
 }

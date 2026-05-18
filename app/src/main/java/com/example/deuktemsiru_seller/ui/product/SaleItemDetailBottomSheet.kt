@@ -8,6 +8,8 @@ import com.example.deuktemsiru_seller.MainActivity
 import com.example.deuktemsiru_seller.R
 import com.example.deuktemsiru_seller.databinding.BottomSheetSaleItemDetailBinding
 import com.example.deuktemsiru_seller.network.SaleItemApiResponse
+import com.example.deuktemsiru_seller.network.SaleStatus
+import com.example.deuktemsiru_seller.util.toWon
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class SaleItemDetailBottomSheet : BottomSheetDialogFragment() {
@@ -40,14 +42,14 @@ class SaleItemDetailBottomSheet : BottomSheetDialogFragment() {
         binding.tvDetailEmoji.text = item.emoji ?: "🛍️"
         binding.tvDetailName.text = item.name
         binding.tvDetailPickupTime.text = "픽업 ${item.displayPickupTime}"
-        binding.tvDetailDiscountPrice.text = "%,d원".format(item.discountedPrice)
-        binding.tvDetailOriginalPrice.text = "(%,d원)".format(item.originalPrice)
+        binding.tvDetailDiscountPrice.text = item.discountedPrice.toWon()
+        binding.tvDetailOriginalPrice.text = "(${item.originalPrice.toWon()})"
         binding.tvDetailStock.text = "${item.remainingItems} / ${item.totalItems}개"
         binding.tvDetailTime.text = item.displayPickupTime
 
-        val (statusText, bgRes, textColor) = when (item.status) {
-            "AVAILABLE" -> Triple("판매중", R.drawable.bg_rounded_success_light, requireContext().getColor(R.color.success))
-            "SOLD_OUT"  -> Triple("품절",   R.drawable.bg_rounded_danger,         0xFFFFFFFF.toInt())
+        val (statusText, bgRes, textColor) = when (item.saleStatus) {
+            SaleStatus.Available -> Triple("판매중", R.drawable.bg_rounded_success_light, requireContext().getColor(R.color.success))
+            SaleStatus.SoldOut -> Triple("품절", R.drawable.bg_rounded_danger, 0xFFFFFFFF.toInt())
             else        -> Triple("종료",   R.drawable.bg_rounded_muted,          requireContext().getColor(R.color.text_muted))
         }
         binding.tvDetailStatus.text = statusText

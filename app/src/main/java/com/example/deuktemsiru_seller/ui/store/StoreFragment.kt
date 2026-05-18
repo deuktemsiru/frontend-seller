@@ -22,6 +22,11 @@ import com.example.deuktemsiru_seller.util.dp
 import com.example.deuktemsiru_seller.network.MenuItemUpdateRequest
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.UpdateStoreRequest
+import com.example.deuktemsiru_seller.util.emptyTextView
+import com.example.deuktemsiru_seller.util.renderChildren
+import com.example.deuktemsiru_seller.util.toClockMinutes
+import com.example.deuktemsiru_seller.util.toClockTime
+import com.example.deuktemsiru_seller.util.toWon
 import kotlinx.coroutines.launch
 
 class StoreFragment : Fragment() {
@@ -115,15 +120,11 @@ class StoreFragment : Fragment() {
     }
 
     private fun renderMenus(menus: List<MenuItemApiResponse>) {
-        binding.menuContainer.removeAllViews()
-        if (menus.isEmpty()) {
-            binding.menuContainer.addView(menuEmptyView())
-            return
-        }
-
-        menus.forEach { menu ->
-            binding.menuContainer.addView(createMenuRow(menu))
-        }
+        binding.menuContainer.renderChildren(
+            items = menus,
+            emptyView = { requireContext().emptyTextView("등록된 메뉴가 없어요") },
+            itemView = ::createMenuRow,
+        )
     }
 
     private fun createMenuRow(menu: MenuItemApiResponse): View {
@@ -133,7 +134,7 @@ class StoreFragment : Fragment() {
             setPadding(0, 12.dp, 0, 12.dp)
         }
         val summary = TextView(requireContext()).apply {
-            text = "${menu.emoji} ${menu.name}\n%,d원".format(menu.originalPrice)
+            text = "${menu.displayEmoji} ${menu.name}\n${menu.originalPrice.toWon()}"
             textSize = 13f
             setTextColor(ContextCompat.getColor(requireContext(), R.color.text))
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
@@ -158,20 +159,13 @@ class StoreFragment : Fragment() {
         return row
     }
 
-    private fun menuEmptyView(): View = TextView(requireContext()).apply {
-        text = "등록된 메뉴가 없어요"
-        textSize = 13f
-        setTextColor(ContextCompat.getColor(requireContext(), R.color.text_sub))
-        setPadding(0, 16.dp, 0, 16.dp)
-    }
-
     private fun showMenuEditDialog(menu: MenuItemApiResponse) {
         val form = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(16.dp, 8.dp, 16.dp, 0)
         }
-        val nameField = editText("메뉴명", menu.name, "text")
-        val priceField = editText("정상가", menu.originalPrice.toString(), "number")
+        val nameField = editText("메뉴명", menu.name)
+        val priceField = editText("정상가", menu.originalPrice.toString(), numeric = true)
         form.addView(nameField)
         form.addView(priceField)
 
@@ -187,12 +181,12 @@ class StoreFragment : Fragment() {
             .show()
     }
 
-    private fun editText(hint: String, value: String, type: String): EditText =
+    private fun editText(hint: String, value: String, numeric: Boolean = false): EditText =
         EditText(requireContext()).apply {
             this.hint = hint
             setText(value)
             textSize = 14f
-            inputType = if (type == "number") android.text.InputType.TYPE_CLASS_NUMBER
+            inputType = if (numeric) android.text.InputType.TYPE_CLASS_NUMBER
                         else android.text.InputType.TYPE_CLASS_TEXT
         }
 
@@ -256,12 +250,10 @@ class StoreFragment : Fragment() {
 
     private fun showTimePicker() {
         val current = binding.tvClosingTime.text?.toString() ?: "21:00"
-        val parts = current.split(":")
-        val hour = parts.getOrNull(0)?.toIntOrNull() ?: 21
-        val minute = parts.getOrNull(1)?.toIntOrNull() ?: 0
+        val minutes = current.toClockMinutes(defaultHour = 21)
         TimePickerDialog(requireContext(), { _, h, m ->
-            binding.tvClosingTime.text = "%02d:%02d".format(h, m)
-        }, hour, minute, true).show()
+            binding.tvClosingTime.text = (h * 60 + m).toClockTime()
+        }, minutes / 60, minutes % 60, true).show()
     }
 
     // ── 유틸 ──────────────────────────────────────────────────

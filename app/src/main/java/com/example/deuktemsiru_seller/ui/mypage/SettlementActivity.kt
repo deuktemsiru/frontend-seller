@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.databinding.ActivitySettlementBinding
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.SettlementWithdrawRequest
+import com.example.deuktemsiru_seller.util.toWon
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -18,6 +19,7 @@ class SettlementActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettlementBinding
     private var currentOffset = 0
+    private var currentSettlementAmount: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +59,7 @@ class SettlementActivity : AppCompatActivity() {
         binding.tvTotalSales.text = "—"
         binding.tvCommission.text = "—"
         binding.tvSettlementAmount.text = "—"
+        currentSettlementAmount = null
 
         lifecycleScope.launch {
             runCatching {
@@ -69,9 +72,10 @@ class SettlementActivity : AppCompatActivity() {
                 val commission = settlementItem?.platformFee ?: 0
                 val settlement = settlementItem?.settlementAmount ?: 0
 
-                binding.tvTotalSales.text = "%,d원".format(total)
-                binding.tvCommission.text = "%,d원".format(commission)
-                binding.tvSettlementAmount.text = "%,d원".format(settlement)
+                currentSettlementAmount = settlement
+                binding.tvTotalSales.text = total.toWon()
+                binding.tvCommission.text = commission.toWon()
+                binding.tvSettlementAmount.text = settlement.toWon()
             }.onFailure {
                 Toast.makeText(this@SettlementActivity, "데이터를 불러올 수 없어요.", Toast.LENGTH_SHORT).show()
             }
@@ -79,16 +83,16 @@ class SettlementActivity : AppCompatActivity() {
     }
 
     private fun showWithdrawDialog() {
-        val amount = binding.tvSettlementAmount.text.toString()
-        if (amount == "—") {
+        val numericAmount = currentSettlementAmount
+        if (numericAmount == null) {
             Toast.makeText(this, "정산 데이터를 불러오는 중이에요.", Toast.LENGTH_SHORT).show()
             return
         }
-        val numericAmount = amount.replace(",", "").replace("원", "").toIntOrNull() ?: 0
         if (numericAmount <= 0) {
             Toast.makeText(this, "출금 가능한 금액이 없어요.", Toast.LENGTH_SHORT).show()
             return
         }
+        val amount = numericAmount.toWon()
         AlertDialog.Builder(this)
             .setTitle("출금 신청")
             .setMessage("정산 예정금액 ${amount}을 출금 신청하시겠어요?\n\n영업일 기준 3–5일 이내 등록된 계좌로 입금됩니다.")

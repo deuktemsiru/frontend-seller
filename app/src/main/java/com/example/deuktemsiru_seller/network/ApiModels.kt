@@ -66,6 +66,8 @@ data class SaleItemApiResponse(
         get() = pickupTimeSlot
             ?: if (pickupStart != null && pickupEnd != null) "$pickupStart~$pickupEnd"
             else pickupStart ?: pickupEnd ?: ""
+
+    val saleStatus: SaleStatus get() = SaleStatus.from(status)
 }
 
 // 상품 목록 래퍼 (GET /sellers/products → data.products)
@@ -93,16 +95,16 @@ data class UpdateSaleItemRequest(
 data class MenuItemApiResponse(
     @SerializedName("menuItemId") val id: Long,
     val name: String,
-    val emoji: String = "🍽️",
+    val emoji: String? = null,
     val imageUrl: String? = null,
     val originalPrice: Int,
-)
+) {
+    val displayEmoji: String get() = emoji ?: "🍽️"
+}
 
 data class MenuItemRequest(
     val name: String,
-    val emoji: String,
     val originalPrice: Int,
-    val costPrice: Int? = null,
     @SerializedName("allergenInfo") val allergyInfo: String? = null,
 )
 
@@ -133,7 +135,9 @@ data class OrderApiResponse(
     @SerializedName("totalPrice") val totalAmount: Int,
     val createdAt: String = "",
     val items: List<OrderItemApiResponse>,
-) : Serializable
+) : Serializable {
+    val orderStatus: OrderStatus get() = OrderStatus.from(status)
+}
 
 // 주문 목록 래퍼 (GET /sellers/orders → data.orders)
 data class UpdateOrderStatusRequest(val status: String)
@@ -198,7 +202,7 @@ data class SalesApiResponse(
     @SerializedName("totalAmount") val todaySales: Int = 0,
     @SerializedName("totalOrders") val todayOrderCount: Int = 0,
     @SerializedName("chartData") val salesData: List<DailySales> = emptyList(),
-    @SerializedName("topProducts") val topMenus: List<TopMenu> = emptyList(),
+    @SerializedName(value = "topProducts", alternate = ["topMenus"]) val topMenus: List<TopMenu> = emptyList(),
     val carbonSavedKg: Float? = null,
 )
 

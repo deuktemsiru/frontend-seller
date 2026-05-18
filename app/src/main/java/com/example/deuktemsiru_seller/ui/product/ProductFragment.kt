@@ -2,6 +2,7 @@ package com.example.deuktemsiru_seller.ui.product
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,15 +18,25 @@ import com.example.deuktemsiru_seller.databinding.FragmentProductBinding
 import com.example.deuktemsiru_seller.databinding.ItemSaleItemBinding
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.SaleItemApiResponse
+import com.example.deuktemsiru_seller.network.SaleStatus
 import com.example.deuktemsiru_seller.network.UpdateSaleItemRequest
 import com.example.deuktemsiru_seller.network.UpdateSaleStatusRequest
+import com.example.deuktemsiru_seller.ui.auth.LoginActivity
+import com.example.deuktemsiru_seller.util.emptyTextView
+import com.example.deuktemsiru_seller.util.renderChildren
+import com.example.deuktemsiru_seller.util.toWon
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 class ProductFragment : Fragment() {
 
     private var _binding: FragmentProductBinding? = null
     private val binding get() = _binding!!
     private lateinit var session: SessionManager
+
+    private companion object {
+        const val TAG = "ProductFragment"
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentProductBinding.inflate(inflater, container, false)
@@ -52,29 +63,45 @@ class ProductFragment : Fragment() {
             runCatching {
                 val items = RetrofitClient.api.getSaleItems().data ?: emptyList()
                 renderItems(items)
-            }.onFailure {
+            }.onFailure { error ->
+                if (handleAuthFailure(error)) return@onFailure
+                if (error is HttpException && error.code() == 404) {
+                    renderItems(emptyList())
+                    return@onFailure
+                }
+                Log.e(TAG, "Failed to load sale items", error)
                 Toast.makeText(requireContext(), "상품 목록을 불러올 수 없어요", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
+    private fun handleAuthFailure(error: Throwable): Boolean {
+        if (error !is HttpException || error.code() !in listOf(401, 403)) return false
+        session.clear()
+        Toast.makeText(requireContext(), "판매자 계정으로 다시 로그인해주세요.", Toast.LENGTH_SHORT).show()
+        startActivity(
+            Intent(requireContext(), LoginActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+        )
+        return true
+    }
+
     private fun renderItems(items: List<SaleItemApiResponse>) {
-        binding.saleItemsContainer.removeAllViews()
-        if (items.isEmpty()) {
-            binding.saleItemsContainer.addView(emptyView())
-            return
-        }
-        items.forEach { item ->
+        binding.saleItemsContainer.renderChildren(
+            items = items,
+            emptyView = ::emptyView,
+        ) { item ->
             val itemBinding = ItemSaleItemBinding.inflate(layoutInflater, binding.saleItemsContainer, false)
             itemBinding.tvItemEmoji.text = item.emoji
             itemBinding.tvItemName.text = item.name
             itemBinding.tvItemDetail.text =
-                "${"%,d원".format(item.discountedPrice)} · 잔여 ${item.remainingItems}/${item.totalItems}개 · ${item.displayPickupTime}"
+                "${item.discountedPrice.toWon()} · 잔여 ${item.remainingItems}/${item.totalItems}개 · ${item.displayPickupTime}"
 
-            val (statusText, badgeBackground, badgeTextColor) = when (item.status) {
-                "AVAILABLE" -> Triple("● 판매중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
-                "SOLD_OUT"  -> Triple("● 품절", R.drawable.bg_status_soldout, 0xFFE65100.toInt())
-                "EXPIRED"   -> Triple("종료", R.drawable.bg_status_expired, 0xFF616161.toInt())
+            val (statusText, badgeBackground, badgeTextColor) = when (item.saleStatus) {
+                SaleStatus.Available -> Triple("● 판매중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
+                SaleStatus.SoldOut -> Triple("● 품절", R.drawable.bg_status_soldout, 0xFFE65100.toInt())
+                SaleStatus.Expired -> Triple("종료", R.drawable.bg_status_expired, 0xFF616161.toInt())
                 else        -> Triple(item.status, R.drawable.bg_status_expired, 0xFF616161.toInt())
             }
             itemBinding.tvItemStatus.text = statusText
@@ -93,13 +120,13 @@ class ProductFragment : Fragment() {
             }
 
             itemBinding.btnEdit.setOnClickListener { showEditDialog(item) }
-            itemBinding.btnStatusAvailable.setOnClickListener { updateStatus(item.id, "AVAILABLE") }
-            itemBinding.btnStatusSoldout.setOnClickListener { updateStatus(item.id, "SOLD_OUT") }
-            val isFinal = item.status == "EXPIRED" || item.status == "SOLD_OUT"
+            itemBinding.btnStatusAvailable.setOnClickListener { updateStatus(item.id, SaleStatus.Available.apiValue) }
+            itemBinding.btnStatusSoldout.setOnClickListener { updateStatus(item.id, SaleStatus.SoldOut.apiValue) }
+            val isFinal = item.saleStatus.isFinal
             itemBinding.btnCancel.text = if (isFinal) "삭제" else "취소"
             itemBinding.btnCancel.setOnClickListener { confirmCancel(item) }
-            styleButton(itemBinding.btnStatusAvailable, item.status == "AVAILABLE")
-            styleButton(itemBinding.btnStatusSoldout, item.status == "SOLD_OUT")
+            styleButton(itemBinding.btnStatusAvailable, item.saleStatus == SaleStatus.Available)
+            styleButton(itemBinding.btnStatusSoldout, item.saleStatus == SaleStatus.SoldOut)
             styleButton(itemBinding.btnCancel, false)
             itemBinding.btnStatusAvailable.isEnabled = !isFinal
             itemBinding.btnStatusSoldout.isEnabled = !isFinal
@@ -108,7 +135,7 @@ class ProductFragment : Fragment() {
             itemBinding.btnStatusSoldout.alpha = if (isFinal) 0.35f else 1f
             itemBinding.btnCancel.alpha = 1f
 
-            binding.saleItemsContainer.addView(itemBinding.root)
+            itemBinding.root
         }
     }
 
@@ -180,7 +207,7 @@ class ProductFragment : Fragment() {
     }
 
     private fun confirmCancel(item: SaleItemApiResponse) {
-        val isFinal = item.status == "EXPIRED" || item.status == "SOLD_OUT"
+        val isFinal = item.saleStatus.isFinal
         val actionLabel = if (isFinal) "삭제" else "취소"
         AlertDialog.Builder(requireContext())
             .setTitle("상품 $actionLabel")
@@ -200,12 +227,11 @@ class ProductFragment : Fragment() {
             .show()
     }
 
-    private fun emptyView(): View = android.widget.TextView(requireContext()).apply {
-        text = "오늘 등록된 상품이 없어요\n아래 '+ 상품 등록' 버튼을 눌러 등록해보세요"
-        textSize = 13f
-        setTextColor(ContextCompat.getColor(requireContext(), R.color.text_sub))
-        gravity = android.view.Gravity.CENTER
-        setPadding(0, 60, 0, 60)
+    private fun emptyView(): View = requireContext().emptyTextView(
+        message = "오늘 등록된 상품이 없어요\n아래 '+ 상품 등록' 버튼을 눌러 등록해보세요",
+        verticalPaddingDp = 60,
+        centered = true,
+    ).apply {
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 

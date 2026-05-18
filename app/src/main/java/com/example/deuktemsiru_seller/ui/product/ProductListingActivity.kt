@@ -2,8 +2,6 @@ package com.example.deuktemsiru_seller.ui.product
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.app.TimePickerDialog
 import android.view.LayoutInflater
 import android.view.View
@@ -21,7 +19,16 @@ import com.example.deuktemsiru_seller.network.MenuItemApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.SaleItemCreateRequest
 import com.example.deuktemsiru_seller.ui.registration.MenuRegistrationActivity
+import com.example.deuktemsiru_seller.util.PickupTimeState
+import com.example.deuktemsiru_seller.util.emptyTextView
+import com.example.deuktemsiru_seller.util.renderChildren
+import com.example.deuktemsiru_seller.util.setSelectedChip
+import com.example.deuktemsiru_seller.util.simpleTextWatcher
+import com.example.deuktemsiru_seller.util.toWon
+import com.example.deuktemsiru_seller.util.toast
+import com.example.deuktemsiru_seller.util.visibleIf
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class ProductListingActivity : AppCompatActivity() {
 
@@ -33,8 +40,7 @@ class ProductListingActivity : AppCompatActivity() {
     private var selectedDiscountRate = 20
     private var selectedPriceMode: String = "rate"
     private var selectedQuantity = 5
-    private var pickupStartMinutes = 16 * 60 + 30
-    private var pickupEndMinutes = 18 * 60
+    private val pickupTime = PickupTimeState()
     private var reloadMenusOnResume = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,22 +103,14 @@ class ProductListingActivity : AppCompatActivity() {
 
     private fun setupStep1(view: View) {
         val container = view.findViewById<android.widget.LinearLayout>(R.id.menu_list_container)
-        container.removeAllViews()
-
-        if (menus.isEmpty()) {
-            val empty = TextView(this).apply {
-                text = "등록된 메뉴가 없어요. 먼저 메뉴를 추가해주세요."
-                textSize = 13f
-                setTextColor(getColor(R.color.text_sub))
-                setPadding(0, 16, 0, 16)
-            }
-            container.addView(empty)
-        } else {
-            menus.forEach { menu ->
+        container.renderChildren(
+            items = menus,
+            emptyView = { emptyTextView("등록된 메뉴가 없어요. 먼저 메뉴를 추가해주세요.") },
+        ) { menu ->
                 val itemBinding = ItemChooseMenuBinding.inflate(LayoutInflater.from(this), container, false)
-                itemBinding.tvMenuEmoji.text = menu.emoji
+                itemBinding.tvMenuEmoji.text = menu.displayEmoji
                 itemBinding.tvMenuName.text = menu.name
-                itemBinding.tvMenuPrice.text = "%,d원".format(menu.originalPrice)
+                itemBinding.tvMenuPrice.text = menu.originalPrice.toWon()
                 updateMenuSelection(itemBinding, menu == selectedMenu)
                 itemBinding.root.setOnClickListener {
                     selectedMenu = if (selectedMenu?.id == menu.id) null else menu
@@ -129,8 +127,7 @@ class ProductListingActivity : AppCompatActivity() {
                 itemBinding.btnDeleteMenu.setOnClickListener {
                     confirmDeleteMenu(menu)
                 }
-                container.addView(itemBinding.root)
-            }
+                itemBinding.root
         }
 
         view.findViewById<TextView>(R.id.btn_new_menu).setOnClickListener {
@@ -150,9 +147,9 @@ class ProductListingActivity : AppCompatActivity() {
 
     private fun setupStep2(view: View) {
         val menu = selectedMenu ?: return
-        view.findViewById<TextView>(R.id.tv_selected_emoji).text = menu.emoji
+        view.findViewById<TextView>(R.id.tv_selected_emoji).text = menu.displayEmoji
         view.findViewById<TextView>(R.id.tv_selected_name).text = menu.name
-        view.findViewById<TextView>(R.id.tv_selected_price).text = "정상가 %,d원".format(menu.originalPrice)
+        view.findViewById<TextView>(R.id.tv_selected_price).text = "정상가 ${menu.originalPrice.toWon()}"
 
         val layoutRateMode = view.findViewById<android.widget.LinearLayout>(R.id.layout_rate_mode)
         val layoutPriceMode = view.findViewById<android.widget.LinearLayout>(R.id.layout_price_mode)
@@ -161,20 +158,14 @@ class ProductListingActivity : AppCompatActivity() {
 
         fun updateModeUI() {
             if (selectedPriceMode == "rate") {
-                layoutRateMode.visibility = android.view.View.VISIBLE
-                layoutPriceMode.visibility = android.view.View.GONE
-                btnModeRate.setBackgroundResource(R.drawable.bg_discount_preset_selected)
-                btnModeRate.setTextColor(getColor(R.color.white))
-                btnModePrice.setBackgroundResource(R.drawable.bg_discount_preset_normal)
-                btnModePrice.setTextColor(getColor(R.color.text_sub))
+                layoutRateMode.visibleIf(true)
+                layoutPriceMode.visibleIf(false)
             } else {
-                layoutRateMode.visibility = android.view.View.GONE
-                layoutPriceMode.visibility = android.view.View.VISIBLE
-                btnModePrice.setBackgroundResource(R.drawable.bg_discount_preset_selected)
-                btnModePrice.setTextColor(getColor(R.color.white))
-                btnModeRate.setBackgroundResource(R.drawable.bg_discount_preset_normal)
-                btnModeRate.setTextColor(getColor(R.color.text_sub))
+                layoutRateMode.visibleIf(false)
+                layoutPriceMode.visibleIf(true)
             }
+            btnModeRate.setSelectedChip(selectedPriceMode == "rate")
+            btnModePrice.setSelectedChip(selectedPriceMode == "price")
         }
 
         updateModeUI()
@@ -197,21 +188,15 @@ class ProductListingActivity : AppCompatActivity() {
             val rate = etDiscount.text?.toString()?.toIntOrNull() ?: 0
             selectedDiscountRate = rate
             val discounted = menu.originalPrice * (100 - rate) / 100
-            tvDiscounted.text = "%,d원".format(discounted)
+            tvDiscounted.text = discounted.toWon()
             presetIds.forEach { (d, tv) ->
-                val sel = d == rate
-                tv.setBackgroundResource(if (sel) R.drawable.bg_discount_preset_selected else R.drawable.bg_discount_preset_normal)
-                tv.setTextColor(getColor(if (sel) R.color.white else R.color.text_sub))
+                tv.setSelectedChip(d == rate)
             }
         }
 
         etDiscount.setText(selectedDiscountRate.toString())
         refreshDiscount()
-        etDiscount.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = refreshDiscount()
-            override fun afterTextChanged(s: Editable?) = Unit
-        })
+        etDiscount.addTextChangedListener(simpleTextWatcher { refreshDiscount() })
         presetIds.forEach { (d, tv) ->
             tv.setOnClickListener {
                 selectedDiscountRate = d
@@ -242,8 +227,8 @@ class ProductListingActivity : AppCompatActivity() {
         }
 
         fun refreshPickupViews() {
-            tvStart.text = formatTime(pickupStartMinutes)
-            tvEnd.text = formatTime(pickupEndMinutes)
+            tvStart.text = pickupTime.startLabel
+            tvEnd.text = pickupTime.endLabel
         }
 
         fun showTimePicker(initialMinutes: Int, onPicked: (Int) -> Unit) {
@@ -254,25 +239,25 @@ class ProductListingActivity : AppCompatActivity() {
         }
 
         fun setDuration(minutes: Int) {
-            pickupEndMinutes = (pickupStartMinutes + minutes).coerceAtMost(23 * 60 + 59)
+            pickupTime.setDuration(minutes)
             highlightContainer(containerEnd, containerStart)
             refreshPickupViews()
         }
 
         containerStart.setOnClickListener {
             highlightContainer(containerStart, containerEnd)
-            showTimePicker(pickupStartMinutes) { picked ->
-                pickupStartMinutes = picked
-                if (pickupEndMinutes <= pickupStartMinutes) pickupEndMinutes = (pickupStartMinutes + 60).coerceAtMost(23 * 60 + 59)
+            showTimePicker(pickupTime.startMinutes) { picked ->
+                pickupTime.startMinutes = picked
+                pickupTime.ensureEndAfterStart(minDurationMinutes = 60)
             }
         }
         containerEnd.setOnClickListener {
             highlightContainer(containerEnd, containerStart)
-            showTimePicker(pickupEndMinutes) { picked ->
-                if (picked <= pickupStartMinutes) {
+            showTimePicker(pickupTime.endMinutes) { picked ->
+                if (picked <= pickupTime.startMinutes) {
                     Toast.makeText(this, "마감 시간은 시작 시간보다 늦어야 해요.", Toast.LENGTH_SHORT).show()
                 } else {
-                    pickupEndMinutes = picked
+                    pickupTime.endMinutes = picked
                 }
             }
         }
@@ -288,36 +273,17 @@ class ProductListingActivity : AppCompatActivity() {
             loadStep(2)
         } else {
             if (selectedPriceMode == "rate" && selectedDiscountRate !in 1..99) { Toast.makeText(this, "1~99 사이의 할인율을 입력해주세요", Toast.LENGTH_SHORT).show(); return }
-            if (pickupEndMinutes <= pickupStartMinutes) { Toast.makeText(this, "픽업 종료 시간이 시작 시간보다 늦어야 해요.", Toast.LENGTH_SHORT).show(); return }
+            if (pickupTime.endMinutes <= pickupTime.startMinutes) { Toast.makeText(this, "픽업 종료 시간이 시작 시간보다 늦어야 해요.", Toast.LENGTH_SHORT).show(); return }
             registerProduct()
         }
     }
 
     private fun registerProduct() {
         val menu = selectedMenu ?: return
-        binding.btnNext.isEnabled = false
-        binding.btnNext.text = "등록 중..."
+        setSubmitting(true)
         lifecycleScope.launch {
             try {
-                val discountPrice = if (selectedPriceMode == "price") {
-                    val stepView = binding.stepContainer.getChildAt(0) ?: return@launch
-                    val price = stepView.findViewById<android.widget.EditText>(R.id.et_direct_price)
-                        ?.text?.toString()?.toIntOrNull() ?: run {
-                        Toast.makeText(this@ProductListingActivity, "할인가를 입력해주세요", Toast.LENGTH_SHORT).show()
-                        binding.btnNext.isEnabled = true
-                        binding.btnNext.text = "상품 등록"
-                        return@launch
-                    }
-                    if (price <= 0 || price >= menu.originalPrice) {
-                        Toast.makeText(this@ProductListingActivity, "할인가는 정가보다 낮은 1원 이상이어야 해요.", Toast.LENGTH_SHORT).show()
-                        binding.btnNext.isEnabled = true
-                        binding.btnNext.text = "상품 등록"
-                        return@launch
-                    }
-                    price
-                } else {
-                    menu.originalPrice * (100 - selectedDiscountRate) / 100
-                }
+                val discountPrice = resolveDiscountPrice(menu) ?: return@launch
                 val response = RetrofitClient.api.createSaleItem(
                     SaleItemCreateRequest(
                         menuItemId = menu.id,
@@ -325,9 +291,9 @@ class ProductListingActivity : AppCompatActivity() {
                         discountPrice = discountPrice,
                         originalPrice = menu.originalPrice,
                         quantityTotal = selectedQuantity,
-                        pickupStart = formatTime(pickupStartMinutes),
-                        pickupEnd = formatTime(pickupEndMinutes),
-                        availableDate = java.time.LocalDate.now().toString(),
+                        pickupStart = pickupTime.startLabel,
+                        pickupEnd = pickupTime.endLabel,
+                        availableDate = LocalDate.now().toString(),
                     ),
                 )
                 if (response.code !in 200..299 || response.data == null) {
@@ -342,10 +308,36 @@ class ProductListingActivity : AppCompatActivity() {
                 finish()
             } catch (e: Exception) {
                 Toast.makeText(this@ProductListingActivity, "등록에 실패했어요", Toast.LENGTH_SHORT).show()
-                binding.btnNext.isEnabled = true
-                binding.btnNext.text = "상품 등록"
+                setSubmitting(false)
             }
         }
+    }
+
+    private fun resolveDiscountPrice(menu: MenuItemApiResponse): Int? {
+        if (selectedPriceMode != "price") {
+            return menu.originalPrice * (100 - selectedDiscountRate) / 100
+        }
+        val stepView = binding.stepContainer.getChildAt(0) ?: return null
+        val price = stepView.findViewById<android.widget.EditText>(R.id.et_direct_price)
+            ?.text?.toString()?.toIntOrNull()
+        return when {
+            price == null -> {
+                toast("할인가를 입력해주세요")
+                setSubmitting(false)
+                null
+            }
+            price <= 0 || price >= menu.originalPrice -> {
+                toast("할인가는 정가보다 낮은 1원 이상이어야 해요.")
+                setSubmitting(false)
+                null
+            }
+            else -> price
+        }
+    }
+
+    private fun setSubmitting(submitting: Boolean) {
+        binding.btnNext.isEnabled = !submitting
+        binding.btnNext.text = if (submitting) "등록 중..." else "상품 등록"
     }
 
     private fun confirmDeleteMenu(menu: MenuItemApiResponse) {
@@ -368,6 +360,4 @@ class ProductListingActivity : AppCompatActivity() {
             .setNegativeButton("취소", null)
             .show()
     }
-
-    private fun formatTime(minutes: Int) = "%02d:%02d".format(minutes / 60, minutes % 60)
 }

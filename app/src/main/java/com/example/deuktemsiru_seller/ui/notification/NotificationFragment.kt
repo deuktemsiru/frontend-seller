@@ -1,8 +1,6 @@
 package com.example.deuktemsiru_seller.ui.notification
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,10 +13,13 @@ import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.R
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.FragmentNotificationBinding
+import com.example.deuktemsiru_seller.network.NotificationTarget
 import com.example.deuktemsiru_seller.network.NotificationApiResponse
 import com.example.deuktemsiru_seller.util.dp
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.SendNotificationRequest
+import com.example.deuktemsiru_seller.util.renderChildren
+import com.example.deuktemsiru_seller.util.simpleTextWatcher
 import kotlinx.coroutines.launch
 
 class NotificationFragment : Fragment() {
@@ -26,10 +27,8 @@ class NotificationFragment : Fragment() {
     private var _binding: FragmentNotificationBinding? = null
     private val binding get() = _binding!!
 
-    private var selectedTarget = "regular" // "regular" or "nearby"
+    private var selectedTarget = NotificationTarget.Regular
     private var selectedRadiusKm = 3
-
-    private val defaultPhrases: MutableList<String> by lazy { loadPhrases() }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentNotificationBinding.inflate(inflater, container, false)
@@ -67,11 +66,11 @@ class NotificationFragment : Fragment() {
         updateTargetUI()
 
         binding.optionRegular.setOnClickListener {
-            selectedTarget = "regular"
+            selectedTarget = NotificationTarget.Regular
             updateTargetUI()
         }
         binding.optionNearby.setOnClickListener {
-            selectedTarget = "nearby"
+            selectedTarget = NotificationTarget.Nearby
             updateTargetUI()
         }
 
@@ -81,7 +80,7 @@ class NotificationFragment : Fragment() {
     }
 
     private fun updateTargetUI() {
-        val isRegular = selectedTarget == "regular"
+        val isRegular = selectedTarget == NotificationTarget.Regular
         binding.optionRegular.setBackgroundResource(if (isRegular) R.drawable.bg_card_primary_border else R.drawable.bg_card_white)
         binding.optionNearby.setBackgroundResource(if (!isRegular) R.drawable.bg_card_primary_border else R.drawable.bg_card_white)
         binding.indicatorRegular.setBackgroundResource(if (isRegular) R.drawable.bg_rounded_primary else R.drawable.bg_rounded_muted)
@@ -111,14 +110,9 @@ class NotificationFragment : Fragment() {
     }
 
     private fun setupMessageInput() {
-        binding.etMessage.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                val count = s?.length ?: 0
-                binding.tvCharCount.text = "$count/40"
-                binding.tvPreviewMessage.text = s?.toString() ?: ""
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        binding.etMessage.addTextChangedListener(simpleTextWatcher { text ->
+            binding.tvCharCount.text = "${text.length}/40"
+            binding.tvPreviewMessage.text = text
         })
     }
 
@@ -158,8 +152,10 @@ class NotificationFragment : Fragment() {
     }
 
     private fun renderPhraseChips() {
-        binding.phraseChipsContainer.removeAllViews()
-        defaultPhrases.forEach { phrase ->
+        binding.phraseChipsContainer.renderChildren(
+            items = loadPhrases(),
+            emptyView = { View(requireContext()) },
+        ) { phrase ->
             val chip = TextView(requireContext()).apply {
                 text = phrase
                 textSize = 12f
@@ -183,7 +179,7 @@ class NotificationFragment : Fragment() {
                     }
                 }
             }
-            binding.phraseChipsContainer.addView(chip)
+            chip
         }
     }
 
@@ -191,10 +187,10 @@ class NotificationFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 val result = RetrofitClient.api.sendNotification(
-                    SendNotificationRequest(
-                        message = message,
-                        targetType = if (selectedTarget == "nearby") "NEARBY" else "REGULAR",
-                        radiusKm = if (selectedTarget == "nearby") selectedRadiusKm else null,
+                        SendNotificationRequest(
+                            message = message,
+                        targetType = selectedTarget.apiValue,
+                        radiusKm = if (selectedTarget == NotificationTarget.Nearby) selectedRadiusKm else null,
                     )
                 ).data
                 Toast.makeText(requireContext(), "${result?.recipientCount ?: 0}명에게 발송 완료!", Toast.LENGTH_LONG).show()
@@ -217,16 +213,11 @@ class NotificationFragment : Fragment() {
     }
 
     private fun renderHistory(items: List<NotificationApiResponse>) {
-        binding.notificationHistoryContainer.removeAllViews()
-        if (items.isEmpty()) {
-            binding.notificationHistoryContainer.addView(historyText("아직 발송한 알림이 없어요"))
-            return
-        }
-        items.take(5).forEach { item ->
-            binding.notificationHistoryContainer.addView(
-                historyText("${item.message}\n${item.recipientCount}명 대상 · ${formatSentAt(item.sentAt)}")
-            )
-        }
+        binding.notificationHistoryContainer.renderChildren(
+            items = items.take(5),
+            emptyView = { historyText("아직 발송한 알림이 없어요") },
+            itemView = { item -> historyText("${item.message}\n${item.recipientCount}명 대상 · ${formatSentAt(item.sentAt)}") },
+        )
     }
 
     private fun historyText(text: String): TextView = TextView(requireContext()).apply {

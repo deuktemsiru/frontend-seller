@@ -10,10 +10,13 @@ import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.R
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.BottomSheetOrderDetailBinding
+import com.example.deuktemsiru_seller.network.OrderStatus
 import com.example.deuktemsiru_seller.network.OrderApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.UpdateOrderStatusRequest
 import com.example.deuktemsiru_seller.util.LocalNotificationHelper
+import com.example.deuktemsiru_seller.util.renderChildren
+import com.example.deuktemsiru_seller.util.toWon
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 
@@ -25,11 +28,6 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
     private lateinit var session: SessionManager
 
     companion object {
-        private const val STATUS_NEW = "PENDING"
-        private const val STATUS_CONFIRMED = "CONFIRMED"
-        private const val STATUS_PICKED_UP = "PICKED_UP"
-        private const val STATUS_CANCELLED = "CANCELLED"
-
         fun newInstance(order: OrderApiResponse) = OrderDetailBottomSheet().apply {
             arguments = Bundle().apply { putSerializable("order", order) }
         }
@@ -71,34 +69,36 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
 
         binding.tvPickupTime.text = order.pickupTime ?: ""
         binding.tvPickupCode.text = order.pickupCode?.chunked(2)?.joinToString("-") ?: "-"
-        binding.tvTotalAmount.text = "%,d원".format(order.totalAmount)
+        binding.tvTotalAmount.text = order.totalAmount.toWon()
 
-        val (statusText, statusBg, statusColor) = when (order.status.uppercase()) {
-            STATUS_NEW -> Triple("신규 주문", R.drawable.bg_status_soldout, 0xFFE65100.toInt())
-            STATUS_CONFIRMED -> Triple("준비 중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
-            STATUS_PICKED_UP -> Triple("픽업 완료", R.drawable.bg_status_expired, 0xFF757575.toInt())
-            STATUS_CANCELLED -> Triple("취소됨", R.drawable.bg_status_expired, 0xFF757575.toInt())
+        val (statusText, statusBg, statusColor) = when (order.orderStatus) {
+            OrderStatus.Pending -> Triple("신규 주문", R.drawable.bg_status_soldout, 0xFFE65100.toInt())
+            OrderStatus.Confirmed -> Triple("준비 중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
+            OrderStatus.PickedUp -> Triple("픽업 완료", R.drawable.bg_status_expired, 0xFF757575.toInt())
+            OrderStatus.Cancelled -> Triple("취소됨", R.drawable.bg_status_expired, 0xFF757575.toInt())
             else -> Triple(order.status, R.drawable.bg_status_expired, 0xFF757575.toInt())
         }
         binding.tvStatusBadge.text = statusText
         binding.tvStatusBadge.setBackgroundResource(statusBg)
         binding.tvStatusBadge.setTextColor(statusColor)
 
-        binding.itemsContainer.removeAllViews()
-        order.items.forEach { item ->
+        binding.itemsContainer.renderChildren(
+            items = order.items,
+            emptyView = { TextView(requireContext()) },
+        ) { item ->
             val row = TextView(requireContext()).apply {
                 val emojiPart = item.emoji?.let { "$it " } ?: ""
-                text = "$emojiPart${item.name}  ×${item.quantity}  %,d원".format(item.price * item.quantity)
+                text = "$emojiPart${item.name}  ×${item.quantity}  ${(item.price * item.quantity).toWon()}"
                 textSize = 14f
                 setTextColor(requireContext().getColor(R.color.text))
                 setPadding(0, 4, 0, 4)
             }
-            binding.itemsContainer.addView(row)
+            row
         }
 
-        val (actionText, nextStatus) = when (order.status.uppercase()) {
-            STATUS_NEW -> "수락하기" to STATUS_CONFIRMED
-            STATUS_CONFIRMED -> "픽업 완료 처리" to STATUS_PICKED_UP
+        val (actionText, nextStatus) = when (order.orderStatus) {
+            OrderStatus.Pending -> "수락하기" to OrderStatus.Confirmed
+            OrderStatus.Confirmed -> "픽업 완료 처리" to OrderStatus.PickedUp
             else -> null to null
         }
 
@@ -111,16 +111,16 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private fun performAction(nextStatus: String) {
+    private fun performAction(nextStatus: OrderStatus) {
         binding.btnAction.isEnabled = false
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 RetrofitClient.api.updateOrderStatus(
-                    order.id, UpdateOrderStatusRequest(nextStatus)
+                    order.id, UpdateOrderStatusRequest(nextStatus.apiValue)
                 )
                 val (title, body) = when (nextStatus) {
-                    STATUS_CONFIRMED -> "🛍️ 주문 수락됨" to (order.orderNumber ?: "")
-                    STATUS_PICKED_UP -> "🎉 픽업 완료" to "+%,d원".format(order.totalAmount)
+                    OrderStatus.Confirmed -> "🛍️ 주문 수락됨" to (order.orderNumber ?: "")
+                    OrderStatus.PickedUp -> "🎉 픽업 완료" to "+${order.totalAmount.toWon()}"
                     else -> "" to ""
                 }
                 if (title.isNotEmpty()) LocalNotificationHelper.show(requireContext(), title, body)
@@ -136,9 +136,9 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private fun statusToTabIndex(status: String) = when (status) {
-        STATUS_CONFIRMED -> 1
-        STATUS_PICKED_UP -> 3
+    private fun statusToTabIndex(status: OrderStatus) = when (status) {
+        OrderStatus.Confirmed -> 1
+        OrderStatus.PickedUp -> 3
         else -> 0
     }
 

@@ -11,6 +11,7 @@ import com.example.deuktemsiru_seller.MainActivity
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityLoginBinding
 import com.example.deuktemsiru_seller.network.DebugLoginRequest
+import com.example.deuktemsiru_seller.network.LoginData
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
@@ -77,11 +78,7 @@ class LoginActivity : AppCompatActivity() {
             }.onSuccess { response ->
                 val loginData = response.data
                 if (loginData != null) {
-                    session.memberId = loginData.member.memberId
-                    session.nickname = loginData.member.nickname
-                    session.accessToken = loginData.accessToken
-                    session.refreshToken = loginData.refreshToken
-                    navigateToMain()
+                    saveLoginData(loginData)
                 } else {
                     showError("디버그 로그인 응답이 올바르지 않습니다.")
                 }
@@ -155,11 +152,7 @@ class LoginActivity : AppCompatActivity() {
             }.onSuccess { response ->
                 val loginData = response.data
                 if (loginData != null) {
-                    session.memberId = loginData.member.memberId
-                    session.nickname = loginData.member.nickname
-                    session.accessToken = loginData.accessToken
-                    session.refreshToken = loginData.refreshToken
-                    navigateToMain()
+                    saveLoginData(loginData)
                 } else {
                     showError("로그인 응답이 올바르지 않습니다.")
                 }
@@ -173,6 +166,19 @@ class LoginActivity : AppCompatActivity() {
     private fun navigateToMain() {
         startActivity(Intent(this, MainActivity::class.java))
         finish()
+    }
+
+    private fun saveLoginData(loginData: LoginData) {
+        if (!loginData.member.role.equals("SELLER", ignoreCase = true)) {
+            session.clear()
+            showError("판매자 계정으로 로그인해주세요.")
+            return
+        }
+        session.memberId = loginData.member.memberId
+        session.nickname = loginData.member.nickname
+        session.accessToken = loginData.accessToken
+        session.refreshToken = loginData.refreshToken
+        navigateToMain()
     }
 
     private fun Throwable.isUserCancelled() =

@@ -5,8 +5,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
@@ -21,6 +19,10 @@ import com.example.deuktemsiru_seller.R
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityMenuRegistrationBinding
 import com.example.deuktemsiru_seller.network.RetrofitClient
+import com.example.deuktemsiru_seller.util.PickupTimeState
+import com.example.deuktemsiru_seller.util.setSelectedChip
+import com.example.deuktemsiru_seller.util.simpleTextWatcher
+import com.example.deuktemsiru_seller.util.toWon
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -43,8 +45,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
     private var selectedAllergyInfo: String? = null
     private var selectedDiscountRate = 0
     private var selectedQuantity = 5
-    private var pickupStartMinutes = 16 * 60 + 30
-    private var pickupEndMinutes = 18 * 60
+    private val pickupTime = PickupTimeState()
     private var currentStepView: View? = null
 
     private val imagePicker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -176,7 +177,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
             tvSummary.text = if (name.isBlank() || price <= 0) {
                 "메뉴 정보를 입력해주세요"
             } else {
-                "$name  ·  ${formatWon(price)}"
+                "$name  ·  ${price.toWon()}"
             }
         }
 
@@ -235,14 +236,14 @@ class MenuRegistrationActivity : AppCompatActivity() {
         val previewImage = view.findViewById<ImageView>(R.id.iv_preview_menu_image)
         selectedImageUri?.let { previewImage.setImageURI(it) }
         view.findViewById<TextView>(R.id.tv_preview_menu_name).text = selectedMenuName
-        view.findViewById<TextView>(R.id.tv_preview_discount_price).text = formatWon(discountedPrice())
+        view.findViewById<TextView>(R.id.tv_preview_discount_price).text = discountedPrice().toWon()
         view.findViewById<TextView>(R.id.tv_preview_discount_rate).text = " ${selectedDiscountRate}%↓"
         view.findViewById<TextView>(R.id.tv_preview_quantity_time).text =
             "잔여 ${selectedQuantity}개 · 픽업 ${pickupTimeLabel()}"
         view.findViewById<TextView>(R.id.tv_summary_menu_name).text = selectedMenuName
-        view.findViewById<TextView>(R.id.tv_summary_original_price).text = formatWon(selectedOriginalPrice)
+        view.findViewById<TextView>(R.id.tv_summary_original_price).text = selectedOriginalPrice.toWon()
         view.findViewById<TextView>(R.id.tv_summary_discount_price).text =
-            "${formatWon(discountedPrice())} (${selectedDiscountRate}% 할인)"
+            "${discountedPrice().toWon()} (${selectedDiscountRate}% 할인)"
         view.findViewById<TextView>(R.id.tv_summary_quantity).text = "${selectedQuantity}개"
         view.findViewById<TextView>(R.id.tv_summary_pickup_time).text = pickupTimeLabel()
     }
@@ -262,17 +263,12 @@ class MenuRegistrationActivity : AppCompatActivity() {
         val tvSellerRecovery = view.findViewById<TextView>(R.id.tv_seller_recovery)
 
         fun refreshPrices() {
-            tvOriginalPrice.text = formatWon(selectedOriginalPrice)
-            tvDiscountPrice.text = formatWon(discountedPrice())
-            tvCustomerSaving.text = formatWon(selectedOriginalPrice - discountedPrice())
-            tvSellerRecovery.text = formatWon(discountedPrice())
+            tvOriginalPrice.text = selectedOriginalPrice.toWon()
+            tvDiscountPrice.text = discountedPrice().toWon()
+            tvCustomerSaving.text = (selectedOriginalPrice - discountedPrice()).toWon()
+            tvSellerRecovery.text = discountedPrice().toWon()
             presetIds.forEach { (discount, presetView) ->
-                val isSelected = discount == selectedDiscountRate
-                presetView.setBackgroundResource(
-                    if (isSelected) R.drawable.bg_discount_preset_selected
-                    else R.drawable.bg_discount_preset_normal
-                )
-                presetView.setTextColor(getColor(if (isSelected) R.color.white else R.color.text_sub))
+                presetView.setSelectedChip(discount == selectedDiscountRate)
             }
         }
 
@@ -334,35 +330,35 @@ class MenuRegistrationActivity : AppCompatActivity() {
         }
 
         view.findViewById<View>(R.id.container_pickup_start).setOnClickListener {
-            showTimePicker(pickupStartMinutes) { minutes ->
-                pickupStartMinutes = minutes
-                if (pickupEndMinutes <= pickupStartMinutes) pickupEndMinutes = (pickupStartMinutes + 30).coerceAtMost(23 * 60 + 59)
+            showTimePicker(pickupTime.startMinutes) { minutes ->
+                pickupTime.startMinutes = minutes
+                pickupTime.ensureEndAfterStart(minDurationMinutes = 30)
                 refreshPickupViews(tvStart, tvEnd)
             }
         }
 
         view.findViewById<View>(R.id.container_pickup_end).setOnClickListener {
-            showTimePicker(pickupEndMinutes) { minutes ->
-                if (minutes <= pickupStartMinutes) {
+            showTimePicker(pickupTime.endMinutes) { minutes ->
+                if (minutes <= pickupTime.startMinutes) {
                     Toast.makeText(this, "마감 시간은 시작 시간보다 늦어야 해요.", Toast.LENGTH_SHORT).show()
                 } else {
-                    pickupEndMinutes = minutes
+                    pickupTime.endMinutes = minutes
                     refreshPickupViews(tvStart, tvEnd)
                 }
             }
         }
 
         view.findViewById<View>(R.id.chip_30min).setOnClickListener {
-            pickupEndMinutes = (pickupStartMinutes + 30).coerceAtMost(23 * 60 + 59)
+            pickupTime.setDuration(30)
             refreshPickupViews(tvStart, tvEnd)
         }
         view.findViewById<View>(R.id.chip_1hour).setOnClickListener {
-            pickupEndMinutes = (pickupStartMinutes + 60).coerceAtMost(23 * 60 + 59)
+            pickupTime.setDuration(60)
             refreshPickupViews(tvStart, tvEnd)
         }
         view.findViewById<View>(R.id.chip_until_close).setOnClickListener {
-            pickupEndMinutes = 21 * 60
-            if (pickupEndMinutes <= pickupStartMinutes) pickupEndMinutes = (pickupStartMinutes + 30).coerceAtMost(23 * 60 + 59)
+            pickupTime.endMinutes = 21 * 60
+            pickupTime.ensureEndAfterStart(minDurationMinutes = 30)
             refreshPickupViews(tvStart, tvEnd)
         }
     }
@@ -374,19 +370,14 @@ class MenuRegistrationActivity : AppCompatActivity() {
     }
 
     private fun refreshPickupViews(tvStart: TextView, tvEnd: TextView) {
-        tvStart.text = formatTime(pickupStartMinutes)
-        tvEnd.text = formatTime(pickupEndMinutes)
+        tvStart.text = pickupTime.startLabel
+        tvEnd.text = pickupTime.endLabel
     }
 
     private fun discountedPrice(): Int = selectedOriginalPrice * (100 - selectedDiscountRate) / 100
 
     private fun pickupTimeLabel(): String =
-        "${formatTime(pickupStartMinutes)} – ${formatTime(pickupEndMinutes)}"
-
-    private fun formatTime(minutes: Int): String = "%02d:%02d".format(minutes / 60, minutes % 60)
-
-    private fun formatWon(price: Int): String = "%,d원".format(price)
-
+        "${pickupTime.startLabel} – ${pickupTime.endLabel}"
     private fun String.toTextPart(): RequestBody =
         this.toRequestBody("text/plain".toMediaType())
 
@@ -397,12 +388,6 @@ class MenuRegistrationActivity : AppCompatActivity() {
         val filename = getDisplayName(uri) ?: "menu-image"
         val body = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
         return MultipartBody.Part.createFormData(partName, filename, body)
-    }
-
-    private fun simpleTextWatcher(onChanged: (String) -> Unit) = object : TextWatcher {
-        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = onChanged(s?.toString() ?: "")
-        override fun afterTextChanged(s: Editable?) = Unit
     }
 
     private fun getDisplayName(uri: Uri): String? {

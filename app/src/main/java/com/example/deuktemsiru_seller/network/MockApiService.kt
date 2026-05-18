@@ -26,59 +26,59 @@ object MockApiService : ApiService {
         SaleItemApiResponse(
             id = 1L, menuItemId = 1L, name = "크루아상", emoji = "🥐",
             originalPrice = 3800, discountedPrice = 2660, discountRate = 30,
-            remainingItems = 3, totalItems = 5, status = "AVAILABLE", pickupTimeSlot = "19:00~20:00",
+            remainingItems = 3, totalItems = 5, status = SaleStatus.Available.apiValue, pickupTimeSlot = "19:00~20:00",
         ),
         SaleItemApiResponse(
             id = 2L, menuItemId = 2L, name = "소금빵", emoji = "🍞",
             originalPrice = 2500, discountedPrice = 2000, discountRate = 20,
-            remainingItems = 5, totalItems = 8, status = "AVAILABLE", pickupTimeSlot = "19:30~20:30",
+            remainingItems = 5, totalItems = 8, status = SaleStatus.Available.apiValue, pickupTimeSlot = "19:30~20:30",
         ),
         SaleItemApiResponse(
             id = 3L, menuItemId = 3L, name = "바게트", emoji = "🥖",
             originalPrice = 4500, discountedPrice = 3375, discountRate = 25,
-            remainingItems = 0, totalItems = 3, status = "SOLD_OUT", pickupTimeSlot = "18:00~19:00",
+            remainingItems = 0, totalItems = 3, status = SaleStatus.SoldOut.apiValue, pickupTimeSlot = "18:00~19:00",
         ),
         SaleItemApiResponse(
             id = 4L, menuItemId = 4L, name = "시나몬롤", emoji = "🌀",
             originalPrice = 3200, discountedPrice = 2240, discountRate = 30,
-            remainingItems = 2, totalItems = 4, status = "AVAILABLE", pickupTimeSlot = "20:00~21:00",
+            remainingItems = 2, totalItems = 4, status = SaleStatus.Available.apiValue, pickupTimeSlot = "20:00~21:00",
         ),
     )
 
     private val orders = mutableListOf(
         OrderApiResponse(
             id = 1L, orderNumber = "ORD-2405-001", storeId = 1L, storeName = "남산 베이커리",
-            customerName = "김민준", status = "PENDING", pickupCode = "2847", pickupTime = "19:30",
+            customerName = "김민준", status = OrderStatus.Pending.apiValue, pickupCode = "2847", pickupTime = "19:30",
             totalAmount = 5320, createdAt = "2024-05-15T18:45:00",
             items = listOf(OrderItemApiResponse(1L, 1L, "크루아상", "🥐", 2, 2660)),
         ),
         OrderApiResponse(
             id = 2L, orderNumber = "ORD-2405-002", storeId = 1L, storeName = "남산 베이커리",
-            customerName = "이서연", status = "PENDING", pickupCode = "1593", pickupTime = "19:00",
+            customerName = "이서연", status = OrderStatus.Pending.apiValue, pickupCode = "1593", pickupTime = "19:00",
             totalAmount = 6000, createdAt = "2024-05-15T18:50:00",
             items = listOf(OrderItemApiResponse(2L, 2L, "소금빵", "🍞", 3, 2000)),
         ),
         OrderApiResponse(
             id = 3L, orderNumber = "ORD-2405-003", storeId = 1L, storeName = "남산 베이커리",
-            customerName = "박지호", status = "CONFIRMED", pickupCode = "7621", pickupTime = "20:00",
+            customerName = "박지호", status = OrderStatus.Confirmed.apiValue, pickupCode = "7621", pickupTime = "20:00",
             totalAmount = 3375, createdAt = "2024-05-15T18:30:00",
             items = listOf(OrderItemApiResponse(3L, 3L, "바게트", "🥖", 1, 3375)),
         ),
         OrderApiResponse(
             id = 4L, orderNumber = "ORD-2405-004", storeId = 1L, storeName = "남산 베이커리",
-            customerName = "최수아", status = "CONFIRMED", pickupCode = "0000", pickupTime = "19:00",
+            customerName = "최수아", status = OrderStatus.Confirmed.apiValue, pickupCode = "0000", pickupTime = "19:00",
             totalAmount = 4480, createdAt = "2024-05-15T18:20:00",
             items = listOf(OrderItemApiResponse(4L, 4L, "시나몬롤", "🌀", 2, 2240)),
         ),
         OrderApiResponse(
             id = 5L, orderNumber = "ORD-2405-005", storeId = 1L, storeName = "남산 베이커리",
-            customerName = "정우진", status = "PICKED_UP", pickupCode = "3948", pickupTime = "18:30",
+            customerName = "정우진", status = OrderStatus.PickedUp.apiValue, pickupCode = "3948", pickupTime = "18:30",
             totalAmount = 2660, createdAt = "2024-05-15T17:30:00",
             items = listOf(OrderItemApiResponse(1L, 1L, "크루아상", "🥐", 1, 2660)),
         ),
         OrderApiResponse(
             id = 6L, orderNumber = "ORD-2405-006", storeId = 1L, storeName = "남산 베이커리",
-            customerName = "강하은", status = "PICKED_UP", pickupCode = "5731", pickupTime = "18:00",
+            customerName = "강하은", status = OrderStatus.PickedUp.apiValue, pickupCode = "5731", pickupTime = "18:00",
             totalAmount = 6750, createdAt = "2024-05-15T17:00:00",
             items = listOf(OrderItemApiResponse(3L, 3L, "바게트", "🥖", 2, 3375)),
         ),
@@ -117,13 +117,13 @@ object MockApiService : ApiService {
             id = newId,
             menuItemId = req.menuItemId,
             name = req.name,
-            emoji = menus.firstOrNull { it.id == req.menuItemId }?.emoji,
+            emoji = menus.firstOrNull { it.id == req.menuItemId }?.displayEmoji,
             originalPrice = req.originalPrice,
             discountedPrice = req.discountPrice,
             discountRate = null,
             remainingItems = req.quantityTotal,
             totalItems = req.quantityTotal,
-            status = "AVAILABLE",
+            status = SaleStatus.Available.apiValue,
             pickupStart = req.pickupStart,
             pickupEnd = req.pickupEnd,
         )
@@ -158,7 +158,7 @@ object MockApiService : ApiService {
 
     override suspend fun cancelSaleItem(id: Long): ApiResponse<Unit> {
         val idx = saleItems.indexOfFirst { it.id == id }
-        if (idx >= 0) saleItems[idx] = saleItems[idx].copy(status = "EXPIRED")
+        if (idx >= 0) saleItems[idx] = saleItems[idx].copy(status = SaleStatus.Expired.apiValue)
         return ApiResponse(200, "ok", Unit)
     }
 
@@ -169,7 +169,6 @@ object MockApiService : ApiService {
         val menu = MenuItemApiResponse(
             id = (menus.maxOfOrNull { it.id } ?: 0L) + 1L,
             name = req.name,
-            emoji = req.emoji,
             originalPrice = req.originalPrice,
         )
         menus.add(menu)
@@ -212,12 +211,12 @@ object MockApiService : ApiService {
     override suspend fun confirmPickup(orderId: Long, req: ConfirmPickupRequest): ApiResponse<OrderApiResponse> {
         val idx = orders.indexOfFirst { it.id == orderId && it.pickupCode == req.pickupCode }
         if (idx < 0) return ApiResponse(400, "invalid pickup code", null)
-        orders[idx] = orders[idx].copy(status = "PICKED_UP")
+        orders[idx] = orders[idx].copy(status = OrderStatus.PickedUp.apiValue)
         return ApiResponse(200, "ok", orders[idx])
     }
 
     override suspend fun verifyPickupCode(code: String): ApiResponse<OrderApiResponse> {
-        val order = orders.firstOrNull { it.pickupCode == code && it.status == "CONFIRMED" }
+        val order = orders.firstOrNull { it.pickupCode == code && it.orderStatus == OrderStatus.Confirmed }
         return ApiResponse(200, if (order != null) "ok" else "not found", order)
     }
 
@@ -250,7 +249,7 @@ object MockApiService : ApiService {
     override suspend fun getNotifications() = ApiResponse(200, "ok", notifications.toList())
 
     override suspend fun getSettlements(year: Int, month: Int): ApiResponse<SettlementListResponse> {
-        val total = orders.filter { it.status == "PICKED_UP" || it.status == "COMPLETED" }.sumOf { it.totalAmount }
+        val total = orders.filter { it.orderStatus in listOf(OrderStatus.PickedUp, OrderStatus.Completed) }.sumOf { it.totalAmount }
         val fee = (total * 0.03).toInt()
         return ApiResponse(
             200,
@@ -264,7 +263,7 @@ object MockApiService : ApiService {
                         totalSales = total,
                         platformFee = fee,
                         settlementAmount = total - fee,
-                        status = "PENDING",
+                        status = OrderStatus.Pending.apiValue,
                         settledAt = null,
                     )
                 )
@@ -274,7 +273,7 @@ object MockApiService : ApiService {
 
     override suspend fun requestWithdrawal(req: SettlementWithdrawRequest): ApiResponse<SettlementItem> {
         val item = getSettlements(req.year, req.month).data?.settlements?.firstOrNull()
-            ?: SettlementItem(0, "${req.year}-${req.month}-01", "${req.year}-${req.month}-${java.time.YearMonth.of(req.year, req.month).lengthOfMonth()}", 0, 0, 0, "PENDING", null)
+            ?: SettlementItem(0, "${req.year}-${req.month}-01", "${req.year}-${req.month}-${java.time.YearMonth.of(req.year, req.month).lengthOfMonth()}", 0, 0, 0, OrderStatus.Pending.apiValue, null)
         return ApiResponse(200, "ok", item)
     }
 
@@ -287,8 +286,8 @@ object MockApiService : ApiService {
             DailySales("05.15", 18000),
         )
         val salesData = when (period) {
-            "DAY" -> listOf(DailySales("05.15", 18000))
-            "MONTH" -> (1..15).map { d ->
+            SalesPeriod.Day.apiValue -> listOf(DailySales("05.15", 18000))
+            SalesPeriod.Month.apiValue -> (1..15).map { d ->
                 DailySales("05.%02d".format(d), if (d % 7 == 0) 0 else 12000 + d * 1300)
             }
             else -> weeklyBase
@@ -304,7 +303,7 @@ object MockApiService : ApiService {
             200, "ok",
             SalesApiResponse(
                 todaySales = 18000,
-                todayOrderCount = orders.count { it.status == "PICKED_UP" },
+                todayOrderCount = orders.count { it.orderStatus == OrderStatus.PickedUp },
                 salesData = salesData,
                 topMenus = topMenus,
             ),

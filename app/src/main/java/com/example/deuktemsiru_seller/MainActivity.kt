@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityMainBinding
+import com.example.deuktemsiru_seller.network.OrderStatus
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.ui.auth.LoginActivity
 import com.example.deuktemsiru_seller.ui.home.HomeFragment
@@ -133,7 +134,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             runCatching {
                 val response = RetrofitClient.api.getOrders()
-                orderBadgeCount = response.data?.count { it.status == "PENDING" } ?: 0
+                orderBadgeCount = response.data?.count { it.orderStatus == OrderStatus.Pending } ?: 0
                 updateOrderBadge()
             }
         }

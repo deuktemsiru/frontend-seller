@@ -16,6 +16,7 @@ import com.example.deuktemsiru_seller.databinding.ActivityPickupVerifyBinding
 import com.example.deuktemsiru_seller.network.ConfirmPickupRequest
 import com.example.deuktemsiru_seller.network.OrderApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
+import com.example.deuktemsiru_seller.util.toWon
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
@@ -120,7 +121,7 @@ class PickupVerifyActivity : AppCompatActivity() {
         binding.tvResultCustomerName.text = order.customerName?.let { "고객: $it" } ?: ""
         binding.tvResultOrderNumber.text = "주문번호: ${order.orderNumber}"
         binding.tvResultItems.text = "상품: ${order.items.joinToString(", ") { "${it.emoji} ${it.name} ${it.quantity}개" }}"
-        binding.tvResultAmount.text = "결제금액: %,d원".format(order.totalAmount)
+        binding.tvResultAmount.text = "결제금액: ${order.totalAmount.toWon()}"
     }
 
     private fun completePickup(orderId: Long) {
@@ -152,7 +153,7 @@ class PickupVerifyActivity : AppCompatActivity() {
         binding.tvCompletedName.text = firstItem?.let {
             if (order.items.size > 1) "${it.name} 외 ${order.items.size - 1}개" else it.name
         } ?: order.orderNumber
-        binding.tvCompletedAmount.text = "%,d원".format(order.totalAmount)
+        binding.tvCompletedAmount.text = order.totalAmount.toWon()
         binding.cardCompleted.visibility = View.VISIBLE
         showStatus("픽업 완료 처리됐어요!", success = true)
     }
@@ -160,9 +161,9 @@ class PickupVerifyActivity : AppCompatActivity() {
     private fun showOrderDetailDialog(order: OrderApiResponse) {
         val items = order.items.joinToString("\n") { item ->
             val emoji = item.emoji?.let { "$it " } ?: ""
-            "$emoji${item.name}  ×${item.quantity}  →  %,d원".format(item.price * item.quantity)
+            "$emoji${item.name}  ×${item.quantity}  →  ${(item.price * item.quantity).toWon()}"
         }
-        val message = "주문번호: ${order.orderNumber ?: "#${order.id}"}\n\n$items\n\n합계: %,d원".format(order.totalAmount)
+        val message = "주문번호: ${order.orderNumber ?: "#${order.id}"}\n\n$items\n\n합계: ${order.totalAmount.toWon()}"
         AlertDialog.Builder(this)
             .setTitle("결제 내역")
             .setMessage(message)
