@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun refreshOrderBadge() {
+    fun refreshOrderBadge() {
         lifecycleScope.launch {
             runCatching {
                 val response = RetrofitClient.api.getOrders()

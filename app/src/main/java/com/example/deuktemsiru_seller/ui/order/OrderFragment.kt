@@ -8,7 +8,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.deuktemsiru_seller.MainActivity
 import com.example.deuktemsiru_seller.R
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.FragmentOrderBinding
@@ -26,6 +29,7 @@ import com.example.deuktemsiru_seller.util.handleSellerAuthFailure
 import com.example.deuktemsiru_seller.util.renderChildren
 import com.example.deuktemsiru_seller.util.toast
 import com.example.deuktemsiru_seller.util.toWon
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
@@ -41,6 +45,7 @@ class OrderFragment : Fragment() {
 
     private companion object {
         const val TAG = "OrderFragment"
+        const val ORDER_REFRESH_INTERVAL_MS = 30_000L
     }
 
     override fun onCreateView(
@@ -75,26 +80,53 @@ class OrderFragment : Fragment() {
         childFragmentManager.setFragmentResultListener("order_updated", viewLifecycleOwner) { _, bundle ->
             loadOrders(selectTabAfterLoad = bundle.getInt("next_tab", currentTab))
         }
+        startAutoRefresh()
     }
 
-    private fun loadOrders(selectTabAfterLoad: Int = currentTab) {
+    private fun loadOrders(selectTabAfterLoad: Int = currentTab, silent: Boolean = false) {
         if (!session.isLoggedIn()) return
         viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                allOrders = RetrofitClient.api.getOrders().data ?: emptyList()
-                updateTabCounts()
-                selectTab(selectTabAfterLoad)
-            } catch (e: Exception) {
-                if (handleSellerAuthFailure(e, session, "다시 로그인해주세요.")) return@launch
-                if (e is HttpException && e.code() == 404) {
-                    allOrders = emptyList()
-                    updateTabCounts()
-                    selectTab(selectTabAfterLoad)
-                    return@launch
+            refreshOrders(selectTabAfterLoad, silent)
+        }
+    }
+
+    private fun startAutoRefresh() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (true) {
+                    delay(ORDER_REFRESH_INTERVAL_MS)
+                    refreshOrders(selectTabAfterLoad = currentTab, silent = true)
                 }
-                Log.e(TAG, "Failed to load orders", e)
-                toast("주문 목록을 불러오지 못했어요.")
             }
+        }
+    }
+
+    private suspend fun refreshOrders(selectTabAfterLoad: Int, silent: Boolean) {
+        try {
+            val newOrders = RetrofitClient.api.getOrders().data ?: emptyList()
+            val hasNewPendingOrders = hasNewPendingOrders(newOrders)
+            val shouldRefreshVisibleList = !silent || visibleOrderIdsChanged(newOrders)
+
+            allOrders = newOrders
+            updateTabCounts()
+            if (shouldRefreshVisibleList) {
+                selectTab(selectTabAfterLoad)
+            }
+            if (silent && hasNewPendingOrders) {
+                toast("새 주문이 도착했어요.")
+            }
+            (activity as? MainActivity)?.refreshOrderBadge()
+        } catch (e: Exception) {
+            if (handleSellerAuthFailure(e, session, "다시 로그인해주세요.")) return
+            if (e is HttpException && e.code() == 404) {
+                allOrders = emptyList()
+                updateTabCounts()
+                if (!silent) selectTab(selectTabAfterLoad)
+                (activity as? MainActivity)?.refreshOrderBadge()
+                return
+            }
+            Log.e(TAG, "Failed to load orders", e)
+            if (!silent) toast("주문 목록을 불러오지 못했어요.")
         }
     }
 
@@ -231,6 +263,7 @@ class OrderFragment : Fragment() {
                         req = UpdateOrderStatusRequest(status.apiValue),
                 ).data ?: return@launch
                 onSuccess(updatedOrder)
+                (activity as? MainActivity)?.refreshOrderBadge()
             } catch (e: Exception) {
                 if (handleSellerAuthFailure(e, session, "다시 로그인해주세요.")) return@launch
                 onFailure()
@@ -255,6 +288,25 @@ class OrderFragment : Fragment() {
     private fun setButtonsEnabled(buttons: List<Button>, enabled: Boolean) {
         buttons.forEach { it.isEnabled = enabled }
     }
+
+    private fun hasNewPendingOrders(newOrders: List<OrderApiResponse>): Boolean {
+        val previousPendingIds = allOrders.pendingOrderIds()
+        return newOrders.pendingOrderIds().any { it !in previousPendingIds }
+    }
+
+    private fun visibleOrderIdsChanged(newOrders: List<OrderApiResponse>): Boolean =
+        orderIdsForTab(currentTab, allOrders) != orderIdsForTab(currentTab, newOrders)
+
+    private fun orderIdsForTab(tabIndex: Int, orders: List<OrderApiResponse>): List<Long> =
+        when (tabIndex) {
+            0 -> orders.filter { it.orderStatus == OrderStatus.Pending }
+            1 -> orders.filter { it.orderStatus == OrderStatus.Confirmed }
+            3 -> orders.filter { it.orderStatus in setOf(OrderStatus.PickedUp, OrderStatus.Cancelled) }
+            else -> emptyList()
+        }.map { it.id }
+
+    private fun List<OrderApiResponse>.pendingOrderIds(): Set<Long> =
+        filter { it.orderStatus == OrderStatus.Pending }.map { it.id }.toSet()
 
     private fun OrderApiResponse.displayNumber(): String = orderNumber ?: "#$id"
 
