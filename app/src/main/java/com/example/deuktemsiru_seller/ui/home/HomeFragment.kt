@@ -45,27 +45,26 @@ class HomeFragment : Fragment() {
         session = SessionManager(requireContext())
         binding.tvStoreName.text = session.nickname.ifBlank { "내 가게" }
 
-        binding.cardSales.setOnClickListener { (activity as? MainActivity)?.navigateToOrder() }
-        binding.sectionSalesCount.setOnClickListener { (activity as? MainActivity)?.navigateToOrderCompleted() }
-        binding.sectionWaste.setOnClickListener { (activity as? MainActivity)?.navigateToSales() }
-        binding.sectionLoyal.setOnClickListener { (activity as? MainActivity)?.navigateToNotification() }
+        val mainActivity = activity as? MainActivity
+        binding.cardSales.setOnClickListener { mainActivity?.navigateToOrder() }
+        listOf(binding.sectionSalesCount, binding.tvTodayOrders).forEach {
+            it.setOnClickListener { mainActivity?.navigateToOrderCompleted() }
+        }
+        binding.sectionWaste.setOnClickListener { mainActivity?.navigateToSales() }
+        listOf(binding.sectionLoyal, binding.btnSendNotification, binding.btnBell).forEach {
+            it.setOnClickListener { mainActivity?.navigateToNotification() }
+        }
         binding.btnRegisterMenu.setOnClickListener {
             startActivity(Intent(requireContext(), ProductListingActivity::class.java))
         }
-        binding.btnSendNotification.setOnClickListener {
-            (activity as? MainActivity)?.navigateToNotification()
-        }
-        binding.btnBell.setOnClickListener {
-            (activity as? MainActivity)?.navigateToNotification()
-        }
         binding.sectionOrderNew.setOnClickListener {
-            (activity as? MainActivity)?.navigateToOrderTab(0)
+            mainActivity?.navigateToOrderTab(0)
         }
         binding.sectionOrderPreparing.setOnClickListener {
-            (activity as? MainActivity)?.navigateToOrderTab(1)
+            mainActivity?.navigateToOrderTab(1)
         }
         binding.sectionOrderPickup.setOnClickListener {
-            (activity as? MainActivity)?.navigateToOrderTab(3)
+            mainActivity?.navigateToOrderTab(3)
         }
         binding.btnPickupVerifyHome.setOnClickListener {
             startActivity(Intent(requireContext(), PickupVerifyActivity::class.java))
@@ -139,9 +138,6 @@ class HomeFragment : Fragment() {
     }
 
     private fun loadStats() {
-        binding.tvTodayOrders.setOnClickListener {
-            (activity as? MainActivity)?.navigateToOrderCompleted()
-        }
         viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 val sales = RetrofitClient.api.getSales().data

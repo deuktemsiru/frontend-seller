@@ -1,7 +1,6 @@
 package com.example.deuktemsiru_seller.ui.mypage
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -10,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityAccountInfoBinding
 import com.example.deuktemsiru_seller.network.RetrofitClient
+import com.example.deuktemsiru_seller.util.toast
 import kotlinx.coroutines.launch
 
 class AccountInfoActivity : AppCompatActivity() {
@@ -43,7 +43,7 @@ class AccountInfoActivity : AppCompatActivity() {
                 binding.tvStoreName.text = (me?.nickname ?: session.nickname).ifBlank { "—" }
             }.onFailure {
                 binding.tvEmail.text = "카카오 소셜 계정"
-                Toast.makeText(this@AccountInfoActivity, "계정 정보를 불러올 수 없어요.", Toast.LENGTH_SHORT).show()
+                toast("계정 정보를 불러올 수 없어요.")
             }
         }
 

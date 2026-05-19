@@ -2,7 +2,6 @@ package com.example.deuktemsiru_seller.ui.mypage
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -11,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.databinding.ActivitySettlementBinding
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.SettlementWithdrawRequest
+import com.example.deuktemsiru_seller.util.toast
 import com.example.deuktemsiru_seller.util.toWon
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -77,7 +77,7 @@ class SettlementActivity : AppCompatActivity() {
                 binding.tvCommission.text = commission.toWon()
                 binding.tvSettlementAmount.text = settlement.toWon()
             }.onFailure {
-                Toast.makeText(this@SettlementActivity, "데이터를 불러올 수 없어요.", Toast.LENGTH_SHORT).show()
+                toast("데이터를 불러올 수 없어요.")
             }
         }
     }
@@ -85,11 +85,11 @@ class SettlementActivity : AppCompatActivity() {
     private fun showWithdrawDialog() {
         val numericAmount = currentSettlementAmount
         if (numericAmount == null) {
-            Toast.makeText(this, "정산 데이터를 불러오는 중이에요.", Toast.LENGTH_SHORT).show()
+            toast("정산 데이터를 불러오는 중이에요.")
             return
         }
         if (numericAmount <= 0) {
-            Toast.makeText(this, "출금 가능한 금액이 없어요.", Toast.LENGTH_SHORT).show()
+            toast("출금 가능한 금액이 없어요.")
             return
         }
         val amount = numericAmount.toWon()
@@ -104,10 +104,10 @@ class SettlementActivity : AppCompatActivity() {
                             SettlementWithdrawRequest(target.year, target.monthValue)
                         )
                     }.onSuccess {
-                        Toast.makeText(this@SettlementActivity, "출금 신청이 완료됐어요.", Toast.LENGTH_SHORT).show()
+                        toast("출금 신청이 완료됐어요.")
                         loadSettlement()
                     }.onFailure {
-                        Toast.makeText(this@SettlementActivity, "출금 신청에 실패했어요.", Toast.LENGTH_SHORT).show()
+                        toast("출금 신청에 실패했어요.")
                     }
                 }
             }

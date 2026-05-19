@@ -4,9 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.View
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -16,7 +13,9 @@ import com.example.deuktemsiru_seller.databinding.ActivityPickupVerifyBinding
 import com.example.deuktemsiru_seller.network.ConfirmPickupRequest
 import com.example.deuktemsiru_seller.network.OrderApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
+import com.example.deuktemsiru_seller.util.toast
 import com.example.deuktemsiru_seller.util.toWon
+import com.example.deuktemsiru_seller.util.visibleIf
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
@@ -32,7 +31,7 @@ class PickupVerifyActivity : AppCompatActivity() {
     private val cameraPermission = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) launchQrScan() else Toast.makeText(this, "카메라 권한이 필요해요", Toast.LENGTH_SHORT).show()
+        if (granted) launchQrScan() else toast("카메라 권한이 필요해요")
     }
 
     private val qrLauncher = registerForActivityResult(ScanContract()) { result ->
@@ -87,9 +86,9 @@ class PickupVerifyActivity : AppCompatActivity() {
 
     private fun verifyCode(code: String) {
         binding.btnVerify.isEnabled = false
-        binding.cardResult.visibility = View.GONE
-        binding.cardCompleted.visibility = View.GONE
-        binding.tvVerifyStatus.visibility = View.GONE
+        binding.cardResult.visibleIf(false)
+        binding.cardCompleted.visibleIf(false)
+        binding.tvVerifyStatus.visibleIf(false)
 
         lifecycleScope.launch {
             try {
@@ -100,7 +99,7 @@ class PickupVerifyActivity : AppCompatActivity() {
                     currentPickupCode = code
                     showStatus("✓ 확인되었습니다", success = true)
                     populateResultCard(order)
-                    binding.cardResult.visibility = View.VISIBLE
+                    binding.cardResult.visibleIf(true)
                 } else {
                     showStatus("✗ 미확인되었습니다", success = false)
                 }
@@ -131,7 +130,7 @@ class PickupVerifyActivity : AppCompatActivity() {
                 val completedOrder = RetrofitClient.api
                     .confirmPickup(orderId, ConfirmPickupRequest(code))
                     .data
-                binding.cardResult.visibility = View.GONE
+                binding.cardResult.visibleIf(false)
                 binding.etPickupCode.setText("")
                 currentOrderId = null
                 currentPickupCode = null
@@ -154,21 +153,8 @@ class PickupVerifyActivity : AppCompatActivity() {
             if (order.items.size > 1) "${it.name} 외 ${order.items.size - 1}개" else it.name
         } ?: order.orderNumber
         binding.tvCompletedAmount.text = order.totalAmount.toWon()
-        binding.cardCompleted.visibility = View.VISIBLE
+        binding.cardCompleted.visibleIf(true)
         showStatus("픽업 완료 처리됐어요!", success = true)
-    }
-
-    private fun showOrderDetailDialog(order: OrderApiResponse) {
-        val items = order.items.joinToString("\n") { item ->
-            val emoji = item.emoji?.let { "$it " } ?: ""
-            "$emoji${item.name}  ×${item.quantity}  →  ${(item.price * item.quantity).toWon()}"
-        }
-        val message = "주문번호: ${order.orderNumber ?: "#${order.id}"}\n\n$items\n\n합계: ${order.totalAmount.toWon()}"
-        AlertDialog.Builder(this)
-            .setTitle("결제 내역")
-            .setMessage(message)
-            .setPositiveButton("닫기", null)
-            .show()
     }
 
     private fun showStatus(message: String, success: Boolean) {
@@ -177,6 +163,6 @@ class PickupVerifyActivity : AppCompatActivity() {
             if (success) getColor(android.R.color.holo_green_dark)
             else getColor(android.R.color.holo_red_dark)
         )
-        binding.tvVerifyStatus.visibility = View.VISIBLE
+        binding.tvVerifyStatus.visibleIf(true)
     }
 }

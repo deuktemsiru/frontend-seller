@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.R
 import com.example.deuktemsiru_seller.data.SessionManager
@@ -14,9 +13,12 @@ import com.example.deuktemsiru_seller.network.OrderStatus
 import com.example.deuktemsiru_seller.network.OrderApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.UpdateOrderStatusRequest
+import com.example.deuktemsiru_seller.network.badgeStyle
 import com.example.deuktemsiru_seller.util.LocalNotificationHelper
 import com.example.deuktemsiru_seller.util.renderChildren
+import com.example.deuktemsiru_seller.util.toast
 import com.example.deuktemsiru_seller.util.toWon
+import com.example.deuktemsiru_seller.util.visibleIf
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 
@@ -61,26 +63,17 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
         binding.tvCreatedAt.text = order.createdAt.take(16).replace("T", " ")
 
         val name = order.customerName
-        if (name.isNullOrBlank()) {
-            binding.rowCustomerName.visibility = View.GONE
-        } else {
-            binding.tvCustomerName.text = name
-        }
+        binding.rowCustomerName.visibleIf(!name.isNullOrBlank())
+        binding.tvCustomerName.text = name.orEmpty()
 
         binding.tvPickupTime.text = order.pickupTime ?: ""
         binding.tvPickupCode.text = order.pickupCode?.chunked(2)?.joinToString("-") ?: "-"
         binding.tvTotalAmount.text = order.totalAmount.toWon()
 
-        val (statusText, statusBg, statusColor) = when (order.orderStatus) {
-            OrderStatus.Pending -> Triple("신규 주문", R.drawable.bg_status_soldout, 0xFFE65100.toInt())
-            OrderStatus.Confirmed -> Triple("준비 중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
-            OrderStatus.PickedUp -> Triple("픽업 완료", R.drawable.bg_status_expired, 0xFF757575.toInt())
-            OrderStatus.Cancelled -> Triple("취소됨", R.drawable.bg_status_expired, 0xFF757575.toInt())
-            else -> Triple(order.status, R.drawable.bg_status_expired, 0xFF757575.toInt())
-        }
-        binding.tvStatusBadge.text = statusText
-        binding.tvStatusBadge.setBackgroundResource(statusBg)
-        binding.tvStatusBadge.setTextColor(statusColor)
+        val badge = order.orderStatus.badgeStyle(order.status)
+        binding.tvStatusBadge.text = badge.text
+        binding.tvStatusBadge.setBackgroundResource(badge.backgroundRes)
+        binding.tvStatusBadge.setTextColor(badge.textColor)
 
         binding.itemsContainer.renderChildren(
             items = order.items,
@@ -104,10 +97,10 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
 
         if (actionText != null && nextStatus != null) {
             binding.btnAction.text = actionText
-            binding.btnAction.visibility = View.VISIBLE
+            binding.btnAction.visibleIf(true)
             binding.btnAction.setOnClickListener { performAction(nextStatus) }
         } else {
-            binding.btnAction.visibility = View.GONE
+            binding.btnAction.visibleIf(false)
         }
     }
 
@@ -124,13 +117,13 @@ class OrderDetailBottomSheet : BottomSheetDialogFragment() {
                     else -> "" to ""
                 }
                 if (title.isNotEmpty()) LocalNotificationHelper.show(requireContext(), title, body)
-                Toast.makeText(requireContext(), "$title 처리됐어요", Toast.LENGTH_SHORT).show()
+                toast("$title 처리됐어요")
                 parentFragmentManager.setFragmentResult("order_updated", Bundle().apply {
                     putInt("next_tab", statusToTabIndex(nextStatus))
                 })
                 dismiss()
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), "처리에 실패했어요", Toast.LENGTH_SHORT).show()
+                toast("처리에 실패했어요")
                 binding.btnAction.isEnabled = true
             }
         }

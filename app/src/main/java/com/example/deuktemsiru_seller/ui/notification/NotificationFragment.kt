@@ -19,7 +19,10 @@ import com.example.deuktemsiru_seller.util.dp
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.SendNotificationRequest
 import com.example.deuktemsiru_seller.util.renderChildren
+import com.example.deuktemsiru_seller.util.setSelectedChip
 import com.example.deuktemsiru_seller.util.simpleTextWatcher
+import com.example.deuktemsiru_seller.util.toast
+import com.example.deuktemsiru_seller.util.visibleIf
 import kotlinx.coroutines.launch
 
 class NotificationFragment : Fragment() {
@@ -49,7 +52,7 @@ class NotificationFragment : Fragment() {
         binding.btnSend.setOnClickListener {
             val message = binding.etMessage.text?.toString()?.trim() ?: ""
             if (message.isEmpty()) {
-                Toast.makeText(requireContext(), "메시지를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                toast("메시지를 입력해주세요.")
                 return@setOnClickListener
             }
             if (!session.isLoggedIn()) return@setOnClickListener
@@ -85,23 +88,21 @@ class NotificationFragment : Fragment() {
         binding.optionNearby.setBackgroundResource(if (!isRegular) R.drawable.bg_card_primary_border else R.drawable.bg_card_white)
         binding.indicatorRegular.setBackgroundResource(if (isRegular) R.drawable.bg_rounded_primary else R.drawable.bg_rounded_muted)
         binding.indicatorNearby.setBackgroundResource(if (!isRegular) R.drawable.bg_rounded_primary else R.drawable.bg_rounded_muted)
-        binding.layoutNearbyOptions.visibility = if (!isRegular) View.VISIBLE else View.GONE
+        binding.layoutNearbyOptions.visibleIf(!isRegular)
         if (!isRegular) updateRadiusUI()
     }
 
     private fun updateRadiusUI() {
-        val activeRes = R.drawable.bg_button_primary
-        val inactiveRes = R.drawable.bg_rounded_muted
-        val activeColor = requireContext().getColor(R.color.white)
-        val inactiveColor = requireContext().getColor(R.color.text_sub)
-
         listOf(
             Pair(binding.btnRadius3, 3),
             Pair(binding.btnRadius5, 5),
             Pair(binding.btnRadius10, 10),
         ).forEach { (btn, km) ->
-            btn.setBackgroundResource(if (km == selectedRadiusKm) activeRes else inactiveRes)
-            btn.setTextColor(if (km == selectedRadiusKm) activeColor else inactiveColor)
+            btn.setSelectedChip(
+                selected = km == selectedRadiusKm,
+                selectedBackground = R.drawable.bg_button_primary,
+                unselectedBackground = R.drawable.bg_rounded_muted,
+            )
         }
 
         binding.radiusMapView.radiusKm = selectedRadiusKm
@@ -140,16 +141,17 @@ class NotificationFragment : Fragment() {
     }
 
     private fun loadPhrases(): MutableList<String> {
-        val prefs = requireContext().getSharedPreferences("notification_phrases", android.content.Context.MODE_PRIVATE)
-        val saved = prefs.getStringSet("phrases", null)
-        return if (saved.isNullOrEmpty()) mutableListOf("마감 특가!", "오늘만 할인", "선착순!")
-        else saved.toMutableList()
+        val saved = phrasePrefs().getString("phrases", null)
+        return saved?.split("|")?.filter { it.isNotBlank() }?.toMutableList()
+            ?: mutableListOf("마감 특가!", "오늘만 할인", "선착순!")
     }
 
     private fun savePhrases(phrases: List<String>) {
-        requireContext().getSharedPreferences("notification_phrases", android.content.Context.MODE_PRIVATE)
-            .edit().putStringSet("phrases", phrases.toSet()).apply()
+        phrasePrefs().edit().putString("phrases", phrases.joinToString("|")).apply()
     }
+
+    private fun phrasePrefs() =
+        requireContext().getSharedPreferences("notification_phrases", android.content.Context.MODE_PRIVATE)
 
     private fun renderPhraseChips() {
         binding.phraseChipsContainer.renderChildren(
@@ -193,11 +195,11 @@ class NotificationFragment : Fragment() {
                         radiusKm = if (selectedTarget == NotificationTarget.Nearby) selectedRadiusKm else null,
                     )
                 ).data
-                Toast.makeText(requireContext(), "${result?.recipientCount ?: 0}명에게 발송 완료!", Toast.LENGTH_LONG).show()
+                toast("${result?.recipientCount ?: 0}명에게 발송 완료!", Toast.LENGTH_LONG)
                 binding.etMessage.text?.clear()
                 loadHistory()
             }.onFailure {
-                Toast.makeText(requireContext(), "알림 발송에 실패했어요.", Toast.LENGTH_SHORT).show()
+                toast("알림 발송에 실패했어요.")
             }
         }
     }

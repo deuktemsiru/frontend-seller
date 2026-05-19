@@ -1,13 +1,11 @@
 package com.example.deuktemsiru_seller.ui.sales
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.R
@@ -16,10 +14,13 @@ import com.example.deuktemsiru_seller.databinding.FragmentSalesBinding
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.SalesPeriod
 import com.example.deuktemsiru_seller.network.TopMenu
-import com.example.deuktemsiru_seller.ui.auth.LoginActivity
 import com.example.deuktemsiru_seller.util.emptyTextView
+import com.example.deuktemsiru_seller.util.handleSellerAuthFailure
+import com.example.deuktemsiru_seller.util.offsetBy
 import com.example.deuktemsiru_seller.util.renderChildren
+import com.example.deuktemsiru_seller.util.toast
 import com.example.deuktemsiru_seller.util.toWon
+import com.example.deuktemsiru_seller.util.visibleIf
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.time.LocalDate
@@ -98,17 +99,13 @@ class SalesFragment : Fragment() {
     }
 
     private fun computeDateStr(): String {
-        val today = LocalDate.now()
-        val target = when (currentPeriod) {
-            SalesPeriod.Day -> today.minusDays(currentOffset.toLong())
-            SalesPeriod.Month -> today.minusMonths(currentOffset.toLong())
-            else -> today.minusWeeks(currentOffset.toLong())
-        }
-        return target.format(DateTimeFormatter.ISO_LOCAL_DATE)
+        return targetDate().format(DateTimeFormatter.ISO_LOCAL_DATE)
     }
 
+    private fun targetDate(): LocalDate = LocalDate.now().offsetBy(currentPeriod, currentOffset)
+
     private fun loadSales() {
-        binding.tvLoadingIndicator.visibility = View.VISIBLE
+        binding.tvLoadingIndicator.visibleIf(true)
         updatePeriodLabel()
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -139,17 +136,17 @@ class SalesFragment : Fragment() {
                 binding.pieChart.setSlices(sales.topMenus.map { PieChartView.Slice(it.name, it.count) })
                 updateInsight(sales.salesData.map { it.amount }, sales.topMenus)
             }.onFailure { error ->
-                if (handleAuthFailure(error)) return@onFailure
+                if (handleSellerAuthFailure(error, session)) return@onFailure
                 if (error is HttpException && error.code() == 404) {
                     renderEmptySales()
                     return@onFailure
                 }
                 Log.e(TAG, "Failed to load sales", error)
                 if (isAdded && context != null) {
-                    Toast.makeText(requireContext(), "데이터를 불러올 수 없어요.", Toast.LENGTH_SHORT).show()
+                    toast("데이터를 불러올 수 없어요.")
                 }
             }
-            binding.tvLoadingIndicator.visibility = View.GONE
+            binding.tvLoadingIndicator.visibleIf(false)
         }
     }
 
@@ -163,31 +160,17 @@ class SalesFragment : Fragment() {
         updateInsight(emptyList(), emptyList())
     }
 
-    private fun handleAuthFailure(error: Throwable): Boolean {
-        if (error !is HttpException || error.code() !in listOf(401, 403)) return false
-        session.clear()
-        Toast.makeText(requireContext(), "판매자 계정으로 다시 로그인해주세요.", Toast.LENGTH_SHORT).show()
-        startActivity(
-            Intent(requireContext(), LoginActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-        )
-        return true
-    }
-
     private fun updatePeriodLabel() {
-        val today = LocalDate.now()
         binding.tvPeriodRange.text = when (currentPeriod) {
             SalesPeriod.Day -> {
-                val day = today.minusDays(currentOffset.toLong())
-                day.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+                targetDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
             }
             SalesPeriod.Month -> {
-                val month = today.minusMonths(currentOffset.toLong())
+                val month = targetDate()
                 "${month.year}년 ${month.monthValue}월"
             }
             else -> {
-                val endDay = today.minusWeeks(currentOffset.toLong())
+                val endDay = targetDate()
                 val startDay = endDay.minusDays(6)
                 val fmt = DateTimeFormatter.ofPattern("MM.dd")
                 "${startDay.format(fmt)} – ${endDay.format(fmt)}"
@@ -198,8 +181,8 @@ class SalesFragment : Fragment() {
 
     private fun toggleChartMode() {
         showPieChart = !showPieChart
-        binding.containerTopMenus.visibility = if (showPieChart) View.GONE else View.VISIBLE
-        binding.pieChart.visibility = if (showPieChart) View.VISIBLE else View.GONE
+        binding.containerTopMenus.visibleIf(!showPieChart)
+        binding.pieChart.visibleIf(showPieChart)
         binding.btnToggleChart.text = if (showPieChart) "TOP 3 목록" else "파이차트"
     }
 

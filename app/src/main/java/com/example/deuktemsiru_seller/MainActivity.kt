@@ -2,7 +2,6 @@ package com.example.deuktemsiru_seller
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -91,25 +90,25 @@ class MainActivity : AppCompatActivity() {
 
     // ── 화면 이동 ─────────────────────────────────────────────
     fun navigateToOrder() {
-        binding.bottomNav.selectedItemId = R.id.nav_order
+        navigateTo(R.id.nav_order)
     }
 
     fun navigateToOrderTab(tabIndex: Int) {
         pendingOrderTab = tabIndex
-        binding.bottomNav.selectedItemId = R.id.nav_order
+        navigateTo(R.id.nav_order)
     }
 
     fun navigateToOrderCompleted() {
         orderCompletedRequested = true
-        binding.bottomNav.selectedItemId = R.id.nav_order
+        navigateTo(R.id.nav_order)
     }
 
     fun navigateToSales() {
-        binding.bottomNav.selectedItemId = R.id.nav_sales
+        navigateTo(R.id.nav_sales)
     }
 
     fun navigateToProduct() {
-        binding.bottomNav.selectedItemId = R.id.nav_product
+        navigateTo(R.id.nav_product)
     }
 
     fun navigateToNotification() {
@@ -122,6 +121,10 @@ class MainActivity : AppCompatActivity() {
 
     fun navigateToStore() {
         loadFragment(StoreFragment())
+    }
+
+    private fun navigateTo(itemId: Int) {
+        binding.bottomNav.selectedItemId = itemId
     }
 
     // ── 내부 유틸 ─────────────────────────────────────────────

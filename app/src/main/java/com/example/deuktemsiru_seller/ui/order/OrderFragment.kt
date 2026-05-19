@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.deuktemsiru_seller.R
@@ -20,11 +19,12 @@ import com.example.deuktemsiru_seller.network.OrderStatus
 import com.example.deuktemsiru_seller.network.OrderApiResponse
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.UpdateOrderStatusRequest
-import com.example.deuktemsiru_seller.ui.auth.LoginActivity
 import com.example.deuktemsiru_seller.util.LocalNotificationHelper
 import com.example.deuktemsiru_seller.ui.settings.NotificationSettingsActivity
 import com.example.deuktemsiru_seller.util.emptyTextView
+import com.example.deuktemsiru_seller.util.handleSellerAuthFailure
 import com.example.deuktemsiru_seller.util.renderChildren
+import com.example.deuktemsiru_seller.util.toast
 import com.example.deuktemsiru_seller.util.toWon
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -85,7 +85,7 @@ class OrderFragment : Fragment() {
                 updateTabCounts()
                 selectTab(selectTabAfterLoad)
             } catch (e: Exception) {
-                if (handleAuthFailure(e)) return@launch
+                if (handleSellerAuthFailure(e, session, "다시 로그인해주세요.")) return@launch
                 if (e is HttpException && e.code() == 404) {
                     allOrders = emptyList()
                     updateTabCounts()
@@ -93,7 +93,7 @@ class OrderFragment : Fragment() {
                     return@launch
                 }
                 Log.e(TAG, "Failed to load orders", e)
-                Toast.makeText(requireContext(), "주문 목록을 불러오지 못했어요.", Toast.LENGTH_SHORT).show()
+                toast("주문 목록을 불러오지 못했어요.")
             }
         }
     }
@@ -144,11 +144,11 @@ class OrderFragment : Fragment() {
     private fun showNewOrders(orders: List<OrderApiResponse>) {
         renderOrders(orders, "새로운 주문이 없어요") { order ->
             val itemBinding = ItemOrderNewBinding.inflate(layoutInflater, binding.orderListContainer, false)
-            itemBinding.tvOrderNumber.text = order.orderNumber ?: "#${order.id}"
+            itemBinding.tvOrderNumber.text = order.displayNumber()
             itemBinding.tvOrderTime.text = getString(R.string.just_arrived)
-            itemBinding.tvPickupTime.text = order.pickupTime ?: ""
-            itemBinding.tvMenuSummary.text = formatMenuSummary(order)
-            itemBinding.tvTotalAmount.text = formatPrice(order.totalAmount)
+            itemBinding.tvPickupTime.text = order.pickupTime.orEmpty()
+            itemBinding.tvMenuSummary.text = order.menuSummary()
+            itemBinding.tvTotalAmount.text = order.totalAmount.toWon()
             itemBinding.root.setOnClickListener { showDetail(order) }
             itemBinding.btnAccept.setOnClickListener {
                 setButtonsEnabled(listOf(itemBinding.btnAccept, itemBinding.btnReject), false)
@@ -157,7 +157,7 @@ class OrderFragment : Fragment() {
                     if (NotificationSettingsActivity.isEnabled(requireContext(), "new_order")) {
                         LocalNotificationHelper.show(requireContext(), "🛍️ 주문 수락됨", order.orderNumber ?: "")
                     }
-                    Toast.makeText(requireContext(), "${order.orderNumber ?: "주문"} 수락 완료", Toast.LENGTH_SHORT).show()
+                    toast("${order.orderNumber ?: "주문"} 수락 완료")
                     loadOrders(selectTabAfterLoad = 1)
                 }, onFailure = {
                     setButtonsEnabled(listOf(itemBinding.btnAccept, itemBinding.btnReject), true)
@@ -167,7 +167,7 @@ class OrderFragment : Fragment() {
                 setButtonsEnabled(listOf(itemBinding.btnAccept, itemBinding.btnReject), false)
                 updateStatus(order.id, OrderStatus.Cancelled, onSuccess = { updatedOrder ->
                     replaceOrder(updatedOrder)
-                    Toast.makeText(requireContext(), "${order.orderNumber ?: "주문"} 거절됨", Toast.LENGTH_SHORT).show()
+                    toast("${order.orderNumber ?: "주문"} 거절됨")
                     loadOrders()
                 }, onFailure = {
                     setButtonsEnabled(listOf(itemBinding.btnAccept, itemBinding.btnReject), true)
@@ -180,11 +180,11 @@ class OrderFragment : Fragment() {
     private fun showConfirmedOrders(orders: List<OrderApiResponse>) {
         renderOrders(orders, "준비중인 주문이 없어요") { order ->
             val itemBinding = ItemOrderPreparingBinding.inflate(layoutInflater, binding.orderListContainer, false)
-            itemBinding.tvOrderNumber.text = order.orderNumber ?: "#${order.id}"
+            itemBinding.tvOrderNumber.text = order.displayNumber()
             itemBinding.tvElapsedTime.text = elapsedLabel(order.createdAt)
-            itemBinding.tvPickupTime.text = order.pickupTime ?: ""
-            itemBinding.tvMenuSummary.text = formatMenuSummary(order)
-            itemBinding.tvTotalAmount.text = formatPrice(order.totalAmount)
+            itemBinding.tvPickupTime.text = order.pickupTime.orEmpty()
+            itemBinding.tvMenuSummary.text = order.menuSummary()
+            itemBinding.tvTotalAmount.text = order.totalAmount.toWon()
             itemBinding.root.setOnClickListener { showDetail(order) }
             // READY 상태 없음 → 픽업 준비 완료 버튼 숨김
             itemBinding.btnReady.visibility = View.GONE
@@ -195,10 +195,10 @@ class OrderFragment : Fragment() {
     private fun showCompletedOrders(orders: List<OrderApiResponse>) {
         renderOrders(orders, "완료된 주문이 없어요") { order ->
             val itemBinding = ItemOrderCompletedBinding.inflate(layoutInflater, binding.orderListContainer, false)
-            itemBinding.tvOrderNumber.text = order.orderNumber ?: "#${order.id}"
-            itemBinding.tvPickupTime.text = order.pickupTime ?: ""
-            itemBinding.tvMenuSummary.text = formatMenuSummary(order)
-            itemBinding.tvTotalAmount.text = formatPrice(order.totalAmount)
+            itemBinding.tvOrderNumber.text = order.displayNumber()
+            itemBinding.tvPickupTime.text = order.pickupTime.orEmpty()
+            itemBinding.tvMenuSummary.text = order.menuSummary()
+            itemBinding.tvTotalAmount.text = order.totalAmount.toWon()
             itemBinding.root.setOnClickListener { showDetail(order) }
             itemBinding.root
         }
@@ -232,10 +232,10 @@ class OrderFragment : Fragment() {
                 ).data ?: return@launch
                 onSuccess(updatedOrder)
             } catch (e: Exception) {
-                if (handleAuthFailure(e)) return@launch
+                if (handleSellerAuthFailure(e, session, "다시 로그인해주세요.")) return@launch
                 onFailure()
                 Log.e(TAG, "Failed to update order status. orderId=$orderId status=${status.apiValue}", e)
-                Toast.makeText(requireContext(), statusUpdateErrorMessage(e), Toast.LENGTH_SHORT).show()
+                toast(statusUpdateErrorMessage(e))
                 // Intentionally reload the full order list on failure to restore consistent UI state.
                 loadOrders()
             } finally {
@@ -256,8 +256,10 @@ class OrderFragment : Fragment() {
         buttons.forEach { it.isEnabled = enabled }
     }
 
-    private fun formatMenuSummary(order: OrderApiResponse): String =
-        order.items.joinToString(", ") { item ->
+    private fun OrderApiResponse.displayNumber(): String = orderNumber ?: "#$id"
+
+    private fun OrderApiResponse.menuSummary(): String =
+        items.joinToString(", ") { item ->
             val emojiPart = item.emoji?.let { "$it " } ?: ""
             "$emojiPart${item.name} × ${item.quantity}"
         }
@@ -275,26 +277,12 @@ class OrderFragment : Fragment() {
         } catch (_: Exception) { "" }
     }
 
-    private fun formatPrice(amount: Int): String = amount.toWon()
-
     private fun statusUpdateErrorMessage(error: Exception): String {
         if (error !is HttpException) return "상태 업데이트에 실패했어요."
         val detail = error.response()?.errorBody()?.string()
             ?.let { Regex(""""message"\s*:\s*"([^"]+)"""").find(it)?.groupValues?.getOrNull(1) ?: "오류가 발생했습니다" }
         return if (detail.isNullOrBlank()) "상태 업데이트에 실패했어요. (${error.code()})"
         else "상태 업데이트에 실패했어요. $detail"
-    }
-
-    private fun handleAuthFailure(error: Exception): Boolean {
-        if (error !is HttpException || error.code() !in listOf(401, 403)) return false
-        session.clear()
-        Toast.makeText(requireContext(), "다시 로그인해주세요.", Toast.LENGTH_SHORT).show()
-        startActivity(
-            Intent(requireContext(), LoginActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-        )
-        return true
     }
 
     private fun createEmptyView(message: String): View {

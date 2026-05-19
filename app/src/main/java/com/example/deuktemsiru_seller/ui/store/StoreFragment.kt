@@ -9,7 +9,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -24,9 +23,11 @@ import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.network.UpdateStoreRequest
 import com.example.deuktemsiru_seller.util.emptyTextView
 import com.example.deuktemsiru_seller.util.renderChildren
+import com.example.deuktemsiru_seller.util.toast
 import com.example.deuktemsiru_seller.util.toClockMinutes
 import com.example.deuktemsiru_seller.util.toClockTime
 import com.example.deuktemsiru_seller.util.toWon
+import com.example.deuktemsiru_seller.util.visibleIf
 import kotlinx.coroutines.launch
 
 class StoreFragment : Fragment() {
@@ -72,7 +73,7 @@ class StoreFragment : Fragment() {
                 binding.etPhone.setText(store.phone ?: "")
                 binding.tvClosingTime.text = store.closingTime ?: ""
             }.onFailure {
-                Toast.makeText(requireContext(), "가게 정보를 불러올 수 없어요.", Toast.LENGTH_SHORT).show()
+                toast("가게 정보를 불러올 수 없어요.")
             }
         }
     }
@@ -98,9 +99,9 @@ class StoreFragment : Fragment() {
                 binding.etPhone.setText(store.phone)
                 binding.tvClosingTime.text = store.closingTime
                 exitEditMode()
-                Toast.makeText(requireContext(), "가게 정보가 저장되었어요.", Toast.LENGTH_SHORT).show()
+                toast("가게 정보가 저장되었어요.")
             }.onFailure {
-                Toast.makeText(requireContext(), "저장에 실패했어요.", Toast.LENGTH_SHORT).show()
+                toast("저장에 실패했어요.")
             }
             binding.btnSave.isEnabled = true
         }
@@ -194,10 +195,10 @@ class StoreFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 RetrofitClient.api.updateMenu(menuId, req)
-                Toast.makeText(requireContext(), "메뉴가 수정됐어요.", Toast.LENGTH_SHORT).show()
+                toast("메뉴가 수정됐어요.")
                 loadMenus()
             }.onFailure {
-                Toast.makeText(requireContext(), "메뉴 수정에 실패했어요.", Toast.LENGTH_SHORT).show()
+                toast("메뉴 수정에 실패했어요.")
             }
         }
     }
@@ -210,10 +211,10 @@ class StoreFragment : Fragment() {
                 viewLifecycleOwner.lifecycleScope.launch {
                     runCatching {
                         RetrofitClient.api.deleteMenu(menu.id)
-                        Toast.makeText(requireContext(), "메뉴가 삭제됐어요.", Toast.LENGTH_SHORT).show()
+                        toast("메뉴가 삭제됐어요.")
                         loadMenus()
                     }.onFailure {
-                        Toast.makeText(requireContext(), "메뉴 삭제에 실패했어요.", Toast.LENGTH_SHORT).show()
+                        toast("메뉴 삭제에 실패했어요.")
                     }
                 }
             }
@@ -224,28 +225,27 @@ class StoreFragment : Fragment() {
     // ── 편집 모드 ─────────────────────────────────────────────
 
     private fun enterEditMode() {
-        isEditMode = true
-        binding.etAddress.isEnabled = true
-        binding.etPhone.isEnabled = true
-        binding.etAddress.setTextColor(ContextCompat.getColor(requireContext(), R.color.text))
-        binding.etPhone.setTextColor(ContextCompat.getColor(requireContext(), R.color.text))
-        binding.tvClosingTimeArrow.visibility = View.VISIBLE
-        binding.btnEdit.visibility = View.GONE
-        binding.btnSave.visibility = View.VISIBLE
+        setEditMode(true)
         binding.etAddress.requestFocus()
         val imm = requireContext().getSystemService(InputMethodManager::class.java)
         imm.showSoftInput(binding.etAddress, InputMethodManager.SHOW_IMPLICIT)
     }
 
     private fun exitEditMode() {
-        isEditMode = false
-        binding.etAddress.isEnabled = false
-        binding.etPhone.isEnabled = false
-        binding.tvClosingTimeArrow.visibility = View.GONE
-        binding.btnEdit.visibility = View.VISIBLE
-        binding.btnSave.visibility = View.GONE
+        setEditMode(false)
         val imm = requireContext().getSystemService(InputMethodManager::class.java)
         imm.hideSoftInputFromWindow(binding.root.windowToken, 0)
+    }
+
+    private fun setEditMode(enabled: Boolean) {
+        isEditMode = enabled
+        binding.etAddress.isEnabled = enabled
+        binding.etPhone.isEnabled = enabled
+        binding.etAddress.setTextColor(ContextCompat.getColor(requireContext(), R.color.text))
+        binding.etPhone.setTextColor(ContextCompat.getColor(requireContext(), R.color.text))
+        binding.tvClosingTimeArrow.visibleIf(enabled)
+        binding.btnEdit.visibleIf(!enabled)
+        binding.btnSave.visibleIf(enabled)
     }
 
     private fun showTimePicker() {

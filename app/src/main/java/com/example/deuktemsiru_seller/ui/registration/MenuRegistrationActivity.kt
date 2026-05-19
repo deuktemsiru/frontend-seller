@@ -20,9 +20,15 @@ import com.example.deuktemsiru_seller.data.SessionManager
 import com.example.deuktemsiru_seller.databinding.ActivityMenuRegistrationBinding
 import com.example.deuktemsiru_seller.network.RetrofitClient
 import com.example.deuktemsiru_seller.util.PickupTimeState
-import com.example.deuktemsiru_seller.util.setSelectedChip
+import com.example.deuktemsiru_seller.util.bindDiscountPresets
+import com.example.deuktemsiru_seller.util.discountPresetViews
+import com.example.deuktemsiru_seller.util.inflateInto
+import com.example.deuktemsiru_seller.util.refreshDiscountPresets
+import com.example.deuktemsiru_seller.util.setupQuantityControls
 import com.example.deuktemsiru_seller.util.simpleTextWatcher
+import com.example.deuktemsiru_seller.util.toast
 import com.example.deuktemsiru_seller.util.toWon
+import com.example.deuktemsiru_seller.util.visibleIf
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -96,7 +102,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
     private fun registerMenu() {
         val session = SessionManager(this)
         if (!session.isLoggedIn()) {
-            Toast.makeText(this, "로그인이 필요해요.", Toast.LENGTH_SHORT).show()
+            toast("로그인이 필요해요.")
             return
         }
 
@@ -112,14 +118,10 @@ class MenuRegistrationActivity : AppCompatActivity() {
                     allergenInfo = selectedAllergyInfo?.toTextPart(),
                     image = createImagePart("image"),
                 )
-                Toast.makeText(
-                    this@MenuRegistrationActivity,
-                    "메뉴가 등록됐어요! 판매 상품으로 등록해보세요.",
-                    Toast.LENGTH_LONG
-                ).show()
+                toast("메뉴가 등록됐어요! 판매 상품으로 등록해보세요.", Toast.LENGTH_LONG)
                 finish()
             } catch (e: Exception) {
-                Toast.makeText(this@MenuRegistrationActivity, "등록에 실패했어요.", Toast.LENGTH_SHORT).show()
+                toast("등록에 실패했어요.")
                 binding.btnNext.isEnabled = true
                 binding.btnNext.text = "등록하기"
             }
@@ -141,14 +143,15 @@ class MenuRegistrationActivity : AppCompatActivity() {
         }
 
         binding.stepContainer.removeAllViews()
-        val stepView = layoutInflater.inflate(layoutRes, binding.stepContainer, false)
-        binding.stepContainer.addView(stepView)
+        val stepView = layoutInflater.inflateInto(layoutRes, binding.stepContainer)
         currentStepView = stepView
 
-        if (step == 1) setupStep1(stepView)
-        if (step == 2) setupStep2(stepView)
-        if (step == 3) setupStep3(stepView)
-        if (step == 4) setupStep4(stepView)
+        when (step) {
+            1 -> setupStep1(stepView)
+            2 -> setupStep2(stepView)
+            3 -> setupStep3(stepView)
+            4 -> setupStep4(stepView)
+        }
     }
 
     private fun setupStep1(view: View) {
@@ -191,14 +194,9 @@ class MenuRegistrationActivity : AppCompatActivity() {
         val imageView = view.findViewById<ImageView>(R.id.iv_menu_image)
         val hintView = view.findViewById<TextView>(R.id.tv_image_upload_hint)
         val uri = selectedImageUri
-        if (uri == null) {
-            imageView.visibility = View.GONE
-            hintView.visibility = View.VISIBLE
-        } else {
-            imageView.setImageURI(uri)
-            imageView.visibility = View.VISIBLE
-            hintView.visibility = View.GONE
-        }
+        imageView.visibleIf(uri != null)
+        hintView.visibleIf(uri == null)
+        uri?.let(imageView::setImageURI)
     }
 
     private fun validateStep1(): Boolean {
@@ -249,13 +247,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
     }
 
     private fun setupStep2(view: View) {
-        val presetIds = mapOf(
-            10 to view.findViewById<TextView>(R.id.preset_30),
-            20 to view.findViewById<TextView>(R.id.preset_50),
-            30 to view.findViewById<TextView>(R.id.preset_60),
-            40 to view.findViewById<TextView>(R.id.preset_70)
-        )
-        presetIds.forEach { (discount, presetView) -> presetView.text = "$discount%" }
+        val presetIds = discountPresetViews(view)
         val etDiscountRate = view.findViewById<EditText>(R.id.et_discount_rate)
         val tvOriginalPrice = view.findViewById<TextView>(R.id.tv_original_price)
         val tvDiscountPrice = view.findViewById<TextView>(R.id.tv_discount_price)
@@ -267,28 +259,19 @@ class MenuRegistrationActivity : AppCompatActivity() {
             tvDiscountPrice.text = discountedPrice().toWon()
             tvCustomerSaving.text = (selectedOriginalPrice - discountedPrice()).toWon()
             tvSellerRecovery.text = discountedPrice().toWon()
-            presetIds.forEach { (discount, presetView) ->
-                presetView.setSelectedChip(discount == selectedDiscountRate)
-            }
+            refreshDiscountPresets(presetIds, selectedDiscountRate)
         }
 
         if (selectedDiscountRate > 0) {
             etDiscountRate.setText(selectedDiscountRate.toString())
         }
 
-        etDiscountRate.addTextChangedListener(simpleTextWatcher { text ->
-            selectedDiscountRate = text.toIntOrNull() ?: 0
-            refreshPrices()
-        })
-
-        presetIds.forEach { (discount, presetView) ->
-            presetView.setOnClickListener {
-                selectedDiscountRate = discount
-                etDiscountRate.setText(discount.toString())
-                etDiscountRate.setSelection(etDiscountRate.text?.length ?: 0)
-            }
-        }
-        refreshPrices()
+        etDiscountRate.bindDiscountPresets(
+            presets = presetIds,
+            selectedRate = { selectedDiscountRate },
+            onRateChanged = { selectedDiscountRate = it },
+            refresh = ::refreshPrices,
+        )
     }
 
     private fun validateStep2(): Boolean {
@@ -306,28 +289,14 @@ class MenuRegistrationActivity : AppCompatActivity() {
     }
 
     private fun setupStep3(view: View) {
-        var qty = selectedQuantity
         val tvQty = view.findViewById<TextView>(R.id.tv_quantity)
         val tvStart = view.findViewById<TextView>(R.id.tv_pickup_start)
         val tvEnd = view.findViewById<TextView>(R.id.tv_pickup_end)
-        tvQty.text = qty.toString()
+        setupQuantityControls(view, selectedQuantity) {
+            selectedQuantity = it
+            tvQty.text = it.toString()
+        }
         refreshPickupViews(tvStart, tvEnd)
-
-        view.findViewById<View>(R.id.btn_qty_minus).setOnClickListener {
-            if (qty > 1) {
-                qty--
-                tvQty.text = qty.toString()
-                selectedQuantity = qty
-            }
-        }
-
-        view.findViewById<View>(R.id.btn_qty_plus).setOnClickListener {
-            if (qty < 99) {
-                qty++
-                tvQty.text = qty.toString()
-                selectedQuantity = qty
-            }
-        }
 
         view.findViewById<View>(R.id.container_pickup_start).setOnClickListener {
             showTimePicker(pickupTime.startMinutes) { minutes ->
@@ -340,7 +309,7 @@ class MenuRegistrationActivity : AppCompatActivity() {
         view.findViewById<View>(R.id.container_pickup_end).setOnClickListener {
             showTimePicker(pickupTime.endMinutes) { minutes ->
                 if (minutes <= pickupTime.startMinutes) {
-                    Toast.makeText(this, "마감 시간은 시작 시간보다 늦어야 해요.", Toast.LENGTH_SHORT).show()
+                    toast("마감 시간은 시작 시간보다 늦어야 해요.")
                 } else {
                     pickupTime.endMinutes = minutes
                     refreshPickupViews(tvStart, tvEnd)

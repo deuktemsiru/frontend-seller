@@ -2,7 +2,6 @@ package com.example.deuktemsiru_seller.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -13,6 +12,8 @@ import com.example.deuktemsiru_seller.databinding.ActivityLoginBinding
 import com.example.deuktemsiru_seller.network.DebugLoginRequest
 import com.example.deuktemsiru_seller.network.LoginData
 import com.example.deuktemsiru_seller.network.RetrofitClient
+import com.example.deuktemsiru_seller.util.toast
+import com.example.deuktemsiru_seller.util.visibleIf
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
@@ -39,13 +40,13 @@ class LoginActivity : AppCompatActivity() {
         }
 
         if (BuildConfig.DEBUG) {
-            binding.layoutDebugForm.visibility = View.VISIBLE
+            binding.layoutDebugForm.visibleIf(true)
         }
 
         binding.btnLogin.setOnClickListener {
             val id = binding.etLoginId.text?.toString()?.trim() ?: ""
             if (id.isBlank()) {
-                Toast.makeText(this, "디버그 ID 또는 판매자 이메일을 입력해주세요", Toast.LENGTH_SHORT).show()
+                toast("디버그 ID 또는 판매자 이메일을 입력해주세요")
                 return@setOnClickListener
             }
             if (id == "mock") {
@@ -135,7 +136,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun handleKakaoError(error: Throwable) {
         if (!error.isUserCancelled()) {
-            Toast.makeText(this, "카카오 로그인 실패: ${error.message}", Toast.LENGTH_SHORT).show()
+            toast("카카오 로그인 실패: ${error.message}")
         }
         setLoading(false)
     }
@@ -185,13 +186,13 @@ class LoginActivity : AppCompatActivity() {
         this is ClientError && reason == ClientErrorCause.Cancelled
 
     private fun setLoading(loading: Boolean) {
-        binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
+        binding.progressBar.visibleIf(loading)
         binding.btnKakaoLogin.isEnabled = !loading
         binding.btnLogin.isEnabled = !loading
         binding.etLoginId.isEnabled = !loading
     }
 
     private fun showError(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        toast(message, Toast.LENGTH_LONG)
     }
 }

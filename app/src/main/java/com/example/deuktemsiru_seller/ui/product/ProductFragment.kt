@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -21,9 +20,11 @@ import com.example.deuktemsiru_seller.network.SaleItemApiResponse
 import com.example.deuktemsiru_seller.network.SaleStatus
 import com.example.deuktemsiru_seller.network.UpdateSaleItemRequest
 import com.example.deuktemsiru_seller.network.UpdateSaleStatusRequest
-import com.example.deuktemsiru_seller.ui.auth.LoginActivity
+import com.example.deuktemsiru_seller.network.badgeStyle
 import com.example.deuktemsiru_seller.util.emptyTextView
+import com.example.deuktemsiru_seller.util.handleSellerAuthFailure
 import com.example.deuktemsiru_seller.util.renderChildren
+import com.example.deuktemsiru_seller.util.toast
 import com.example.deuktemsiru_seller.util.toWon
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -64,27 +65,15 @@ class ProductFragment : Fragment() {
                 val items = RetrofitClient.api.getSaleItems().data ?: emptyList()
                 renderItems(items)
             }.onFailure { error ->
-                if (handleAuthFailure(error)) return@onFailure
+                if (handleSellerAuthFailure(error, session)) return@onFailure
                 if (error is HttpException && error.code() == 404) {
                     renderItems(emptyList())
                     return@onFailure
                 }
                 Log.e(TAG, "Failed to load sale items", error)
-                Toast.makeText(requireContext(), "상품 목록을 불러올 수 없어요", Toast.LENGTH_SHORT).show()
+                toast("상품 목록을 불러올 수 없어요")
             }
         }
-    }
-
-    private fun handleAuthFailure(error: Throwable): Boolean {
-        if (error !is HttpException || error.code() !in listOf(401, 403)) return false
-        session.clear()
-        Toast.makeText(requireContext(), "판매자 계정으로 다시 로그인해주세요.", Toast.LENGTH_SHORT).show()
-        startActivity(
-            Intent(requireContext(), LoginActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-        )
-        return true
     }
 
     private fun renderItems(items: List<SaleItemApiResponse>) {
@@ -98,15 +87,10 @@ class ProductFragment : Fragment() {
             itemBinding.tvItemDetail.text =
                 "${item.discountedPrice.toWon()} · 잔여 ${item.remainingItems}/${item.totalItems}개 · ${item.displayPickupTime}"
 
-            val (statusText, badgeBackground, badgeTextColor) = when (item.saleStatus) {
-                SaleStatus.Available -> Triple("● 판매중", R.drawable.bg_status_available, 0xFF2E7D32.toInt())
-                SaleStatus.SoldOut -> Triple("● 품절", R.drawable.bg_status_soldout, 0xFFE65100.toInt())
-                SaleStatus.Expired -> Triple("종료", R.drawable.bg_status_expired, 0xFF616161.toInt())
-                else        -> Triple(item.status, R.drawable.bg_status_expired, 0xFF616161.toInt())
-            }
-            itemBinding.tvItemStatus.text = statusText
-            itemBinding.tvItemStatus.setTextColor(badgeTextColor)
-            itemBinding.tvItemStatus.setBackgroundResource(badgeBackground)
+            val badge = item.saleStatus.badgeStyle(item.status)
+            itemBinding.tvItemStatus.text = badge.text
+            itemBinding.tvItemStatus.setTextColor(badge.textColor)
+            itemBinding.tvItemStatus.setBackgroundResource(badge.backgroundRes)
 
             fun styleButton(btn: TextView, isActive: Boolean) {
                 val primaryColor = ContextCompat.getColor(requireContext(), R.color.primary)
@@ -145,7 +129,7 @@ class ProductFragment : Fragment() {
                 RetrofitClient.api.updateSaleStatus(itemId, UpdateSaleStatusRequest(status))
                 loadSaleItems()
             }.onFailure {
-                Toast.makeText(requireContext(), "상태 변경에 실패했어요", Toast.LENGTH_SHORT).show()
+                toast("상태 변경에 실패했어요")
             }
         }
     }
@@ -182,11 +166,11 @@ class ProductFragment : Fragment() {
                 val newPrice = etPrice.text?.toString()?.toIntOrNull()
                 val newQty = etQty.text?.toString()?.toIntOrNull()
                 if (newPrice == null || newPrice <= 0) {
-                    Toast.makeText(requireContext(), "올바른 가격을 입력해주세요", Toast.LENGTH_SHORT).show()
+                    toast("올바른 가격을 입력해주세요")
                     return@setPositiveButton
                 }
                 if (newQty == null || newQty < 0) {
-                    Toast.makeText(requireContext(), "올바른 수량을 입력해주세요", Toast.LENGTH_SHORT).show()
+                    toast("올바른 수량을 입력해주세요")
                     return@setPositiveButton
                 }
                 viewLifecycleOwner.lifecycleScope.launch {
@@ -195,10 +179,10 @@ class ProductFragment : Fragment() {
                             item.id,
                             UpdateSaleItemRequest(discountPrice = newPrice, quantityRemaining = newQty),
                         )
-                        Toast.makeText(requireContext(), "수정됐어요", Toast.LENGTH_SHORT).show()
+                        toast("수정됐어요")
                         loadSaleItems()
                     }.onFailure {
-                        Toast.makeText(requireContext(), "수정에 실패했어요", Toast.LENGTH_SHORT).show()
+                        toast("수정에 실패했어요")
                     }
                 }
             }
@@ -216,10 +200,10 @@ class ProductFragment : Fragment() {
                 viewLifecycleOwner.lifecycleScope.launch {
                     runCatching {
                         RetrofitClient.api.cancelSaleItem(item.id)
-                        Toast.makeText(requireContext(), "상품이 ${actionLabel}됐어요", Toast.LENGTH_SHORT).show()
+                        toast("상품이 ${actionLabel}됐어요")
                         loadSaleItems()
                     }.onFailure {
-                        Toast.makeText(requireContext(), "${actionLabel}에 실패했어요", Toast.LENGTH_SHORT).show()
+                        toast("${actionLabel}에 실패했어요")
                     }
                 }
             }
